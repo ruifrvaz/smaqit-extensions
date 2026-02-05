@@ -1,0 +1,81 @@
+name: Test Integration
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Test Installation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      
+      - name: Build installer
+        working-directory: installer
+        run: make clean build
+      
+      - name: Create test directory
+        run: mkdir -p /tmp/smaqit-extensions-test
+      
+      - name: Run installer
+        run: |
+          cd /tmp/smaqit-extensions-test
+          ${{ github.workspace }}/installer/dist/smaqit-extensions
+      
+      - name: Verify prompts installed
+        run: |
+          EXPECTED_PROMPTS=(
+            "session.start.prompt.md"
+            "session.assess.prompt.md"
+            "session.finish.prompt.md"
+            "session.title.prompt.md"
+            "task.create.prompt.md"
+            "task.list.prompt.md"
+            "task.complete.prompt.md"
+            "test.start.prompt.md"
+          )
+          
+          for prompt in "${EXPECTED_PROMPTS[@]}"; do
+            if [ ! -f "/tmp/smaqit-extensions-test/.github/prompts/$prompt" ]; then
+              echo "❌ Missing prompt: $prompt"
+              exit 1
+            fi
+            echo "✓ Found prompt: $prompt"
+          done
+      
+      - name: Verify agents installed
+        run: |
+          EXPECTED_AGENTS=(
+            "smaqit.release.agent.md"
+            "smaqit.user-testing.agent.md"
+          )
+          
+          for agent in "${EXPECTED_AGENTS[@]}"; do
+            if [ ! -f "/tmp/smaqit-extensions-test/.github/agents/$agent" ]; then
+              echo "❌ Missing agent: $agent"
+              exit 1
+            fi
+            echo "✓ Found agent: $agent"
+          done
+      
+      - name: Test uninstall
+        run: |
+          cd /tmp/smaqit-extensions-test
+          ${{ github.workspace }}/installer/dist/smaqit-extensions uninstall
+          
+          # Verify files removed
+          if [ -f "/tmp/smaqit-extensions-test/.github/prompts/session.start.prompt.md" ]; then
+            echo "❌ Files not removed"
+            exit 1
+          fi
+          echo "✓ Uninstall successful"

@@ -11,9 +11,9 @@ End a session by documenting the **entire session** (not just recent activity).
 
 1. **Review full conversation** - All topics discussed, decisions made, files modified
 
-2. **Create history file** if session qualifies as significant (see Documentation Philosophy in copilot-instructions.md)
+2. **Create history file** if session qualifies as significant
    - Filename: `docs/history/NNN_description_YYYY-MM-DD.md`
-     - `NNN` = Next sequential number (check existing files: `ls docs/history/ | grep -E '^[0-9]+_' | sort -V | tail -1`)
+     - `NNN` = Next sequential number (inspect existing files; if none exist, start at `001`)
      - `description` = Brief topic description (2-4 words, lowercase with underscores)
      - `YYYY-MM-DD` = Session date
      - **Do NOT include task identifiers** (e.g., "task_014") in filename

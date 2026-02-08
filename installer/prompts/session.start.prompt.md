@@ -9,19 +9,18 @@ Start a new chat with full project context. Execute these steps IN ORDER:
 
 ## Steps
 
-1. **Read core project files from start to finish** (in parallel):
-   - `README.md` (project root)
-   - `framework/SMAQIT.md` (index + core principles)
-   - `framework/LAYERS.md` (layer definitions)
-   - `framework/PHASES.md` (phase workflows)
-   - `framework/TEMPLATES.md` (template structure rules)
-   - `framework/AGENTS.md` (agent behaviors)
-   - `framework/ARTIFACTS.md` (artifact rules)
-   - `framework/PROMPTS.md` (prompt architecture)
+1. **Read core project files from start to finish** (in parallel, if they exist):
+   - `README.md`
+   - `CONTRIBUTING.md`
+   - `.github/copilot-instructions.md`
+   - `docs/` (scan for an index like `docs/README.md`, `docs/index.md`, `docs/architecture.md`, `docs/adr/`)
+   - Build/test entrypoints (whichever exist): `Makefile`, `package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`
 
-2. **Read the most recent history file from start to finish** from `docs/history/` (sorted by date descending)
+2. **Load recent session context**:
+   - Read the most recent history entry from `docs/history/` (if no entries exist yet, continue without history).
 
-3. **Read task planning file:** `docs/tasks/PLANNING.md` (NOT individual task files)
+3. **Load task planning**:
+   - Read `docs/tasks/PLANNING.md` (NOT individual task files).
 
 4. **Synthesize and present** a summary covering:
    - Current project state (from READMEs)
@@ -34,3 +33,4 @@ Start a new chat with full project context. Execute these steps IN ORDER:
 **CRITICAL:** Read complete files without line limits. Do NOT truncate at any arbitrary limit.
 
 **Note:** Only read individual task files (`docs/tasks/NNN_*.md`) when actively working on that specific task.
+

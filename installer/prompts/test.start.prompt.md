@@ -6,23 +6,24 @@ agent: smaqit.user-testing
 
 # Test Start
 
-Start a testing session with minimal, focused context. Loads framework understanding and specific test task only - no history, no task planning, no wiki.
+Start a testing session with minimal, focused context. Loads project test entrypoints and (optionally) a specific test task only.
 
 ## Steps
 
 Execute these steps **IN ORDER**:
 
-### 1. Load Framework Foundation (Parallel)
+### 1. Load Test Entry Points (Parallel)
 
-Read these framework files to understand smaqit architecture and validation rules:
+Read the project files that define how tests are run (whichever exist):
 
-- `framework/SMAQIT.md` (core principles)
-- `framework/LAYERS.md` (layer definitions)
-- `framework/PHASES.md` (phase workflows)
-- `framework/ARTIFACTS.md` (artifact rules and validation)
-- `framework/AGENTS.md` (agent behaviors)
+- `README.md`
+- `CONTRIBUTING.md` and/or `TESTING.md`
+- `Makefile`
+- `package.json` (scripts)
+- `pyproject.toml` / `tox.ini` / `pytest.ini`
+- `go.mod` (then infer `go test ./...`)
 
-**Critical:** Read complete files without truncation. Framework knowledge is required for test validation.
+**Critical:** Read complete files without truncation.
 
 ### 2. Load Specific Test Task
 
@@ -30,6 +31,8 @@ Read these framework files to understand smaqit architecture and validation rule
 
 Read the complete test task file:
 - `docs/tasks/{TASK_NUMBER}_*.md`
+
+If the task file does not exist, instruct the user to create it using `/task.create` (or create it yourself) before proceeding.
 
 This file contains:
 - Test objectives
@@ -64,27 +67,25 @@ Then state: **"Ready to begin test execution. Say 'start' to proceed."**
 - ❌ History files (`docs/history/*.md`) - Not needed for test execution
 - ❌ Task planning (`docs/tasks/PLANNING.md`) - Not needed during test
 - ❌ Other task files - Only the specific test task is loaded
-- ❌ Wiki documentation - Framework files contain execution rules
 - ❌ Previous test reports - Each test is independent
 
 ## What This DOES Load
 
 **Minimal focused context:**
-- ✅ Framework files (8 files) - Required for validation understanding
-- ✅ Specific test task (1 file) - Complete test workflow and criteria
-- ✅ Test philosophy and validation rules from framework
+- ✅ Test entrypoints (project-specific) - How to run the test suite
+- ✅ Specific test task (optional) - If provided, follow its workflow and criteria
 
 ## Critical Requirements
 
-**READ COMPLETE FILES:** Do NOT truncate framework files or test task file. Complete understanding is required for proper test validation.
+**READ COMPLETE FILES:** Do NOT truncate test entrypoint files or the test task file.
 
 **MODE:** You are now in test execution mode. Follow the test task workflow and your agent directives for execution philosophy, coordination patterns, and report generation.
 
 ## Success Criteria
 
 Test start is successful when:
-- [ ] All 5 framework files read completely
-- [ ] Specific test task file read completely
+- [ ] Test entrypoint files read completely
+- [ ] Specific test task file read completely (if provided)
 - [ ] Test type and objectives understood
 - [ ] Issue list and validation points identified
 - [ ] Critical checkpoints mapped to workflow phases

@@ -67,6 +67,26 @@ jobs:
             fi
             echo "✓ Found agent: $agent"
           done
+
+      - name: Verify docs scaffolding
+        run: |
+          if [ ! -d "/tmp/smaqit-extensions-test/docs/tasks" ]; then
+            echo "❌ Missing docs/tasks directory"
+            exit 1
+          fi
+          if [ ! -d "/tmp/smaqit-extensions-test/docs/history" ]; then
+            echo "❌ Missing docs/history directory"
+            exit 1
+          fi
+          if [ ! -d "/tmp/smaqit-extensions-test/docs/user-testing" ]; then
+            echo "❌ Missing docs/user-testing directory"
+            exit 1
+          fi
+          if [ ! -f "/tmp/smaqit-extensions-test/docs/tasks/PLANNING.md" ]; then
+            echo "❌ Missing docs/tasks/PLANNING.md"
+            exit 1
+          fi
+          echo "✓ Docs scaffolding present"
       
       - name: Test uninstall
         run: |

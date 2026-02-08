@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -16,6 +17,35 @@ var agentFiles embed.FS
 
 // Version is set via ldflags during build: -X main.Version=$(VERSION)
 var Version = "0.1.0"
+
+const planningTemplate = `# Task Planning
+
+## Active
+
+| ID | Title | Status | Notes |
+|----|-------|--------|-------|
+
+## Completed
+
+| ID | Title | Completed | Notes |
+|----|-------|-----------|-------|
+
+## Abandoned
+
+| ID | Title | Date | Reason |
+|----|-------|------|--------|
+`
+
+func writeFileIfMissing(path string, content []byte, perm fs.FileMode) error {
+	_, err := os.Stat(path)
+	if err == nil {
+		return nil
+	}
+	if !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
+	return os.WriteFile(path, content, perm)
+}
 
 func main() {
 	if len(os.Args) > 1 {
@@ -41,7 +71,7 @@ func main() {
 }
 
 func printHelp() {
-	fmt.Println("smaqit-extensions - Quality-of-life extensions for smaqit")
+	fmt.Println("smaqit-extensions - Quality-of-life workflow prompts and agents")
 	fmt.Printf("Version: %s\n\n", Version)
 	fmt.Println("Usage: smaqit-extensions [dir]")
 	fmt.Println()
@@ -61,6 +91,10 @@ func cmdInstall(targetDir string) {
 	// Create target directories
 	promptsDir := filepath.Join(targetDir, ".github", "prompts")
 	agentsDir := filepath.Join(targetDir, ".github", "agents")
+	docsDir := filepath.Join(targetDir, "docs")
+	tasksDir := filepath.Join(docsDir, "tasks")
+	historyDir := filepath.Join(docsDir, "history")
+	userTestingDir := filepath.Join(docsDir, "user-testing")
 
 	if err := os.MkdirAll(promptsDir, 0755); err != nil {
 		fmt.Printf("Error creating prompts directory: %v\n", err)
@@ -69,6 +103,26 @@ func cmdInstall(targetDir string) {
 
 	if err := os.MkdirAll(agentsDir, 0755); err != nil {
 		fmt.Printf("Error creating agents directory: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Create docs scaffolding used by prompts/agents
+	if err := os.MkdirAll(tasksDir, 0755); err != nil {
+		fmt.Printf("Error creating tasks directory: %v\n", err)
+		os.Exit(1)
+	}
+	if err := os.MkdirAll(historyDir, 0755); err != nil {
+		fmt.Printf("Error creating history directory: %v\n", err)
+		os.Exit(1)
+	}
+	if err := os.MkdirAll(userTestingDir, 0755); err != nil {
+		fmt.Printf("Error creating user-testing directory: %v\n", err)
+		os.Exit(1)
+	}
+
+	planningPath := filepath.Join(tasksDir, "PLANNING.md")
+	if err := writeFileIfMissing(planningPath, []byte(planningTemplate), 0644); err != nil {
+		fmt.Printf("Error creating planning file: %v\n", err)
 		os.Exit(1)
 	}
 

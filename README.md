@@ -1,8 +1,10 @@
 # smaqit-extensions
 
-**Quality-of-life extensions for smaqit development workflows**
+**Quality-of-life workflow prompts and agents (smaqit-extensions)**
 
-A collection of prompts and agents that streamline session management, task tracking, and testing workflows. While designed for smaqit development, these utilities work with any structured development workflow.
+A collection of prompts and agents that streamline session management, task tracking, release, and testing workflows.
+
+These `smaqit`extensions are designed to work out of the box in any repository (no `smaqit init`, no `.smaqit/`, no `specs/`, no `framework/` required).
 
 ## What's Included
 
@@ -63,7 +65,15 @@ Agents are available in GitHub Custom Agents:
 ## Requirements
 
 - GitHub Copilot with prompt/agent support
-- Project with `.github/` directory structure
+- A git repository (recommended)
+
+The installer writes files under `.github/prompts/` and `.github/agents/` and will create the `.github/` folder if it doesn't exist.
+
+The installer also scaffolds the docs artifacts used by the prompts:
+- `docs/tasks/PLANNING.md`
+- `docs/tasks/`
+- `docs/history/`
+- `docs/user-testing/`
 
 ## Development
 

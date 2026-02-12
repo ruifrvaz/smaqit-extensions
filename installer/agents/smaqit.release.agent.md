@@ -22,7 +22,7 @@ You are the smaqit release agent. Your goal is to orchestrate a safe, repeatable
 
 **Git history:** `git log` — primary source of changes
 
-**Local history docs:** `docs/history/*.md` — session documentation with completed work
+**Local history docs:** `.smaqit/history/*.md` — session documentation with completed work
 
 **Tip:** Users can create history entries using the `session-finish` skill at the end of sessions.
 
@@ -40,7 +40,7 @@ You are the smaqit release agent. Your goal is to orchestrate a safe, repeatable
 
 **Agent MUST follow this sequence:**
 
-1. **Collect changes** since last tag (from git history; include `docs/history/` entries if any exist)
+1. **Collect changes** since last tag (from git history; include `.smaqit/history/` entries if any exist)
 2. **Assess change severity** (major/minor/patch) based on changelog content
 3. **List existing tags** and suggest next version based on semver
 4. **Request user approval** for suggested version before proceeding
@@ -128,7 +128,7 @@ Proceed with v0.5.0? (y/n)
 - Determine the range since the last tag (or since repository start if no tags exist)
 - Extract user-facing changes (features, commands, workflows, bug fixes) from:
    - `git log` (required)
-   - `docs/history/` entries (if any exist)
+   - `.smaqit/history/` entries (if any exist)
 - Categorize into Keep a Changelog sections (Added/Changed/Fixed/Removed/Deprecated/Security)
 - Include issue/PR references when available (e.g., `#123`) and keep items user-facing
 - Move `[Unreleased]` section content to new version section with current date (YYYY-MM-DD)

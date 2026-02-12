@@ -4,7 +4,7 @@
 
 A collection of prompts and agents that streamline session management, task tracking, release, and testing workflows.
 
-These `smaqit`extensions are designed to work out of the box in any repository (no `smaqit init`, no `.smaqit/`, no `specs/`, no `framework/` required).
+These `smaqit` extensions are designed to work out of the box in any repository. Install once, and prompts/agents reference the `.smaqit/` directory for task tracking, session history, and testing artifacts.
 
 ## What's Included
 
@@ -82,19 +82,40 @@ Agents are available in GitHub Custom Agents:
 
 The installer writes files under `.github/prompts/` and `.github/agents/` and will create the `.github/` folder if it doesn't exist.
 
-The installer also scaffolds the docs artifacts used by the prompts:
-- `docs/tasks/PLANNING.md`
-- `docs/tasks/`
-- `docs/history/`
-- `docs/user-testing/`
+The installer also scaffolds the `.smaqit/` directory structure used by prompts and agents:
+- `.smaqit/tasks/PLANNING.md` - Central task tracking file
+- `.smaqit/tasks/` - Individual task files
+- `.smaqit/history/` - Session documentation
+- `.smaqit/user-testing/` - Test reports
 
 ## Development
+
+### Building the Installer
 
 ```bash
 cd installer
 make build    # Build installer
 make test     # Test installer
 ```
+
+### Dogfooding (Repository Contributors)
+
+This repository uses its own agents, prompts, and skills for development (dogfooding).
+
+Source files are located in:
+- `agents/` - Agent definitions
+- `prompts/` - Prompt stubs
+- `session-*/`, `task-*/`, `test-*/` - Skill implementations
+
+These are copied to `.github/{agents,prompts,skills}/` for use by GitHub Copilot.
+
+**Important:** After making changes to source files, run:
+
+```bash
+make sync
+```
+
+This copies updated files to `.github/` so they're available for use. The sync verification workflow in CI will fail if `.github/` is out of sync with source files.
 
 ## Contributing
 

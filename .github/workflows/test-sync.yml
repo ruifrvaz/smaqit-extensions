@@ -1,0 +1,65 @@
+name: Sync Verification
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'agents/**'
+      - 'prompts/**'
+      - 'session-*/**'
+      - 'task-*/**'
+      - 'test-*/**'
+      - '.github/agents/**'
+      - '.github/prompts/**'
+      - '.github/skills/**'
+
+jobs:
+  verify-sync:
+    name: Verify .github/ in sync with source
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Verify agents in sync
+        run: |
+          for agent in agents/*.md; do
+            filename=$(basename "$agent")
+            if ! diff -q "$agent" ".github/agents/$filename" > /dev/null 2>&1; then
+              echo "❌ Out of sync: $agent"
+              echo ""
+              echo "Run 'make sync' to update .github/ with source changes."
+              exit 1
+            fi
+          done
+          echo "✓ Agents in sync"
+      
+      - name: Verify prompts in sync
+        run: |
+          for prompt in prompts/*.md; do
+            filename=$(basename "$prompt")
+            if ! diff -q "$prompt" ".github/prompts/$filename" > /dev/null 2>&1; then
+              echo "❌ Out of sync: $prompt"
+              echo ""
+              echo "Run 'make sync' to update .github/ with source changes."
+              exit 1
+            fi
+          done
+          echo "✓ Prompts in sync"
+      
+      - name: Verify skills in sync
+        run: |
+          for skill in session-start session-finish session-assess session-title task-create task-list task-complete test-start; do
+            if ! diff -q "$skill/SKILL.md" ".github/skills/$skill/SKILL.md" > /dev/null 2>&1; then
+              echo "❌ Out of sync: $skill/SKILL.md"
+              echo ""
+              echo "Run 'make sync' to update .github/ with source changes."
+              exit 1
+            fi
+          done
+          echo "✓ Skills in sync"
+      
+      - name: All files in sync
+        run: |
+          echo "✅ All source files are in sync with .github/"

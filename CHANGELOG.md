@@ -7,7 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Breaking Changes (v0.3.0)
+
+**⚠️ This is a breaking change release**
+
+- **Installer now scaffolds `.smaqit/` instead of `docs/`**
+  - All task tracking, history, and testing artifacts now use `.smaqit/{tasks,history,user-testing}/`
+  - Removed all backwards compatibility with `docs/` structure
+  - Projects using smaqit-extensions must update file operations to `.smaqit/`
+
 ### Added
+- Root-level `Makefile` with `sync` command for dogfooding workflow
+- `.github/{agents,prompts,skills}/` directories populated from source files
+- Sync verification workflow (`.github/workflows/test-sync.yml`) to ensure `.github/` stays in sync
+- Full dogfooding setup: repository now uses its own agents and prompts
+
+### Changed
+- Installer creates `.smaqit/{tasks,history,user-testing}/` directories (not `docs/`)
+- All agents and skills updated to reference `.smaqit/` paths
+- Integration tests verify `.smaqit/` structure (not `docs/`)
+- README updated with `.smaqit/` structure and dogfooding instructions
+
+### Removed
+- All `docs/` directory references and backwards compatibility
+- Migration logic for transitioning from `docs/` to `.smaqit/`
+
+### Migration Guide
+
+**For Projects Using smaqit-extensions:**
+1. Move content from `docs/` to `.smaqit/`:
+   - `docs/tasks/` → `.smaqit/tasks/`
+   - `docs/history/` → `.smaqit/history/`
+   - `docs/user-testing/` → `.smaqit/user-testing/`
+2. Update any custom scripts or automations to reference `.smaqit/` instead of `docs/`
+3. Remove the old `docs/` directory if no longer needed
+
+**For Repository Contributors:**
+- After modifying source files (`agents/`, `prompts/`, skill directories), run `make sync` before committing
+- CI will fail PRs where `.github/` is out of sync with source files
+
+### Added (from previous work)
 - Agent Skills Spec adoption with 8 root-level skill directories
   - `session-start/SKILL.md` - Load full project context
   - `session-finish/SKILL.md` - Document session history

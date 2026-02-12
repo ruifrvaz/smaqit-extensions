@@ -1,0 +1,40 @@
+name: Post-Merge Release Tag
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  tag-release:
+    if: |
+      github.event.pull_request.merged == true &&
+      (startsWith(github.event.pull_request.title, 'Prepare release v') ||
+       startsWith(github.event.pull_request.title, 'Release v'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from PR title
+        id: version
+        run: |
+          TITLE="${{ github.event.pull_request.title }}"
+          # Match "Prepare release vX.Y.Z" or "Release vX.Y.Z"
+          if [[ "$TITLE" =~ [Pp]repare[[:space:]]release[[:space:]]v([0-9]+\.[0-9]+\.[0-9]+) ]]; then
+            echo "version=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
+          elif [[ "$TITLE" =~ [Rr]elease[[:space:]]v([0-9]+\.[0-9]+\.[0-9]+) ]]; then
+            echo "version=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create and push tag
+        if: steps.version.outputs.version != ''
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${{ steps.version.outputs.version }}" -m "Release v${{ steps.version.outputs.version }}"
+          git push origin "v${{ steps.version.outputs.version }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -126,6 +126,25 @@ make sync
 
 This copies updated files to `.github/` so they're available for use. The sync verification workflow in CI will fail if `.github/` is out of sync with source files.
 
+## Releases
+
+Releases are fully automated via PR-based workflow:
+
+1. Create a release issue (or use existing template)
+2. Assign to Copilot Coding Agent
+3. Agent creates PR with CHANGELOG updates
+4. Review and merge PR
+5. Post-merge workflow creates tag automatically
+6. Release workflow builds binaries and creates GitHub Release
+
+**No manual git operations required!**
+
+### For Maintainers
+
+- Ensure release PR titles follow format: "Prepare release vX.Y.Z" or "Release vX.Y.Z"
+- Post-merge workflow extracts version from title
+- Tag format: `vX.Y.Z` (e.g., `v0.3.0`)
+
 ## Contributing
 
 Contributions welcome! Please open an issue or PR.

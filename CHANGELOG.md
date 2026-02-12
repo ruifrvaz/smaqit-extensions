@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-02-12
+
 ### Added
 - **Release skills** - 5 composable skills for release workflows
   - `release-analysis` - Collect changes, assess severity, suggest version
@@ -119,4 +121,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.1.0...v0.3.0
 [0.1.0]: https://github.com/ruifrvaz/smaqit-extensions/releases/tag/v0.1.0

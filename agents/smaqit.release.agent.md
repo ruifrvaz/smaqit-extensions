@@ -144,7 +144,7 @@ Agent should check the issue/task description for explicit version approval:
 **If auto-confirm mode detected:**
 - Use the pre-approved version from issue/task
 - Log: "Auto-confirm mode: using pre-approved version vX.Y.Z"
-- Proceed directly to Step 4 (Pre-Release Validation) without user prompt
+- Proceed directly to Step 5 (Pre-Release Validation) without user prompt
 
 **Otherwise (interactive mode):**
 - Present changelog draft with suggested version to user

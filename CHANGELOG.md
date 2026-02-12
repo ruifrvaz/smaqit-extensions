@@ -22,12 +22,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Tags created manually or via workflow after PR merge to main
 
 ### Changed
-- **Refactored `smaqit.release` agent** - Now lean (~100 lines) and skill-based
+- **Refactored `smaqit.release` agent** - Now lean (~93 lines) and skill-based
   - Replaced inline logic with skill composition (4 skill invocations)
   - Maintains all original functionality (interactive + auto-confirm modes)
   - Supports local development with direct git access
   - Can commit to main and create tags immediately
-  - Reduced from 280 lines to ~100 lines
+  - Reduced from 280 lines to 93 lines (67% reduction)
 - **Created `smaqit.release.local` agent** - Explicit local variant (same as refactored `smaqit.release`)
 - README updated with release skills and both release agents
 

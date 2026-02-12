@@ -56,7 +56,6 @@ jobs:
       - name: Verify agents installed
         run: |
           EXPECTED_AGENTS=(
-            "smaqit.release.agent.md"
             "smaqit.release.local.agent.md"
             "smaqit.release.pr.agent.md"
             "smaqit.user-testing.agent.md"

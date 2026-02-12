@@ -245,7 +245,7 @@ func cmdInstall(targetDir string) {
 	fmt.Println()
 	fmt.Println("Get started:")
 	fmt.Println("  Use prompts in GitHub Copilot: /session.start, /task.create, etc.")
-	fmt.Println("  Use agents: @smaqit.release, @smaqit.user-testing")
+	fmt.Println("  Use agents: @smaqit.release.local, @smaqit.release.pr, @smaqit.user-testing")
 	fmt.Println("  Use skills: Skills are available via prompts or direct invocation")
 }
 

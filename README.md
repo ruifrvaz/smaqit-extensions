@@ -40,7 +40,7 @@ These `smaqit` extensions are designed to work out of the box in any repository.
 - **release-git-pr** - Execute git operations for PR-based releases (via report_progress)
 
 ### Utility Agents
-- **smaqit.release** - Automated release management (local development)
+- **smaqit.release.local** - Automated release management (local development)
 - **smaqit.release.pr** - Automated release management (PR-based, CI/CD)
 - **smaqit.user-testing** - End-to-end testing workflows
 
@@ -79,7 +79,7 @@ User: /session.finish
 
 Agents are available in GitHub Custom Agents:
 ```
-@smaqit.release         # Local release (interactive or auto-confirm)
+@smaqit.release.local   # Local release (interactive or auto-confirm)
 @smaqit.release.pr      # PR-based release (CI/CD, auto-confirm only)
 @smaqit.user-testing    # End-to-end testing
 ```

@@ -26,6 +26,48 @@ You are the smaqit release agent. Your goal is to orchestrate a safe, repeatable
 
 **Tip:** Users can create history entries using the `session-finish` skill at the end of sessions.
 
+## Auto-Confirm Mode
+
+The release agent supports both **interactive** and **autonomous** execution modes.
+
+### Interactive Mode (Default)
+
+In interactive mode, the agent prompts the user to confirm the suggested version before proceeding.
+
+### Auto-Confirm Mode (Autonomous)
+
+Auto-confirm mode enables autonomous execution without interactive prompts. This is useful when:
+- Running the release agent via Copilot Coding Agent
+- Automating releases in CI/CD pipelines
+- Pre-approving a specific version in advance
+
+**How to Trigger Auto-Confirm:**
+
+Include one or more of the following in the issue or task description:
+
+1. **Explicit version approval:**
+   ```markdown
+   **Approved version:** v0.3.0
+   ```
+
+2. **Auto-confirm flag:**
+   ```markdown
+   **Auto-confirm:** true
+   ```
+
+3. **Version in issue/task title:**
+   - "Release v0.3.0"
+   - "Create release v1.2.0"
+
+**Behavior:**
+
+When auto-confirm mode is detected, the agent will:
+- Use the pre-approved version (if specified)
+- Or use the suggested version based on semver analysis
+- Log: "Auto-confirm mode: using pre-approved version vX.Y.Z"
+- Skip interactive confirmation prompts
+- Proceed directly to validation and execution
+
 ## Output
 
 **CHANGELOG.md:** Updated with new release section
@@ -43,7 +85,7 @@ You are the smaqit release agent. Your goal is to orchestrate a safe, repeatable
 1. **Collect changes** since last tag (from git history; include `.smaqit/history/` entries if any exist)
 2. **Assess change severity** (major/minor/patch) based on changelog content
 3. **List existing tags** and suggest next version based on semver
-4. **Request user approval** for suggested version before proceeding
+4. **Determine version approval** (auto-confirm mode or interactive user approval)
 5. **Validate pre-release state** (git clean, correct branch)
 6. **Finalize changelog** with approved version
 7. **Optionally sync version strings** in project files (only if applicable and user confirms)
@@ -91,10 +133,24 @@ You are the smaqit release agent. Your goal is to orchestrate a safe, repeatable
   - Major: Increment X in vX.Y.Z
   - Minor: Increment Y in vX.Y.Z, reset Z to 0
   - Patch: Increment Z in vX.Y.Z
+
+**Auto-Confirm Mode Detection:**
+
+Agent should check the issue/task description for explicit version approval:
+- Look for `**Approved version:** vX.Y.Z` pattern
+- Look for `**Auto-confirm:** true` flag
+- Look for version in issue title (e.g., "Release v0.3.0")
+
+**If auto-confirm mode detected:**
+- Use the pre-approved version from issue/task
+- Log: "Auto-confirm mode: using pre-approved version vX.Y.Z"
+- Proceed directly to Step 4 (Pre-Release Validation) without user prompt
+
+**Otherwise (interactive mode):**
 - Present changelog draft with suggested version to user
 - Request approval before proceeding
 
-**Example:**
+**Example (Interactive Mode):**
 ```
 Latest tag: v0.5.0-beta
 Change severity: MINOR (new features added)
@@ -107,6 +163,15 @@ Changelog draft:
 ...
 
 Proceed with v0.5.0? (y/n)
+```
+
+**Example (Auto-Confirm Mode):**
+```
+Latest tag: v0.5.0-beta
+Change severity: MINOR (new features added)
+Suggested version: v0.6.0 (next minor)
+Auto-confirm mode: using pre-approved version v0.6.0
+Proceeding with release...
 ```
 
 ### Step 4: Pre-Release Validation
@@ -225,7 +290,9 @@ Before declaring completion:
 - [ ] Assessed change severity (major/minor/patch)
 - [ ] Listed existing git tags
 - [ ] Suggested next version based on semver
-- [ ] Received user approval for version
+- [ ] Determined version approval (auto-confirm or interactive user approval)
+- [ ] If interactive mode: received user approval for version
+- [ ] If auto-confirm mode: logged which pre-approved version is being used
 - [ ] Validated approved version format (semver)
 - [ ] Verified version doesn't already exist in CHANGELOG.md
 - [ ] Verified git working tree is clean

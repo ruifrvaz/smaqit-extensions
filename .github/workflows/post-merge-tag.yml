@@ -12,6 +12,8 @@ jobs:
       (startsWith(github.event.pull_request.title, 'Prepare release v') ||
        startsWith(github.event.pull_request.title, 'Release v'))
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

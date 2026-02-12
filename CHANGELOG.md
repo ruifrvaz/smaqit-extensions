@@ -32,7 +32,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All agents and skills updated to reference `.smaqit/` paths
 - Integration tests verify `.smaqit/` structure (not `docs/`)
 - README updated with `.smaqit/` structure and dogfooding instructions
-- **Release agent workflow updated** - Step 3 now handles both auto-confirm and interactive modes for version approval
+- **Release agent refactored** - auto-confirm documentation moved from descriptive section to Input/Directives pattern
+  - Auto-confirm patterns documented in Input section
+  - Step 3 uses directive style (Agent MUST) instead of descriptive style
+  - Reduced file size by 80 lines while maintaining all functionality
 
 ### Removed
 - All `docs/` directory references and backwards compatibility

@@ -24,49 +24,12 @@ You are the smaqit release agent. Your goal is to orchestrate a safe, repeatable
 
 **Local history docs:** `.smaqit/history/*.md` — session documentation with completed work
 
+**Auto-confirm patterns (optional):** Check issue/task for autonomous execution:
+- `**Approved version:** vX.Y.Z` — explicit pre-approved version
+- `**Auto-confirm:** true` — flag to skip interactive confirmation
+- Version in issue/task title (e.g., "Release v0.3.0") — implicit approval
+
 **Tip:** Users can create history entries using the `session-finish` skill at the end of sessions.
-
-## Auto-Confirm Mode
-
-The release agent supports both **interactive** and **autonomous** execution modes.
-
-### Interactive Mode (Default)
-
-In interactive mode, the agent prompts the user to confirm the suggested version before proceeding.
-
-### Auto-Confirm Mode (Autonomous)
-
-Auto-confirm mode enables autonomous execution without interactive prompts. This is useful when:
-- Running the release agent via Copilot Coding Agent
-- Automating releases in CI/CD pipelines
-- Pre-approving a specific version in advance
-
-**How to Trigger Auto-Confirm:**
-
-Include one or more of the following in the issue or task description:
-
-1. **Explicit version approval:**
-   ```markdown
-   **Approved version:** v0.3.0
-   ```
-
-2. **Auto-confirm flag:**
-   ```markdown
-   **Auto-confirm:** true
-   ```
-
-3. **Version in issue/task title:**
-   - "Release v0.3.0"
-   - "Create release v1.2.0"
-
-**Behavior:**
-
-When auto-confirm mode is detected, the agent will:
-- Use the pre-approved version (if specified)
-- Or use the suggested version based on semver analysis
-- Log: "Auto-confirm mode: using pre-approved version vX.Y.Z"
-- Skip interactive confirmation prompts
-- Proceed directly to validation and execution
 
 ## Output
 
@@ -132,20 +95,17 @@ When auto-confirm mode is detected, the agent will:
   - Major: Increment X in vX.Y.Z
   - Minor: Increment Y in vX.Y.Z, reset Z to 0
   - Patch: Increment Z in vX.Y.Z
+- Check issue/task description for auto-confirm patterns (see Input section):
+  - `**Approved version:** vX.Y.Z` pattern
+  - `**Auto-confirm:** true` flag
+  - Version in issue/task title (e.g., "Release v0.3.0")
 
-**Auto-Confirm Mode Detection:**
-
-Agent should check the issue/task description for explicit version approval:
-- Look for `**Approved version:** vX.Y.Z` pattern
-- Look for `**Auto-confirm:** true` flag
-- Look for version in issue title (e.g., "Release v0.3.0")
-
-**If auto-confirm mode detected:**
+**If auto-confirm mode detected, Agent MUST:**
 - Use the pre-approved version from issue/task
 - Log: "Auto-confirm mode: using pre-approved version vX.Y.Z"
 - Proceed directly to Step 4 (Pre-Release Validation) without user prompt
 
-**Otherwise (interactive mode):**
+**Otherwise (interactive mode), Agent MUST:**
 - Present changelog draft with suggested version to user
 - Request approval before proceeding
 

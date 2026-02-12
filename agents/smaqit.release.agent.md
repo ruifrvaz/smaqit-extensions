@@ -153,15 +153,15 @@ Agent should check the issue/task description for explicit version approval:
 ```
 Latest tag: v0.5.0-beta
 Change severity: MINOR (new features added)
-Suggested version: v0.5.0 (stable release) OR v0.6.0 (next minor)
+Suggested version: v0.6.0 (next minor)
 
 Changelog draft:
-## [0.5.0] - 2026-01-17
+## [0.6.0] - 2026-01-17
 ### Added
 - Release agent for automated workflow (Task XXX)
 ...
 
-Proceed with v0.5.0? (y/n)
+Proceed with v0.6.0? (y/n)
 ```
 
 **Example (Auto-Confirm Mode):**

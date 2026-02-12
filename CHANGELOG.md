@@ -21,12 +21,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.github/{agents,prompts,skills}/` directories populated from source files
 - Sync verification workflow (`.github/workflows/test-sync.yml`) to ensure `.github/` stays in sync
 - Full dogfooding setup: repository now uses its own agents and prompts
+- **Auto-confirm mode for release agent** - supports autonomous execution without interactive prompts
+  - Detects pre-approved versions in issue/task descriptions (e.g., `**Approved version:** vX.Y.Z`)
+  - Detects auto-confirm flag (e.g., `**Auto-confirm:** true`)
+  - Detects version in issue titles (e.g., "Release v0.3.0")
+  - Enables releases via Copilot Coding Agent and CI/CD pipelines
 
 ### Changed
 - Installer creates `.smaqit/{tasks,history,user-testing}/` directories (not `docs/`)
 - All agents and skills updated to reference `.smaqit/` paths
 - Integration tests verify `.smaqit/` structure (not `docs/`)
 - README updated with `.smaqit/` structure and dogfooding instructions
+- **Release agent refactored** - auto-confirm documentation moved from descriptive section to Input/Directives pattern
+  - Auto-confirm patterns documented in Input section
+  - Step 3 uses directive style (Agent MUST) instead of descriptive style
+  - Reduced file size by 80 lines while maintaining all functionality
 
 ### Removed
 - All `docs/` directory references and backwards compatibility

@@ -24,6 +24,11 @@ You are the smaqit release agent. Your goal is to orchestrate a safe, repeatable
 
 **Local history docs:** `.smaqit/history/*.md` — session documentation with completed work
 
+**Auto-confirm patterns (optional):** Check issue/task for autonomous execution:
+- `**Approved version:** vX.Y.Z` — explicit pre-approved version
+- `**Auto-confirm:** true` — flag to skip interactive confirmation
+- Version in issue/task title (e.g., "Release v0.3.0") — implicit approval
+
 **Tip:** Users can create history entries using the `session-finish` skill at the end of sessions.
 
 ## Output
@@ -42,12 +47,11 @@ You are the smaqit release agent. Your goal is to orchestrate a safe, repeatable
 
 1. **Collect changes** since last tag (from git history; include `.smaqit/history/` entries if any exist)
 2. **Assess change severity** (major/minor/patch) based on changelog content
-3. **List existing tags** and suggest next version based on semver
-4. **Request user approval** for suggested version before proceeding
-5. **Validate pre-release state** (git clean, correct branch)
-6. **Finalize changelog** with approved version
-7. **Optionally sync version strings** in project files (only if applicable and user confirms)
-8. **Execute git operations** (commit, tag, push)
+3. **Suggest next version** and determine approval (auto-confirm mode or interactive user approval)
+4. **Validate pre-release state** (git clean, correct branch)
+5. **Finalize changelog** with approved version
+6. **Optionally sync version strings** in project files (only if applicable and user confirms)
+7. **Execute git operations** (commit, tag, push)
 
 ### Step 1: Collect Changes and Generate Changelog Draft
 
@@ -91,22 +95,42 @@ You are the smaqit release agent. Your goal is to orchestrate a safe, repeatable
   - Major: Increment X in vX.Y.Z
   - Minor: Increment Y in vX.Y.Z, reset Z to 0
   - Patch: Increment Z in vX.Y.Z
+- Check issue/task description for auto-confirm patterns (see Input section):
+  - `**Approved version:** vX.Y.Z` pattern
+  - `**Auto-confirm:** true` flag
+  - Version in issue/task title (e.g., "Release v0.3.0")
+
+**If auto-confirm mode detected, Agent MUST:**
+- Use the pre-approved version from issue/task
+- Log: "Auto-confirm mode: using pre-approved version vX.Y.Z"
+- Proceed directly to Step 4 (Pre-Release Validation) without user prompt
+
+**Otherwise (interactive mode), Agent MUST:**
 - Present changelog draft with suggested version to user
 - Request approval before proceeding
 
-**Example:**
+**Example (Interactive Mode):**
 ```
 Latest tag: v0.5.0-beta
 Change severity: MINOR (new features added)
-Suggested version: v0.5.0 (stable release) OR v0.6.0 (next minor)
+Suggested version: v0.6.0 (next minor)
 
 Changelog draft:
-## [0.5.0] - 2026-01-17
+## [0.6.0] - 2026-01-17
 ### Added
 - Release agent for automated workflow (Task XXX)
 ...
 
-Proceed with v0.5.0? (y/n)
+Proceed with v0.6.0? (y/n)
+```
+
+**Example (Auto-Confirm Mode):**
+```
+Latest tag: v0.5.0-beta
+Change severity: MINOR (new features added)
+Suggested version: v0.6.0 (next minor)
+Auto-confirm mode: using pre-approved version v0.6.0
+Proceeding with release...
 ```
 
 ### Step 4: Pre-Release Validation
@@ -225,7 +249,9 @@ Before declaring completion:
 - [ ] Assessed change severity (major/minor/patch)
 - [ ] Listed existing git tags
 - [ ] Suggested next version based on semver
-- [ ] Received user approval for version
+- [ ] Determined version approval (auto-confirm or interactive user approval)
+- [ ] If interactive mode: received user approval for version
+- [ ] If auto-confirm mode: logged which pre-approved version is being used
 - [ ] Validated approved version format (semver)
 - [ ] Verified version doesn't already exist in CHANGELOG.md
 - [ ] Verified git working tree is clean

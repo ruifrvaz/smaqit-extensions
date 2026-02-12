@@ -32,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All agents and skills updated to reference `.smaqit/` paths
 - Integration tests verify `.smaqit/` structure (not `docs/`)
 - README updated with `.smaqit/` structure and dogfooding instructions
-- **Release agent workflow updated** - Step 4 now handles both auto-confirm and interactive modes
+- **Release agent workflow updated** - Step 3 now handles both auto-confirm and interactive modes for version approval
 
 ### Removed
 - All `docs/` directory references and backwards compatibility

@@ -38,8 +38,9 @@ git branch --show-current
 
 **C. Check version doesn't exist in CHANGELOG.md:**
 ```bash
-grep "## \[X.Y.Z\]" CHANGELOG.md
+grep "## \\[X.Y.Z\\]" CHANGELOG.md
 ```
+- Replace X.Y.Z with actual version (e.g., `grep "## \\[0.3.0\\]" CHANGELOG.md`)
 - If version already exists: Stop and report "Version X.Y.Z already exists in CHANGELOG.md"
 
 ### Step 2: Finalize CHANGELOG.md
@@ -170,5 +171,5 @@ version_synced: true
 - This skill modifies files but does NOT commit them (git operations are separate)
 - All file modifications are reversible with `git checkout`
 - Version files are optional - CHANGELOG.md is the only required file
-- Always use 'v' prefix in CHANGELOG.md (e.g., `## [v0.3.0]`) but NOT in version files
+- Keep a Changelog format uses version WITHOUT 'v' prefix in headers (e.g., `## [0.3.0]`), but git tags use 'v' prefix (e.g., `v0.3.0`)
 - For PR-based releases, validation rules are slightly relaxed (feature branch OK)

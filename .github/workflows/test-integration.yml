@@ -56,7 +56,8 @@ jobs:
       - name: Verify agents installed
         run: |
           EXPECTED_AGENTS=(
-            "smaqit.release.agent.md"
+            "smaqit.release.local.agent.md"
+            "smaqit.release.pr.agent.md"
             "smaqit.user-testing.agent.md"
           )
           
@@ -79,6 +80,11 @@ jobs:
             "task-list"
             "task-complete"
             "test-start"
+            "release-analysis"
+            "release-approval"
+            "release-prepare-files"
+            "release-git-local"
+            "release-git-pr"
           )
           
           for skill in "${EXPECTED_SKILLS[@]}"; do

@@ -13,7 +13,7 @@ You are the e2e testing agent. Your goal is to validate the end-to-end testing e
 ## Input
 
 **Optional Test Task:**
-- A single test task file in `docs/tasks/` (e.g. `docs/tasks/059_*.md`) that defines the test scope, steps, and pass/fail criteria.
+- A single test task file in `.smaqit/tasks/` (e.g. `.smaqit/tasks/059_*.md`) that defines the test scope, steps, and pass/fail criteria.
 - **Tip:** Users can create test tasks using the `task-create` skill.
 
 **Project Test Entrypoints (auto-discovered):**
@@ -25,7 +25,7 @@ You are the e2e testing agent. Your goal is to validate the end-to-end testing e
 
 ## Output
 
-**Location:** `docs/user-testing/YYYY-MM-DD_test-report.md`
+**Location:** `.smaqit/user-testing/YYYY-MM-DD_test-report.md`
 
 **Format:** Use this strict template (do not depend on any external template file):
 - Test information (date, version, OS, duration)
@@ -57,7 +57,7 @@ You are the e2e testing agent. Your goal is to validate the end-to-end testing e
 ### Phase 2: Optional Test Task (If Provided)
 
 3. **Load a specific test task (optional)**
-   - If user provides a task number, read the complete task file: `docs/tasks/{TASK_NUMBER}_*.md`.
+   - If user provides a task number, read the complete task file: `.smaqit/tasks/{TASK_NUMBER}_*.md`.
    - Extract: objectives, evidence requirements, pass/fail criteria, and any required setup.
    - If the task file doesn't exist, recommend using the `task-create` skill or ask whether to proceed without it.
 
@@ -72,8 +72,8 @@ You are the e2e testing agent. Your goal is to validate the end-to-end testing e
 ### Phase 4: Report Generation and Cleanup
 
 5. **Generate comprehensive report**
-    - Ensure `docs/user-testing/` exists.
-    - Save report to `docs/user-testing/YYYY-MM-DD_test-report.md`.
+    - Ensure `.smaqit/user-testing/` exists.
+    - Save report to `.smaqit/user-testing/YYYY-MM-DD_test-report.md`.
     - Template:
 
 ```markdown
@@ -160,7 +160,7 @@ Testing is complete when:
 - [ ] Test command(s) discovered and confirmed
 - [ ] Test suite executed (or failure documented)
 - [ ] Comprehensive report generated following template
-- [ ] Report saved to `docs/user-testing/YYYY-MM-DD_test-report.md`
+- [ ] Report saved to `.smaqit/user-testing/YYYY-MM-DD_test-report.md`
 - [ ] Overall result determined (PASS/FAIL)
 
 ## Failure Handling
@@ -193,7 +193,7 @@ Testing is complete when:
 
 ## Repeatable Test Runs
 
-If you want repeatable testing runs, define a test task in `docs/tasks/NNN_*.md` that captures:
+If you want repeatable testing runs, define a test task in `.smaqit/tasks/NNN_*.md` that captures:
 - Setup prerequisites
 - Exact commands to run
 - Evidence to collect

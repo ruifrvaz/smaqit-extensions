@@ -11,10 +11,10 @@ Create a new task with the format: `task.create [title]` or `task.create [title]
 
 ## Steps
 
-1. Create new task file in `docs/tasks/` directory
-2. Filename: `docs/tasks/NNN_task_title.md` (NNN = next available number, zero-padded to 3 digits)
+1. Create new task file in `.smaqit/tasks/` directory
+2. Filename: `.smaqit/tasks/NNN_task_title.md` (NNN = next available number, zero-padded to 3 digits)
 3. Tasks are numbered sequentially starting at 001
-4. **Add entry to `docs/tasks/PLANNING.md`** with status "Not Started"
+4. **Add entry to `.smaqit/tasks/PLANNING.md`** with status "Not Started"
 
 ## Flexible Input Formats
 
@@ -43,4 +43,4 @@ Create a new task with the format: `task.create [title]` or `task.create [title]
 
 ## Central Planning File
 
-**Remember:** `docs/tasks/PLANNING.md` contains status of all tasks (sorted by ID) and is the single source of truth for task overview.
+**Remember:** `.smaqit/tasks/PLANNING.md` contains status of all tasks (sorted by ID) and is the single source of truth for task overview.

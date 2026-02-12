@@ -93,25 +93,25 @@ jobs:
             echo "✓ Found skill: $skill"
           done
 
-      - name: Verify docs scaffolding
+      - name: Verify .smaqit scaffolding
         run: |
-          if [ ! -d "/tmp/smaqit-extensions-test/docs/tasks" ]; then
-            echo "❌ Missing docs/tasks directory"
+          if [ ! -d "/tmp/smaqit-extensions-test/.smaqit/tasks" ]; then
+            echo "❌ Missing .smaqit/tasks directory"
             exit 1
           fi
-          if [ ! -d "/tmp/smaqit-extensions-test/docs/history" ]; then
-            echo "❌ Missing docs/history directory"
+          if [ ! -d "/tmp/smaqit-extensions-test/.smaqit/history" ]; then
+            echo "❌ Missing .smaqit/history directory"
             exit 1
           fi
-          if [ ! -d "/tmp/smaqit-extensions-test/docs/user-testing" ]; then
-            echo "❌ Missing docs/user-testing directory"
+          if [ ! -d "/tmp/smaqit-extensions-test/.smaqit/user-testing" ]; then
+            echo "❌ Missing .smaqit/user-testing directory"
             exit 1
           fi
-          if [ ! -f "/tmp/smaqit-extensions-test/docs/tasks/PLANNING.md" ]; then
-            echo "❌ Missing docs/tasks/PLANNING.md"
+          if [ ! -f "/tmp/smaqit-extensions-test/.smaqit/tasks/PLANNING.md" ]; then
+            echo "❌ Missing .smaqit/tasks/PLANNING.md"
             exit 1
           fi
-          echo "✓ Docs scaffolding present"
+          echo "✓ .smaqit scaffolding present"
       
       - name: Test uninstall
         run: |

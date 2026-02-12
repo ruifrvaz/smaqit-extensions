@@ -97,10 +97,10 @@ func cmdInstall(targetDir string) {
 	promptsDir := filepath.Join(targetDir, ".github", "prompts")
 	agentsDir := filepath.Join(targetDir, ".github", "agents")
 	skillsDir := filepath.Join(targetDir, ".github", "skills")
-	docsDir := filepath.Join(targetDir, "docs")
-	tasksDir := filepath.Join(docsDir, "tasks")
-	historyDir := filepath.Join(docsDir, "history")
-	userTestingDir := filepath.Join(docsDir, "user-testing")
+	smaqitDir := filepath.Join(targetDir, ".smaqit")
+	tasksDir := filepath.Join(smaqitDir, "tasks")
+	historyDir := filepath.Join(smaqitDir, "history")
+	userTestingDir := filepath.Join(smaqitDir, "user-testing")
 
 	if err := os.MkdirAll(promptsDir, 0755); err != nil {
 		fmt.Printf("Error creating prompts directory: %v\n", err)
@@ -117,7 +117,7 @@ func cmdInstall(targetDir string) {
 		os.Exit(1)
 	}
 
-	// Create docs scaffolding used by prompts/agents
+	// Create .smaqit scaffolding used by prompts/agents
 	if err := os.MkdirAll(tasksDir, 0755); err != nil {
 		fmt.Printf("Error creating tasks directory: %v\n", err)
 		os.Exit(1)

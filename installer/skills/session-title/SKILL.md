@@ -26,11 +26,11 @@ Generate a concise, descriptive title for the current session based on the work 
    - **No task identifiers** (no "Task 062" or "B002")
 
 3. **Validate title** against history files:
-   - Check `docs/history/` for similar titles to avoid duplication
+   - Check `.smaqit/history/` for similar titles to avoid duplication
    - Ensure title is unique and specific
 
 4. **Get session number**:
-   - Infer the last sequential number by inspecting existing filenames in `docs/history/`.
+   - Infer the last sequential number by inspecting existing filenames in `.smaqit/history/`.
    - If no history files exist yet, use `001` as the next session number.
 
 5. **Output session number and title** in this format with no additional text:

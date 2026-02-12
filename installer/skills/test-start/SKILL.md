@@ -32,7 +32,7 @@ Read the project files that define how tests are run (whichever exist):
 **User must specify:** Test task number (e.g., "059")
 
 Read the complete test task file:
-- `docs/tasks/{TASK_NUMBER}_*.md`
+- `.smaqit/tasks/{TASK_NUMBER}_*.md`
 
 If the task file does not exist, instruct the user to create it using `/task.create` (or create it yourself) before proceeding.
 
@@ -66,8 +66,8 @@ Then state: **"Ready to begin test execution. Say 'start' to proceed."**
 ## What This Does NOT Load
 
 **Explicitly excluded to keep context focused:**
-- ❌ History files (`docs/history/*.md`) - Not needed for test execution
-- ❌ Task planning (`docs/tasks/PLANNING.md`) - Not needed during test
+- ❌ History files (`.smaqit/history/*.md`) - Not needed for test execution
+- ❌ Task planning (`.smaqit/tasks/PLANNING.md`) - Not needed during test
 - ❌ Other task files - Only the specific test task is loaded
 - ❌ Previous test reports - Each test is independent
 

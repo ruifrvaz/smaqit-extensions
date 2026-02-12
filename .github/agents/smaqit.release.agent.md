@@ -84,12 +84,11 @@ When auto-confirm mode is detected, the agent will:
 
 1. **Collect changes** since last tag (from git history; include `.smaqit/history/` entries if any exist)
 2. **Assess change severity** (major/minor/patch) based on changelog content
-3. **List existing tags** and suggest next version based on semver
-4. **Determine version approval** (auto-confirm mode or interactive user approval)
-5. **Validate pre-release state** (git clean, correct branch)
-6. **Finalize changelog** with approved version
-7. **Optionally sync version strings** in project files (only if applicable and user confirms)
-8. **Execute git operations** (commit, tag, push)
+3. **Suggest next version** and determine approval (auto-confirm mode or interactive user approval)
+4. **Validate pre-release state** (git clean, correct branch)
+5. **Finalize changelog** with approved version
+6. **Optionally sync version strings** in project files (only if applicable and user confirms)
+7. **Execute git operations** (commit, tag, push)
 
 ### Step 1: Collect Changes and Generate Changelog Draft
 

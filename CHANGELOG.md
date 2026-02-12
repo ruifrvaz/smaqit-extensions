@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Release skills** - 5 composable skills for release workflows
+  - `release-analysis` - Collect changes, assess severity, suggest version
+  - `release-approval` - Obtain approval (auto-confirm or interactive)
+  - `release-prepare-files` - Validate git state and prepare files
+  - `release-git-local` - Execute git operations for local releases
+  - `release-git-pr` - Execute git operations for PR-based releases
+- **New release agent: `smaqit.release.pr`** - PR-based release workflow for CI/CD
+  - Designed for GitHub Copilot Coding Agent triggered by issues
+  - Uses `report_progress` tool for commits (no direct git credentials needed)
+  - Auto-confirm mode required (no interactive prompts in CI)
+  - Documents post-merge tag creation instructions
+  - Tags created manually or via workflow after PR merge to main
+
+### Changed
+- **Refactored `smaqit.release` agent** - Now lean (~100 lines) and skill-based
+  - Replaced inline logic with skill composition (4 skill invocations)
+  - Maintains all original functionality (interactive + auto-confirm modes)
+  - Supports local development with direct git access
+  - Can commit to main and create tags immediately
+  - Reduced from 280 lines to ~100 lines
+- **Created `smaqit.release.local` agent** - Explicit local variant (same as refactored `smaqit.release`)
+- README updated with release skills and both release agents
+
 ### Breaking Changes (v0.3.0)
 
 **⚠️ This is a breaking change release**

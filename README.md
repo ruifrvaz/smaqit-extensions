@@ -32,8 +32,16 @@ These `smaqit` extensions are designed to work out of the box in any repository.
 ### Testing Prompts
 - **test.start** - Initialize testing workflows
 
+### Release Management Skills
+- **release-analysis** - Collect changes, assess severity, and suggest next version
+- **release-approval** - Obtain approval for suggested version (auto-confirm or interactive)
+- **release-prepare-files** - Validate git state and prepare all files for release
+- **release-git-local** - Execute git operations for local releases (commit, tag, push)
+- **release-git-pr** - Execute git operations for PR-based releases (via report_progress)
+
 ### Utility Agents
-- **smaqit.release** - Automated release management
+- **smaqit.release** - Automated release management (local development)
+- **smaqit.release.pr** - Automated release management (PR-based, CI/CD)
 - **smaqit.user-testing** - End-to-end testing workflows
 
 ## Installation
@@ -54,8 +62,8 @@ curl -fsSL https://raw.githubusercontent.com/ruifrvaz/smaqit-extensions/main/ins
 
 The installer copies files to your project's `.github/` directory:
 - `prompts/` - 8 workflow prompts (stubs that reference skills)
-- `agents/` - 2 utility agents
-- `skills/` - 8 workflow skills (complete implementations)
+- `agents/` - 3 utility agents (release local, release PR, user-testing)
+- `skills/` - 13 workflow skills (complete implementations)
 
 ## Usage
 
@@ -71,8 +79,9 @@ User: /session.finish
 
 Agents are available in GitHub Custom Agents:
 ```
-@smaqit.release
-@smaqit.user-testing
+@smaqit.release         # Local release (interactive or auto-confirm)
+@smaqit.release.pr      # PR-based release (CI/CD, auto-confirm only)
+@smaqit.user-testing    # End-to-end testing
 ```
 
 ## Requirements

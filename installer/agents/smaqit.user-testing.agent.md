@@ -14,6 +14,7 @@ You are the e2e testing agent. Your goal is to validate the end-to-end testing e
 
 **Optional Test Task:**
 - A single test task file in `docs/tasks/` (e.g. `docs/tasks/059_*.md`) that defines the test scope, steps, and pass/fail criteria.
+- **Tip:** Users can create test tasks using the `task-create` skill.
 
 **Project Test Entrypoints (auto-discovered):**
 - Common files that define how to run tests, such as `Makefile`, `package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`, `README.md`, `CONTRIBUTING.md`, `TESTING.md`.
@@ -58,7 +59,7 @@ You are the e2e testing agent. Your goal is to validate the end-to-end testing e
 3. **Load a specific test task (optional)**
    - If user provides a task number, read the complete task file: `docs/tasks/{TASK_NUMBER}_*.md`.
    - Extract: objectives, evidence requirements, pass/fail criteria, and any required setup.
-   - If the task file doesn't exist, ask whether to proceed without it.
+   - If the task file doesn't exist, recommend using the `task-create` skill or ask whether to proceed without it.
 
 ### Phase 3: Execute Tests
 
@@ -197,3 +198,5 @@ If you want repeatable testing runs, define a test task in `docs/tasks/NNN_*.md`
 - Exact commands to run
 - Evidence to collect
 - Pass/fail criteria
+
+**Tip:** Users can create test tasks using the `task-create` skill and load them with the `test-start` skill.

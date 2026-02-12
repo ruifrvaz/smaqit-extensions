@@ -213,19 +213,10 @@ func cmdInstall(targetDir string) {
 		// Extract skill directory name and filename from path
 		// path format: skills/skill-name/SKILL.md
 		relPath := filepath.ToSlash(path)
-		parts := filepath.SplitList(relPath)
-		if len(parts) < 2 {
-			// Try splitting by slash
-			parts = []string{}
-			for _, part := range filepath.SplitList(strings.ReplaceAll(relPath, "/", string(filepath.ListSeparator))) {
-				parts = append(parts, part)
-			}
-		}
-		// Manual split by slash since SplitList uses OS-specific separator
-		pathParts := strings.Split(relPath, "/")
-		if len(pathParts) >= 3 {
-			skillName := pathParts[1]
-			filename := pathParts[2]
+		parts := strings.Split(relPath, "/")
+		if len(parts) >= 3 {
+			skillName := parts[1]
+			filename := parts[2]
 			
 			skillDir := filepath.Join(skillsDir, skillName)
 			if err := os.MkdirAll(skillDir, 0755); err != nil {

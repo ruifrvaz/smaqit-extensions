@@ -6,7 +6,7 @@ sync:
 	@mkdir -p .github/agents .github/prompts .github/skills
 	@cp -f agents/*.md .github/agents/
 	@cp -f prompts/*.md .github/prompts/
-	@for skill in session-start session-finish session-assess session-title task-create task-list task-complete test-start; do \
+	@for skill in session-start session-finish session-assess session-title task-create task-list task-complete test-start release-analysis release-approval release-prepare-files release-git-local release-git-pr; do \
 		mkdir -p .github/skills/$$skill; \
 		cp -f $$skill/SKILL.md .github/skills/$$skill/; \
 	done

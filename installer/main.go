@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 //go:embed prompts/*.md
@@ -14,6 +15,9 @@ var promptFiles embed.FS
 
 //go:embed agents/*.md
 var agentFiles embed.FS
+
+//go:embed skills/*/SKILL.md
+var skillFiles embed.FS
 
 // Version is set via ldflags during build: -X main.Version=$(VERSION)
 var Version = "0.1.0"
@@ -85,12 +89,14 @@ func printHelp() {
 	fmt.Println("What gets installed:")
 	fmt.Println("  .github/prompts/    - 8 workflow prompts")
 	fmt.Println("  .github/agents/     - 2 utility agents")
+	fmt.Println("  .github/skills/     - 8 workflow skills")
 }
 
 func cmdInstall(targetDir string) {
 	// Create target directories
 	promptsDir := filepath.Join(targetDir, ".github", "prompts")
 	agentsDir := filepath.Join(targetDir, ".github", "agents")
+	skillsDir := filepath.Join(targetDir, ".github", "skills")
 	docsDir := filepath.Join(targetDir, "docs")
 	tasksDir := filepath.Join(docsDir, "tasks")
 	historyDir := filepath.Join(docsDir, "history")
@@ -103,6 +109,11 @@ func cmdInstall(targetDir string) {
 
 	if err := os.MkdirAll(agentsDir, 0755); err != nil {
 		fmt.Printf("Error creating agents directory: %v\n", err)
+		os.Exit(1)
+	}
+
+	if err := os.MkdirAll(skillsDir, 0755); err != nil {
+		fmt.Printf("Error creating skills directory: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -184,20 +195,74 @@ func cmdInstall(targetDir string) {
 		os.Exit(1)
 	}
 
+	// Install skills
+	skillCount := 0
+	if err := fs.WalkDir(skillFiles, "skills", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			return nil
+		}
+
+		content, err := fs.ReadFile(skillFiles, path)
+		if err != nil {
+			return fmt.Errorf("reading %s: %w", path, err)
+		}
+
+		// Extract skill directory name and filename from path
+		// path format: skills/skill-name/SKILL.md
+		relPath := filepath.ToSlash(path)
+		parts := filepath.SplitList(relPath)
+		if len(parts) < 2 {
+			// Try splitting by slash
+			parts = []string{}
+			for _, part := range filepath.SplitList(strings.ReplaceAll(relPath, "/", string(filepath.ListSeparator))) {
+				parts = append(parts, part)
+			}
+		}
+		// Manual split by slash since SplitList uses OS-specific separator
+		pathParts := strings.Split(relPath, "/")
+		if len(pathParts) >= 3 {
+			skillName := pathParts[1]
+			filename := pathParts[2]
+			
+			skillDir := filepath.Join(skillsDir, skillName)
+			if err := os.MkdirAll(skillDir, 0755); err != nil {
+				return fmt.Errorf("creating skill directory %s: %w", skillDir, err)
+			}
+
+			targetPath := filepath.Join(skillDir, filename)
+			if err := os.WriteFile(targetPath, content, 0644); err != nil {
+				return fmt.Errorf("writing %s: %w", targetPath, err)
+			}
+
+			skillCount++
+		}
+
+		return nil
+	}); err != nil {
+		fmt.Printf("Error installing skills: %v\n", err)
+		os.Exit(1)
+	}
+
 	fmt.Printf("✓ Installed %d prompts to %s\n", promptCount, promptsDir)
 	fmt.Printf("✓ Installed %d agents to %s\n", agentCount, agentsDir)
+	fmt.Printf("✓ Installed %d skills to %s\n", skillCount, skillsDir)
 	fmt.Println()
 	fmt.Println("Extensions installed successfully!")
 	fmt.Println()
 	fmt.Println("Get started:")
 	fmt.Println("  Use prompts in GitHub Copilot: /session.start, /task.create, etc.")
 	fmt.Println("  Use agents: @smaqit.release, @smaqit.user-testing")
+	fmt.Println("  Use skills: Skills are available via prompts or direct invocation")
 }
 
 func cmdUninstall() {
 	targetDir := "."
 	promptsDir := filepath.Join(targetDir, ".github", "prompts")
 	agentsDir := filepath.Join(targetDir, ".github", "agents")
+	skillsDir := filepath.Join(targetDir, ".github", "skills")
 
 	// List files to remove
 	promptFiles := []string{
@@ -216,6 +281,17 @@ func cmdUninstall() {
 		"smaqit.user-testing.agent.md",
 	}
 
+	skillDirs := []string{
+		"session-start",
+		"session-finish",
+		"session-assess",
+		"session-title",
+		"task-create",
+		"task-list",
+		"task-complete",
+		"test-start",
+	}
+
 	removedCount := 0
 
 	// Remove prompts
@@ -230,6 +306,14 @@ func cmdUninstall() {
 	for _, file := range agentFiles {
 		path := filepath.Join(agentsDir, file)
 		if err := os.Remove(path); err == nil {
+			removedCount++
+		}
+	}
+
+	// Remove skills
+	for _, dir := range skillDirs {
+		skillPath := filepath.Join(skillsDir, dir)
+		if err := os.RemoveAll(skillPath); err == nil {
 			removedCount++
 		}
 	}

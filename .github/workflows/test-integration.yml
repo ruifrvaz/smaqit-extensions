@@ -68,6 +68,31 @@ jobs:
             echo "✓ Found agent: $agent"
           done
 
+      - name: Verify skills installed
+        run: |
+          EXPECTED_SKILLS=(
+            "session-start"
+            "session-finish"
+            "session-assess"
+            "session-title"
+            "task-create"
+            "task-list"
+            "task-complete"
+            "test-start"
+          )
+          
+          for skill in "${EXPECTED_SKILLS[@]}"; do
+            if [ ! -d "/tmp/smaqit-extensions-test/.github/skills/$skill" ]; then
+              echo "❌ Missing skill directory: $skill"
+              exit 1
+            fi
+            if [ ! -f "/tmp/smaqit-extensions-test/.github/skills/$skill/SKILL.md" ]; then
+              echo "❌ Missing SKILL.md in: $skill"
+              exit 1
+            fi
+            echo "✓ Found skill: $skill"
+          done
+
       - name: Verify docs scaffolding
         run: |
           if [ ! -d "/tmp/smaqit-extensions-test/docs/tasks" ]; then

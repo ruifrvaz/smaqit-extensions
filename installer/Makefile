@@ -5,9 +5,10 @@ VERSION ?= 0.1.0
 prepare:
 	@echo "Preparing build environment..."
 	@mkdir -p dist
-	@mkdir -p prompts agents
+	@mkdir -p prompts agents skills
 	@cp -r ../prompts/*.md prompts/ 2>/dev/null || true
 	@cp -r ../agents/*.md agents/ 2>/dev/null || true
+	@cp -r ../session-start ../session-finish ../session-assess ../session-title ../task-create ../task-list ../task-complete ../test-start skills/ 2>/dev/null || true
 
 build: prepare
 	@echo "Building smaqit-extensions..."
@@ -16,7 +17,7 @@ build: prepare
 clean:
 	@echo "Cleaning build artifacts..."
 	rm -rf dist/
-	rm -rf prompts/ agents/
+	rm -rf prompts/ agents/ skills/
 
 test: build
 	@echo "Testing installer..."

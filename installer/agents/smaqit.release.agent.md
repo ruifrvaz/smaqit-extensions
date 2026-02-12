@@ -24,6 +24,8 @@ You are the smaqit release agent. Your goal is to orchestrate a safe, repeatable
 
 **Local history docs:** `docs/history/*.md` — session documentation with completed work
 
+**Tip:** Users can create history entries using the `session-finish` skill at the end of sessions.
+
 ## Output
 
 **CHANGELOG.md:** Updated with new release section

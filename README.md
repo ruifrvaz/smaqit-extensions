@@ -8,6 +8,16 @@ These `smaqit`extensions are designed to work out of the box in any repository (
 
 ## What's Included
 
+### Skills
+- **session-start** - Load full project context at session start
+- **session-finish** - Document session history at completion
+- **session-assess** - Analyze requests before implementation
+- **session-title** - Generate concise session titles
+- **task-create** - Create new tasks with auto-numbering
+- **task-list** - Show current active tasks
+- **task-complete** - Mark tasks as completed with verification
+- **test-start** - Initialize testing workflows
+
 ### Session Management Prompts
 - **session.start** - Load full project context at session start
 - **session.assess** - Analyze requests before implementation
@@ -43,18 +53,21 @@ curl -fsSL https://raw.githubusercontent.com/ruifrvaz/smaqit-extensions/main/ins
 ### What Gets Installed
 
 The installer copies files to your project's `.github/` directory:
-- `prompts/` - 8 workflow prompts
+- `prompts/` - 8 workflow prompts (stubs that reference skills)
 - `agents/` - 2 utility agents
+- `skills/` - 8 workflow skills (complete implementations)
 
 ## Usage
 
-After installation, invoke prompts in GitHub Copilot:
+Skills can be invoked via prompts in GitHub Copilot:
 
 ```
 User: /session.start
 User: /task.create Implement new feature
 User: /session.finish
 ```
+
+**Note:** Prompts are now lightweight stubs that reference the corresponding skills. The actual implementation logic resides in the skills under `.github/skills/`.
 
 Agents are available in GitHub Custom Agents:
 ```

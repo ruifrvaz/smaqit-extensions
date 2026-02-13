@@ -16,7 +16,7 @@ var promptFiles embed.FS
 //go:embed agents/*.md
 var agentFiles embed.FS
 
-//go:embed skills/*/SKILL.md
+//go:embed skills/*
 var skillFiles embed.FS
 
 // Version is set via ldflags during build: -X main.Version=$(VERSION)
@@ -75,7 +75,7 @@ func main() {
 }
 
 func printHelp() {
-	fmt.Println("smaqit-extensions - Quality-of-life workflow prompts and agents")
+	fmt.Println("smaQit-extensions - Quality-of-life workflow prompts, agents, and skills")
 	fmt.Printf("Version: %s\n\n", Version)
 	fmt.Println("Usage: smaqit-extensions [dir]")
 	fmt.Println()
@@ -87,9 +87,9 @@ func printHelp() {
 	fmt.Println("  smaqit-extensions uninstall Remove extensions from current directory")
 	fmt.Println()
 	fmt.Println("What gets installed:")
-	fmt.Println("  .github/prompts/    - 8 workflow prompts")
-	fmt.Println("  .github/agents/     - 2 utility agents")
-	fmt.Println("  .github/skills/     - 8 workflow skills")
+	fmt.Println("  .github/prompts/    - 9 workflow prompts")
+	fmt.Println("  .github/agents/     - 3 utility agents")
+	fmt.Println("  .github/skills/     - 14 workflow skills")
 }
 
 func cmdInstall(targetDir string) {
@@ -210,26 +210,29 @@ func cmdInstall(targetDir string) {
 			return fmt.Errorf("reading %s: %w", path, err)
 		}
 
-		// Extract skill directory name and filename from path
-		// path format: skills/skill-name/SKILL.md
+		// Extract relative path from skills/ root
+		// path format: skills/skill-name/SKILL.md or skills/skill-name/references/RULES.md
 		relPath := filepath.ToSlash(path)
-		parts := strings.Split(relPath, "/")
-		if len(parts) >= 3 {
-			skillName := parts[1]
-			filename := parts[2]
-
-			skillDir := filepath.Join(skillsDir, skillName)
-			if err := os.MkdirAll(skillDir, 0755); err != nil {
-				return fmt.Errorf("creating skill directory %s: %w", skillDir, err)
-			}
-
-			targetPath := filepath.Join(skillDir, filename)
-			if err := os.WriteFile(targetPath, content, 0644); err != nil {
-				return fmt.Errorf("writing %s: %w", targetPath, err)
-			}
-
-			skillCount++
+		if !strings.HasPrefix(relPath, "skills/") {
+			return nil
 		}
+
+		// Remove "skills/" prefix to get skill-relative path
+		skillRelPath := strings.TrimPrefix(relPath, "skills/")
+
+		// Create target path
+		targetPath := filepath.Join(skillsDir, skillRelPath)
+		targetDir := filepath.Dir(targetPath)
+
+		if err := os.MkdirAll(targetDir, 0755); err != nil {
+			return fmt.Errorf("creating directory %s: %w", targetDir, err)
+		}
+
+		if err := os.WriteFile(targetPath, content, 0644); err != nil {
+			return fmt.Errorf("writing %s: %w", targetPath, err)
+		}
+
+		skillCount++
 
 		return nil
 	}); err != nil {

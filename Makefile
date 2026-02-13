@@ -6,9 +6,13 @@ sync:
 	@mkdir -p .github/agents .github/prompts .github/skills
 	@cp -f agents/*.md .github/agents/
 	@cp -f prompts/*.md .github/prompts/
-	@for skill in session-start session-finish session-assess session-title task-create task-list task-complete test-start release-analysis release-approval release-prepare-files release-git-local release-git-pr; do \
+	@for skill in session-start session-finish session-assess session-title task-create task-list task-complete task-start test-start release-analysis release-approval release-prepare-files release-git-local release-git-pr; do \
 		mkdir -p .github/skills/$$skill; \
 		cp -f skills/$$skill/SKILL.md .github/skills/$$skill/; \
+		if [ -d skills/$$skill/references ]; then \
+			mkdir -p .github/skills/$$skill/references; \
+			cp -fL skills/$$skill/references/* .github/skills/$$skill/references/ 2>/dev/null || true; \
+		fi; \
 	done
 	@echo "✓ Sync complete"
 	@echo ""

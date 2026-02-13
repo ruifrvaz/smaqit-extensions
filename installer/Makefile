@@ -8,7 +8,7 @@ prepare:
 	@mkdir -p prompts agents skills
 	@cp -r ../prompts/*.md prompts/ 2>/dev/null || true
 	@cp -r ../agents/*.md agents/ 2>/dev/null || true
-	@cp -r ../skills/* skills/ 2>/dev/null || true
+	@cp -rL ../skills/* skills/ 2>/dev/null || true
 
 build: prepare
 	@echo "Building smaqit-extensions..."

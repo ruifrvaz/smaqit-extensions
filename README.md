@@ -1,10 +1,10 @@
-# smaqit-extensions
+# smaQit-extensions
 
-**Quality-of-life workflow prompts and agents (smaqit-extensions)**
+**Quality-of-life workflow prompts, agents, and skills (smaQit-extensions)**
 
-A collection of prompts and agents that streamline session management, task tracking, release, and testing workflows.
+A collection of prompts, agents, and skills that streamline session management, task tracking with approval gates, release automation, and testing workflows.
 
-These `smaqit` extensions are designed to work out of the box in any repository. Install once, and prompts/agents reference the `.smaqit/` directory for task tracking, session history, and testing artifacts.
+These `smaQit` extensions are designed to work out of the box in any repository. Install once, and prompts/agents reference the `.smaqit/` directory for task tracking, session history, and testing artifacts.
 
 ## What's Included
 
@@ -14,6 +14,7 @@ These `smaqit` extensions are designed to work out of the box in any repository.
 - **session-assess** - Analyze requests before implementation
 - **session-title** - Generate concise session titles
 - **task-create** - Create new tasks with auto-numbering
+- **task-start** - Start working on a task (autonomous or assisted mode)
 - **task-list** - Show current active tasks
 - **task-complete** - Mark tasks as completed with verification
 - **test-start** - Initialize testing workflows
@@ -26,6 +27,7 @@ These `smaqit` extensions are designed to work out of the box in any repository.
 
 ### Task Tracking Prompts
 - **task.create** - Create new tasks with auto-numbering
+- **task.start** - Start working on a task with workflow mode
 - **task.list** - Show current active tasks
 - **task.complete** - Mark tasks as completed with verification
 
@@ -40,9 +42,9 @@ These `smaqit` extensions are designed to work out of the box in any repository.
 - **release-git-pr** - Execute git operations for PR-based releases (via report_progress)
 
 ### Utility Agents
-- **smaqit.release.local** - Automated release management (local development)
-- **smaqit.release.pr** - Automated release management (PR-based, CI/CD)
-- **smaqit.user-testing** - End-to-end testing workflows
+- **@smaqit.release.local** - Automated release management (local development)
+- **@smaqit.release.pr** - Automated release management (PR-based, CI/CD)
+- **@smaqit.user-testing** - End-to-end testing workflows
 
 ## Installation
 
@@ -61,9 +63,9 @@ curl -fsSL https://raw.githubusercontent.com/ruifrvaz/smaqit-extensions/main/ins
 ### What Gets Installed
 
 The installer copies files to your project's `.github/` directory:
-- `prompts/` - 8 workflow prompts (stubs that reference skills)
+- `prompts/` - 9 workflow prompts (stubs that reference skills)
 - `agents/` - 3 utility agents (release local, release PR, user-testing)
-- `skills/` - 13 workflow skills (complete implementations)
+- `skills/` - 14 workflow skills (complete implementations)
 
 ## Usage
 
@@ -72,8 +74,23 @@ Skills can be invoked via prompts in GitHub Copilot:
 ```
 User: /session.start
 User: /task.create Implement new feature
+User: /task.start 001               # Assisted mode (default) - user approval required
+User: /task.start 002 --autonomous  # Autonomous mode - AI completes automatically
 User: /session.finish
 ```
+
+### Task Workflow Modes
+
+**Assisted Mode (default):**
+- AI implements the task and stops
+- User reviews and approves
+- User invokes `/task.complete [id]` when satisfied
+- Use for: complex features, user-facing changes, quality gates
+
+**Autonomous Mode:**
+- AI implements, verifies, and completes automatically
+- No user approval gate
+- Use for: CI/CD pipelines, batch operations, well-defined refactoring
 
 **Note:** Prompts are now lightweight stubs that reference the corresponding skills. The actual implementation logic resides in the skills under `.github/skills/`.
 
@@ -91,7 +108,7 @@ Agents are available in GitHub Custom Agents:
 
 The installer writes files under `.github/prompts/` and `.github/agents/` and will create the `.github/` folder if it doesn't exist.
 
-The installer also scaffolds the `.smaqit/` directory structure used by prompts and agents:
+The installer also scaffolds the `.smaqit/` directory structure used by prompts, agents, and skills:
 - `.smaqit/tasks/PLANNING.md` - Central task tracking file
 - `.smaqit/tasks/` - Individual task files
 - `.smaqit/history/` - Session documentation
@@ -114,7 +131,7 @@ This repository uses its own agents, prompts, and skills for development (dogfoo
 Source files are located in:
 - `agents/` - Agent definitions
 - `prompts/` - Prompt stubs
-- `session-*/`, `task-*/`, `test-*/` - Skill implementations
+- `skills/` - Skill implementations
 
 These are copied to `.github/{agents,prompts,skills}/` for use by GitHub Copilot.
 
@@ -158,5 +175,5 @@ MIT License - see [LICENSE](LICENSE)
 
 ## Related Projects
 
-- [smaqit](https://github.com/ruifrvaz/smaqit) - Spec-driven agent orchestration framework
-- [smaqit-sdk](https://github.com/ruifrvaz/smaqit-sdk) - Agent development toolkit
+- [smaQit](https://github.com/ruifrvaz/smaqit) - Spec-driven agent orchestration framework
+- [smaQit-sdk](https://github.com/ruifrvaz/smaqit-sdk) - Agent development toolkit

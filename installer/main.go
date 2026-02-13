@@ -20,7 +20,7 @@ var agentFiles embed.FS
 var skillFiles embed.FS
 
 // Version is set via ldflags during build: -X main.Version=$(VERSION)
-var Version = "0.4.1"
+var Version = "0.4.2"
 
 const planningTemplate = `# Task Planning
 
@@ -217,7 +217,7 @@ func cmdInstall(targetDir string) {
 		if len(parts) >= 3 {
 			skillName := parts[1]
 			filename := parts[2]
-			
+
 			skillDir := filepath.Join(skillsDir, skillName)
 			if err := os.MkdirAll(skillDir, 0755); err != nil {
 				return fmt.Errorf("creating skill directory %s: %w", skillDir, err)

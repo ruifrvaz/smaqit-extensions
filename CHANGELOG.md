@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-02-13
+
+### Fixed
+- **Build job dependency** - Added `tag` to build job needs array
+  - Build job was checking `needs.tag.result` without declaring dependency
+  - Caused workflow to fail when tag job was skipped (local releases)
+  - v0.4.1 workflow will now complete successfully
+
 ## [0.4.1] - 2026-02-13
 
 ### Fixed
@@ -164,7 +172,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.4.2...HEAD
+[0.4.2]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.1.0...v0.3.0

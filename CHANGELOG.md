@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-02-13
+
+### Added
+- **Post-merge workflow** for automatic release tag creation
+  - `.github/workflows/post-merge-tag.yml` - Automatically creates git tags when release PRs are merged to main
+  - Detects release PRs by title pattern: "Prepare release vX.Y.Z" or "Release vX.Y.Z"
+  - Extracts version from PR title and creates annotated tag
+  - Eliminates manual tag creation step after PR merge
+
 ## [0.3.0] - 2026-02-12
 
 ### Added
@@ -121,6 +130,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.1.0...v0.3.0
 [0.1.0]: https://github.com/ruifrvaz/smaqit-extensions/releases/tag/v0.1.0

@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-02-13
+
+### Fixed
+- **Release workflow trigger** - Added tag push trigger to unified release workflow
+  - Workflow now triggers on both tag push (local releases) and PR merge (PR-based releases)
+  - Fixed artifact path typo: `instabuild]` → `installer/dist/*`
+  - Removed duplicate release job definition
+  - v0.4.0 release will now complete with binaries and GitHub Release
+
+### Added
+- **Copilot instructions** - Added `.github/copilot-instructions.md` for dogfooding workflow
+  - Documents `make sync` requirement
+  - Explains source vs synced file structure
+
 ## [0.4.0] - 2026-02-13
 
 ### Added
@@ -150,6 +164,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.4.0...v0.4.1
+[0.4.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.1.0...v0.3.0
 [0.1.0]: https://github.com/ruifrvaz/smaqit-extensions/releases/tag/v0.1.0

@@ -85,7 +85,7 @@ jobs:
 
   build:
     name: Build Binaries
-    needs: prepare
+    needs: [prepare, tag]
     if: |
       always() &&
       needs.prepare.result == 'success' &&

@@ -1,0 +1,61 @@
+name: Post-Merge Release Tag
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  tag-release:
+    if: |
+      github.event.pull_request.merged == true &&
+      (startsWith(github.event.pull_request.title, 'Prepare release v') ||
+       startsWith(github.event.pull_request.title, 'prepare release v') ||
+       startsWith(github.event.pull_request.title, 'Release v') ||
+       startsWith(github.event.pull_request.title, 'release v'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from PR title
+        id: version
+        run: |
+          TITLE="${{ github.event.pull_request.title }}"
+          # Match "Prepare release vX.Y.Z" or "Release vX.Y.Z"
+          # Supports semver with optional prerelease/build metadata
+          if [[ "$TITLE" =~ [Pp]repare[[:space:]]release[[:space:]]v([0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?) ]]; then
+            VERSION="${BASH_REMATCH[1]}"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "✓ Extracted version: $VERSION"
+          elif [[ "$TITLE" =~ [Rr]elease[[:space:]]v([0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?) ]]; then
+            VERSION="${BASH_REMATCH[1]}"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "✓ Extracted version: $VERSION"
+          else
+            echo "⚠️  Could not extract version from PR title: $TITLE"
+            echo "Expected format: 'Prepare release vX.Y.Z' or 'Release vX.Y.Z'"
+            exit 0  # Don't fail the workflow, just skip tag creation
+          fi
+
+      - name: Create and push tag
+        if: steps.version.outputs.version != ''
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if [[ -z "$VERSION" || "$VERSION" =~ ^[[:space:]]*$ ]]; then
+            echo "❌ Invalid version: empty or whitespace only"
+            exit 1
+          fi
+          
+          echo "Creating tag v$VERSION..."
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v$VERSION" -m "Release v$VERSION"
+          git push origin "v$VERSION"
+          echo "✓ Successfully created and pushed tag v$VERSION"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

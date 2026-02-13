@@ -1,6 +1,9 @@
-name: Post-Merge Release
+name: Release
 
 on:
+  push:
+    tags:
+      - 'v*'
   pull_request:
     types: [closed]
     branches: [main]
@@ -12,38 +15,50 @@ jobs:
   prepare:
     name: Extract Version
     if: |
-      github.event.pull_request.merged == true &&
-      (startsWith(github.event.pull_request.title, 'Prepare release v') ||
-       startsWith(github.event.pull_request.title, 'prepare release v') ||
-       startsWith(github.event.pull_request.title, 'Release v') ||
-       startsWith(github.event.pull_request.title, 'release v'))
+      github.event_name == 'push' ||
+      (github.event.pull_request.merged == true &&
+       (startsWith(github.event.pull_request.title, 'Prepare release v') ||
+        startsWith(github.event.pull_request.title, 'prepare release v') ||
+        startsWith(github.event.pull_request.title, 'Release v') ||
+        startsWith(github.event.pull_request.title, 'release v')))
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
+      skip_tag: ${{ steps.version.outputs.skip_tag }}
     steps:
-      - name: Extract version from PR title
+      - name: Extract version
         id: version
         run: |
-          TITLE="${{ github.event.pull_request.title }}"
-          # Match "Prepare release vX.Y.Z" or "Release vX.Y.Z"
-          # Supports semver with optional prerelease/build metadata
-          if [[ "$TITLE" =~ [Pp]repare[[:space:]]release[[:space:]]v([0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?) ]]; then
-            VERSION="${BASH_REMATCH[1]}"
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            # Triggered by tag push (local release)
+            VERSION="${GITHUB_REF#refs/tags/v}"
             echo "version=$VERSION" >> $GITHUB_OUTPUT
-            echo "✓ Extracted version: $VERSION"
-          elif [[ "$TITLE" =~ [Rr]elease[[:space:]]v([0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?) ]]; then
-            VERSION="${BASH_REMATCH[1]}"
-            echo "version=$VERSION" >> $GITHUB_OUTPUT
-            echo "✓ Extracted version: $VERSION"
+            echo "skip_tag=true" >> $GITHUB_OUTPUT
+            echo "✓ Extracted version from tag: $VERSION"
           else
-            echo "⚠️  Could not extract version from PR title: $TITLE"
-            echo "Expected format: 'Prepare release vX.Y.Z' or 'Release vX.Y.Z'"
-            exit 1
+            # Triggered by PR merge (PR-based release)
+            TITLE="${{ github.event.pull_request.title }}"
+            if [[ "$TITLE" =~ [Pp]repare[[:space:]]release[[:space:]]v([0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?) ]]; then
+              VERSION="${BASH_REMATCH[1]}"
+              echo "version=$VERSION" >> $GITHUB_OUTPUT
+              echo "skip_tag=false" >> $GITHUB_OUTPUT
+              echo "✓ Extracted version from PR title: $VERSION"
+            elif [[ "$TITLE" =~ [Rr]elease[[:space:]]v([0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?) ]]; then
+              VERSION="${BASH_REMATCH[1]}"
+              echo "version=$VERSION" >> $GITHUB_OUTPUT
+              echo "skip_tag=false" >> $GITHUB_OUTPUT
+              echo "✓ Extracted version from PR title: $VERSION"
+            else
+              echo "⚠️  Could not extract version from PR title: $TITLE"
+              echo "Expected format: 'Prepare release vX.Y.Z' or 'Release vX.Y.Z'"
+              exit 1
+            fi
           fi
 
   tag:
     name: Create Tag
     needs: prepare
+    if: needs.prepare.outputs.skip_tag == 'false'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -70,7 +85,11 @@ jobs:
 
   build:
     name: Build Binaries
-    needs: [prepare, tag]
+    needs: prepare
+    if: |
+      always() &&
+      needs.prepare.result == 'success' &&
+      (needs.tag.result == 'success' || needs.tag.result == 'skipped')
     runs-on: ubuntu-latest
     
     strategy:
@@ -118,8 +137,12 @@ jobs:
   
   release:
     name: Create GitHub Release
-    needs: [prepare, tag, build]
+    needs: [prepare, build]
     runs-on: ubuntu-latest
+    if: |
+      always() &&
+      needs.prepare.result == 'success' &&
+      needs.build.result == 'success'
     
     steps:
       - name: Checkout code

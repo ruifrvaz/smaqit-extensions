@@ -21,14 +21,7 @@ Use this skill after obtaining version approval and before executing git operati
 
 ### Step 1: Validate Git State
 
-**A. Check working tree is clean:**
-```bash
-git status --porcelain
-```
-- Output must be empty (no uncommitted changes)
-- If dirty: Stop and report "Working tree has uncommitted changes. Commit or stash them first."
-
-**B. Verify current branch:**
+**A. Verify current branch:**
 ```bash
 git branch --show-current
 ```
@@ -36,12 +29,14 @@ git branch --show-current
 - **For PR-based releases:** Feature branch is acceptable
 - If not on main (local release): Warn and request confirmation
 
-**C. Check version doesn't exist in CHANGELOG.md:**
+**B. Check version doesn't exist in CHANGELOG.md:**
 ```bash
 grep "## \\[X.Y.Z\\]" CHANGELOG.md
 ```
 - Replace X.Y.Z with actual version (e.g., `grep "## \\[0.3.0\\]" CHANGELOG.md`)
 - If version already exists: Stop and report "Version X.Y.Z already exists in CHANGELOG.md"
+
+**Note:** Uncommitted changes are acceptable - they will be handled during git operations step.
 
 ### Step 2: Finalize CHANGELOG.md
 
@@ -160,7 +155,6 @@ version_synced: true
 
 | Error | Suggested Action |
 |-------|------------------|
-| Working tree is dirty | Stop and report: "Commit or stash uncommitted changes first" |
 | Version already exists in CHANGELOG.md | Stop and report: "Version X.Y.Z already exists" |
 | Not on main branch (local release) | Warn and request confirmation before proceeding |
 | Version file has different format | Ask user how to update it (may need custom logic) |
@@ -173,3 +167,5 @@ version_synced: true
 - Version files are optional - CHANGELOG.md is the only required file
 - Keep a Changelog format uses version WITHOUT 'v' prefix in headers (e.g., `## [0.3.0]`), but git tags use 'v' prefix (e.g., `v0.3.0`)
 - For PR-based releases, validation rules are slightly relaxed (feature branch OK)
+
+- Uncommitted changes in working tree are acceptable - `release-git-local` handles commit grouping

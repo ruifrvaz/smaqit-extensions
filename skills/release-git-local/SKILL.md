@@ -20,9 +20,102 @@ Use this skill for **local releases** (running on a developer's machine) after a
 
 ## How to execute
 
-### Step 1: Stage Changes
+### Step 1: Check for Uncommitted Work
 
-Stage CHANGELOG.md and any confirmed version files:
+Check if there are uncommitted changes beyond release preparation files:
+
+```bash
+git status --porcelain
+```
+
+**If working tree has changes:**
+1. Analyze changes and group by logical purpose
+2. Commit each group separately (see Step 1a)
+3. Then continue with release commit (Step 2)
+
+**If only CHANGELOG.md and version files changed:**
+- Skip to Step 2 directly
+
+### Step 1a: Commit Unreleased Work (If Needed)
+
+**CRITICAL:** Group changes by purpose, not by file type. Each commit should represent one logical change.
+
+**Analyze all changed files:**
+```bash
+git --no-pager diff --name-status
+git status --short
+```
+
+**Common grouping patterns:**
+
+**Pattern 1: Feature + Documentation**
+```bash
+# New feature with related docs
+git add src/new_feature.js docs/api.md
+git commit -m "Add new feature X"
+```
+
+**Pattern 2: Bug Fix**
+```bash
+# Bug fix with tests
+git add src/buggy_module.js tests/buggy_module.test.js
+git commit -m "Fix issue with Y"
+```
+
+**Pattern 3: Refactoring/Reorganization**
+```bash
+# Moved files or restructured
+git add -u old_location/  # stages deletions
+git add new_location/
+git commit -m "Refactor: move Z to new location"
+```
+
+**Pattern 4: Build/Infrastructure**
+```bash
+# Build, CI/CD, or tooling changes
+git add .github/workflows/ Makefile
+git commit -m "Update build workflow"
+```
+
+**Guidelines for grouping:**
+- Each commit should be independently understandable
+- Related changes belong together (implementation + tests + docs)
+- Separate different logical changes into different commits
+- Use descriptive commit messages explaining "why", not just "what"
+- Prefix with type if helpful: `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`
+
+**Example workflow with multiple commit groups:**
+```bash
+# Group 1: Infrastructure changes
+git add Makefile .github/workflows/
+git commit -m "chore: update sync workflow for new structure"
+
+# Group 2: Feature implementation
+git add skills/ installer/Makefile
+git add -u session-*/ task-*/ test-*/ release-*/  # stages deletions
+git commit -m "refactor: consolidate skills into skills/ directory"
+
+# Group 3: Bug fix
+git add .github/workflows/post-merge-release.yml
+git add -u .github/workflows/post-merge-tag.yml .github/workflows/release.yml
+git add agents/smaqit.release.pr.agent.md .github/agents/ README.md
+git commit -m "fix: merge workflows to resolve GITHUB_TOKEN trigger issue"
+
+# Group 4: Documentation/support
+git add .smaqit/
+git commit -m "feat: add task tracking system"
+
+# Now ready for Step 2 (release commit)
+```
+
+**After committing work, verify clean state:**
+```bash
+git status --porcelain  # Should be empty or only show CHANGELOG/version files
+```
+
+### Step 2: Stage Release Preparation Files
+
+Stage ONLY the release preparation changes:
 
 ```bash
 git add CHANGELOG.md
@@ -30,15 +123,17 @@ git add CHANGELOG.md
 
 If version files were updated:
 ```bash
-git add package.json pyproject.toml
+git add package.json pyproject.toml installer/main.go
 ```
 
-**Verify staged changes:**
+**Verify staged changes contain ONLY release preparation:**
 ```bash
-git --no-pager diff --cached --name-only
+git --no-pager diff --cached --name-status
 ```
 
-### Step 2: Commit Changes
+Expected output should be minimal (2-3 files max).
+
+### Step 3: Commit Release Preparation
 
 Create commit with release message:
 
@@ -51,7 +146,7 @@ git commit -m "Release vX.Y.Z"
 git --no-pager log -1 --oneline
 ```
 
-### Step 3: Create Annotated Tag
+### Step 4: Create Annotated Tag
 
 Create an annotated tag (not lightweight):
 
@@ -69,7 +164,7 @@ git tag -a vX.Y.Z -m "Release vX.Y.Z"
 git --no-pager tag -l vX.Y.Z
 ```
 
-### Step 4: Push Commit to Remote
+### Step 5: Push Commits to Remote
 
 Push the commit to the remote repository:
 
@@ -79,7 +174,7 @@ git push origin main
 
 **Replace `main` with current branch if different.**
 
-### Step 5: Push Tag to Remote
+### Step 6: Push Tag to Remote
 
 Push the tag to trigger release workflows:
 
@@ -89,7 +184,7 @@ git push origin vX.Y.Z
 
 **Important:** Tag push must be separate from commit push for most CI/CD systems to detect release events.
 
-### Step 6: Verify Success
+### Step 7: Verify Success
 
 Confirm both commit and tag are on remote:
 
@@ -156,7 +251,10 @@ git tag -d vX.Y.Z  # Delete local tag
 - This skill is for **local development releases only**
 - For PR-based workflows, use `release-git-pr` skill instead
 - All operations happen on the local machine with standard git credentials
+- **Commits should be grouped logically, not dumped together** - each commit tells a story
+- Release preparation (CHANGELOG + version) should be its own separate commit
 - Both commit and tag must be pushed for release to be complete
 - Tag push typically triggers CI/CD release workflows (GitHub Actions, etc.)
 - Never force push (`-f`) release commits or tags
 - If any step fails, stop immediately and report the error - do not continue
+- Good commit hygiene makes git history useful for understanding project evolution

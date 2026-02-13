@@ -6,10 +6,7 @@ on:
     paths:
       - 'agents/**'
       - 'prompts/**'
-      - 'session-*/**'
-      - 'task-*/**'
-      - 'test-*/**'
-      - 'release-*/**'
+      - 'skills/**'
       - '.github/agents/**'
       - '.github/prompts/**'
       - '.github/skills/**'
@@ -54,8 +51,8 @@ jobs:
       - name: Verify skills in sync
         run: |
           for skill in session-start session-finish session-assess session-title task-create task-list task-complete test-start release-analysis release-approval release-prepare-files release-git-local release-git-pr; do
-            if ! diff -q "$skill/SKILL.md" ".github/skills/$skill/SKILL.md" > /dev/null 2>&1; then
-              echo "❌ Out of sync: $skill/SKILL.md"
+            if ! diff -q "skills/$skill/SKILL.md" ".github/skills/$skill/SKILL.md" > /dev/null 2>&1; then
+              echo "❌ Out of sync: skills/$skill/SKILL.md"
               echo ""
               echo "Run 'make sync' to update .github/ with source changes."
               exit 1

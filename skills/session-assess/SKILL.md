@@ -1,6 +1,6 @@
 ---
 name: session-assess
-description: Perform critical assessment of a proposed change or request. Use before implementation to validate necessity and identify trade-offs.
+description: Critical assessment skill for handling ambiguous requirements, conflicting inputs, and insufficient detail in complex planning scenarios. Provides approval gate with iterative refinement to prevent wasted execution on poor-quality inputs. Invoke when user explicitly requests assessment using words "assess" or "assessment" or when requirements are ambiguous, conflicting, or underspecified.
 metadata:
   version: "0.1.0"
 ---

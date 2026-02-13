@@ -4,7 +4,9 @@ Central task tracking and planning for smaqit-extensions.
 
 ## Active Tasks
 
-None.
+| ID | Title | Status | Created |
+|----|-------|--------|---------|
+| 002 | Fix Changelog Extraction for Cumulative Releases | Not Started | 2026-02-13 |
 
 ## Completed Tasks
 

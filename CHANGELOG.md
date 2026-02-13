@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-02-13
+
+### Added
+- **Task-start skill** - Start tasks with autonomous or assisted workflow mode
+  - `task-start/SKILL.md` - Orchestrate task initiation with mode selection
+  - `task-start/references/RULES.md` - Workflow enforcement rules (171 lines)
+  - Supports `--autonomous` flag for CI/CD workflows (agent completes task)
+  - Supports `--assisted` flag for human workflows (requires user approval at checkpoints)
+  - Stores mode in task metadata for enforcement by other skills
+- **Task workflow mode awareness** - Updated task-list and task-complete for mode-aware operations
+  - `task-list` now loads RULES.md and displays mode indicators
+  - `task-complete` enforces assisted mode rules (prevents agent auto-completion)
+  - References pattern using symlinks to task-start/references/RULES.md
+- **Task.start prompt stub** - New prompt stub referencing task-start skill
+
+### Changed
+- **Installer enhancements** - Handles references/ subdirectories within skills
+  - Uses `cp -rL` to dereference symlinks during sync
+  - Embeds full skill trees including references/ subdirs
+  - Installs references/ subdirectories alongside skill files
+- **Session-start skill** - Added reference to task workflow in context loading
+- **README documentation** - Comprehensive updates for task-start and workflow modes
+  - Added task-start usage examples (autonomous vs assisted)
+  - Added "Workflow Modes" section explaining the two modes
+  - Updated counts (9 prompts, 14 skills, 3 agents)
+  - Fixed branding consistency (smaQit with capital Q user-facing)
+  - Fixed binary name references (./smaqit-extensions)
+
 ## [0.4.2] - 2026-02-13
 
 ### Fixed
@@ -172,7 +200,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.4.2...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.3.0...v0.4.0

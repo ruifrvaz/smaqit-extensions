@@ -134,16 +134,19 @@ Releases are fully automated via PR-based workflow:
 2. Assign to Copilot Coding Agent
 3. Agent creates PR with CHANGELOG updates
 4. Review and merge PR
-5. Post-merge workflow creates tag automatically
-6. Release workflow builds binaries and creates GitHub Release
+5. Post-merge workflow automatically:
+   - Creates and pushes git tag
+   - Builds binaries for all platforms
+   - Creates GitHub Release with binaries
 
 **No manual git operations required!**
 
 ### For Maintainers
 
 - Ensure release PR titles follow format: "Prepare release vX.Y.Z" or "Release vX.Y.Z"
-- Post-merge workflow extracts version from title
+- Post-merge workflow extracts version from PR title and handles everything
 - Tag format: `vX.Y.Z` (e.g., `v0.3.0`)
+- All release steps run in a single unified workflow
 
 ## Contributing
 

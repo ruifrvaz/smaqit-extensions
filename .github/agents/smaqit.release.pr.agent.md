@@ -71,26 +71,21 @@ Executes PR operations:
 Outputs:
 - Commit SHA and PR update confirmation
 
-## Post-Merge Tag Creation
+## Post-Merge Release Automation
 
-**CRITICAL:** This agent does NOT create tags during PR workflow. Tags must be created after PR is merged to `main`.
+**CRITICAL:** This agent does NOT create tags or releases during PR workflow. All release actions happen automatically after PR merge.
 
-### Option A: Manual Tag Creation (Documented in PR)
+### Automated Post-Merge Workflow
 
-After this PR is merged to `main`, create the release tag:
+When a PR with title matching "Prepare release vX.Y.Z" or "Release vX.Y.Z" is merged to `main`, the post-merge workflow (`.github/workflows/post-merge-release.yml`) automatically:
 
-```bash
-git checkout main
-git pull origin main
-git tag -a vX.Y.Z -m "Release vX.Y.Z"
-git push origin vX.Y.Z
-```
+1. Creates and pushes git tag `vX.Y.Z`
+2. Builds binaries for all platforms (Linux, macOS, Windows on amd64/arm64)
+3. Creates GitHub Release with binaries and changelog excerpt
 
-### Option B: Automated Post-Merge Workflow
+**No manual intervention required!**
 
-Add `.github/workflows/post-merge-tag.yml` to automatically create tags when PRs with title pattern "Release vX.Y.Z" are merged.
-
-See issue description for example workflow configuration.
+The release is fully automated from PR merge to GitHub Release creation.
 
 ## Completion Criteria
 
@@ -101,16 +96,16 @@ Before declaring success, verify:
 - [ ] Version files synced (if applicable)
 - [ ] Commit created with "Prepare release vX.Y.Z" message
 - [ ] PR created/updated with changes via `report_progress`
-- [ ] Post-merge tag instructions documented in PR
+- [ ] PR title follows format for post-merge automation
 
-**After PR merge:** Tag must be created manually OR via post-merge workflow.
+**After PR merge:** Post-merge workflow automatically creates tag, builds binaries, and publishes GitHub Release.
 
 ## Notes
 
 - Auto-confirm mode is REQUIRED - this agent cannot prompt for user input
 - Tags are intentionally NOT created on PR branches
-- Tag creation is deferred until after PR merge to main
+- All release automation happens in post-merge workflow after PR merge
 - `report_progress` tool handles authentication - no need for credential setup
-- The release is not complete until the tag is pushed to main after merge
+- Release completes automatically after PR merge (tag, builds, GitHub Release)
 - If any skill fails, stop immediately and report the error
-- For local releases with interactive approval, use `smaqit.release` agent instead
+- For local releases with interactive approval, use `smaqit.release.local` agent instead

@@ -23,6 +23,7 @@ Start a new chat with full project context. Execute these steps IN ORDER:
 
 3. **Load task planning**:
    - Read `.smaqit/tasks/PLANNING.md` (NOT individual task files).
+   - Note: Task workflow rules (autonomous vs assisted modes) are loaded via `task-list` skill when working on tasks.
 
 4. **Synthesize and present** a summary covering:
    - Current project state (from READMEs)

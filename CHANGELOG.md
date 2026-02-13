@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-02-13
+
+### Added
+- **Task tracking system** - `.smaqit/tasks/` directory structure for managing development tasks
+  - `PLANNING.md` - Central task overview with status tracking
+  - Individual task files with acceptance criteria and notes
+- **Unified post-merge-release workflow** - Single automated workflow handling complete release pipeline
+  - Triggers on PR merge with release title pattern
+  - Creates git tags automatically
+  - Builds binaries for all platforms (Linux, macOS, Windows on amd64/arm64)
+  - Publishes GitHub Release with binaries and changelog
+  - Eliminates GITHUB_TOKEN workflow trigger limitation
+
+### Fixed
+- **Critical release automation bug** - GITHUB_TOKEN preventing workflow chaining
+  - Merged `post-merge-tag.yml` and `release.yml` into single workflow
+  - Release now completes automatically without manual tag creation
+  - Fixes broken v0.4.0 release that required manual intervention
+
+### Changed
+- **Project structure** - Consolidated skills into organized `skills/` directory
+  - Moved 13 skill directories from root into `skills/` folder
+  - Matches organizational pattern of `agents/` and `prompts/` directories
+  - Updated build process and sync workflows for new structure
+- **Release PR agent integration** - Updated documentation for unified workflow
+  - Removed manual tag creation instructions
+  - Documents automatic post-merge release process
+
 ## [0.3.0] - 2026-02-12
 
 ### Added
@@ -93,7 +121,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `task-complete/SKILL.md` - Mark tasks completed
   - `test-start/SKILL.md` - Initialize testing workflows
 - Installer now copies skills to `.github/skills/` directory
-- Skills include metadata with version 0.1.0
+- Skills include metadata with version 0.1.04.0...HEAD
+[0.4.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.3.0...v0.4.0
 
 ### Changed
 - Prompts are now lightweight stubs that reference corresponding skills

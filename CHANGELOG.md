@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-02-14
+
+### Changed
+- **Release-analysis skill v0.3.0** - Enhanced with file-based change detection
+  - Added Step 2B: File changes analysis using `git diff --stat --name-status`
+  - Handles grafted/shallow repositories correctly
+  - Compares against empty tree SHA (4b825dc...) when no tags exist
+  - Updated severity assessment to include file pattern analysis
+  - Added notes explaining importance of file-based analysis in incomplete histories
+  - Fixes issue where commit-only analysis missed actual file changes in grafted repos
+
 ## [0.5.0] - 2026-02-13
 
 ### Added
@@ -200,7 +211,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.4.0...v0.4.1

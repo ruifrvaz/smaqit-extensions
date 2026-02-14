@@ -5,32 +5,23 @@ Enhance your agentic development with streamlined session management, task track
 ## What's Included
 
 ### Skills
-- **session-start** - Load full project context at session start
-- **session-finish** - Document session history at completion
-- **session-assess** - Analyze requests before implementation
-- **session-title** - Generate concise session titles
-- **task-create** - Create new tasks with auto-numbering
-- **task-start** - Start working on a task (autonomous or assisted mode)
-- **task-list** - Show current active tasks
-- **task-complete** - Mark tasks as completed with verification
-- **test-start** - Initialize testing workflows
 
-### Session Management Prompts
+#### Session Management
 - **session.start** - Load full project context at session start
 - **session.assess** - Analyze requests before implementation
 - **session.finish** - Document session history at completion
 - **session.title** - Generate concise session titles
 
-### Task Tracking Prompts
+#### Task Tracking
 - **task.create** - Create new tasks with auto-numbering
 - **task.start** - Start working on a task with workflow mode
 - **task.list** - Show current active tasks
 - **task.complete** - Mark tasks as completed with verification
 
-### Testing Prompts
+#### Testing
 - **test.start** - Initialize testing workflows
 
-### Release Management Skills
+#### Release Management
 - **release-analysis** - Collect changes, assess severity, and suggest next version
 - **release-approval** - Obtain approval for suggested version (auto-confirm or interactive)
 - **release-prepare-files** - Validate git state and prepare all files for release

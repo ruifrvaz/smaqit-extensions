@@ -1,10 +1,6 @@
-# smaQit-extensions
+**Quality-of-life workflows, agents and skills**
 
-**Quality-of-life workflow prompts, agents, and skills (smaQit-extensions)**
-
-A collection of prompts, agents, and skills that streamline session management, task tracking with approval gates, release automation, and testing workflows.
-
-These `smaQit` extensions are designed to work out of the box in any repository. Install once, and prompts/agents reference the `.smaqit/` directory for task tracking, session history, and testing artifacts.
+Enhance your agentic development with streamlined session management, task tracking, release and test automation. Designed to work out of the box in any repository with a simple one-time install.
 
 ## What's Included
 
@@ -92,8 +88,6 @@ User: /session.finish
 - No user approval gate
 - Use for: CI/CD pipelines, batch operations, well-defined refactoring
 
-**Note:** Prompts are now lightweight stubs that reference the corresponding skills. The actual implementation logic resides in the skills under `.github/skills/`.
-
 Agents are available in GitHub Custom Agents:
 ```
 @smaqit.release.local   # Local release (interactive or auto-confirm)
@@ -103,8 +97,8 @@ Agents are available in GitHub Custom Agents:
 
 ## Requirements
 
-- GitHub Copilot with prompt/agent support
-- A git repository (recommended)
+- GitHub Copilot with prompt/agent and skill support
+- A git repository
 
 The installer writes files under `.github/prompts/` and `.github/agents/` and will create the `.github/` folder if it doesn't exist.
 
@@ -124,7 +118,7 @@ make build    # Build installer
 make test     # Test installer
 ```
 
-### Dogfooding (Repository Contributors)
+### Contributors
 
 This repository uses its own agents, prompts, and skills for development (dogfooding).
 

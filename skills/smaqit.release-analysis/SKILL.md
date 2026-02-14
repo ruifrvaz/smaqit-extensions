@@ -2,7 +2,7 @@
 name: smaqit.release-analysis
 description: Collect changes, assess severity, and suggest next version for a release
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # Release Analysis
@@ -30,7 +30,7 @@ If no tags exist, the repository is at version 0.0.0 and the suggested version w
 
 ### Step 2: Collect Changes
 
-Collect changes from two sources:
+Collect changes from three sources:
 
 **A. Git commit history:**
 ```bash
@@ -42,30 +42,52 @@ If no tags exist:
 git log --pretty=format:"%s"
 ```
 
-**B. Session history (if exists):**
+**B. File changes analysis:**
+Analyze actual file modifications to supplement commit messages. This is especially important in grafted/shallow repositories where commit history may be incomplete.
+
+```bash
+# If tags exist:
+git diff <last-tag>..HEAD --stat --name-status
+
+# If no tags exist (compare against empty tree):
+git diff 4b825dc5c39fd418cd129ae01eb94d5aa75a7d7f..HEAD --stat --name-status
+```
+
+Extract key insights:
+- New files added (especially features, agents, skills, workflows)
+- Modified core components (installers, configuration)
+- Deleted functionality (potential breaking changes)
+- Number of files changed and scope of modifications
+
+**C. Session history (if exists):**
 Read markdown files in `.smaqit/history/` directory. These contain documented session work with completed tasks and decisions.
 
 ### Step 3: Assess Change Severity
 
-Analyze the collected changes to determine severity level:
+Analyze the collected changes from commit messages, file changes, and session history to determine severity level:
 
 **MAJOR (X.0.0)** - Breaking changes:
 - Removed features or commands
 - Changed behavior that breaks existing usage
 - Incompatible API changes
+- Deleted files that were part of public API
 - **Keywords to look for:** "Breaking", "Removed", "Incompatible"
+- **File patterns:** Deletions of core functionality
 
 **MINOR (0.X.0)** - New features, non-breaking changes:
 - Added features, commands, or capabilities
 - New functionality
 - Deprecated features (warning, not removal)
+- New files added (agents, skills, workflows)
 - **Keywords to look for:** "Added", "New", "Deprecated"
+- **File patterns:** New agents/, prompts/, skills/ files
 
 **PATCH (0.0.X)** - Bug fixes only:
 - Fixed bugs or issues
 - Documentation updates
 - Internal refactoring with no user-facing changes
 - **Keywords to look for:** "Fixed", "Corrected", "Bug"
+- **File patterns:** Changes to existing files without new features
 
 ### Step 4: Suggest Next Version
 
@@ -109,5 +131,7 @@ rationale: "New features added (release agent), no breaking changes detected"
 - This skill only **analyzes and suggests** - it does not modify any files
 - The suggested version is a recommendation that must be approved before use
 - Session history files (`.smaqit/history/`) are optional - if they don't exist, rely solely on git log
+- **File-based analysis** is critical in grafted/shallow repositories where commit history may be incomplete
 - Focus on user-facing changes; internal implementation details should not drive severity
 - When in doubt between severities, prefer conservative (e.g., MINOR over MAJOR)
+- The empty tree SHA `4b825dc5c39fd418cd129ae01eb94d5aa75a7d7f` is a Git constant for comparing against an empty state

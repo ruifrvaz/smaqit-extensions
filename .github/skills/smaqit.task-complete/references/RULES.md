@@ -1,4 +1,4 @@
-a# Task Workflow Rules
+# Task Workflow Rules
 
 **Version:** 0.1.0  
 **Purpose:** Enforce proper task completion gates and workflow modes

@@ -50,7 +50,7 @@ jobs:
       
       - name: Verify skills in sync
         run: |
-          for skill in session-start session-finish session-assess session-title task-create task-list task-complete test-start release-analysis release-approval release-prepare-files release-git-local release-git-pr; do
+          for skill in smaqit.session-start smaqit.session-finish smaqit.session-assess smaqit.session-title smaqit.task-create smaqit.task-list smaqit.task-complete smaqit.task-start smaqit.test-start smaqit.release-analysis smaqit.release-approval smaqit.release-prepare-files smaqit.release-git-local smaqit.release-git-pr; do
             if ! diff -q "skills/$skill/SKILL.md" ".github/skills/$skill/SKILL.md" > /dev/null 2>&1; then
               echo "❌ Out of sync: skills/$skill/SKILL.md"
               echo ""

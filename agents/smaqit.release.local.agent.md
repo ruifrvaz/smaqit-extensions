@@ -22,7 +22,7 @@ This agent is designed for **local development environments** where:
 
 Execute these skills in order:
 
-### 1. Use `release-analysis` skill
+### 1. Use `smaqit.release-analysis` skill
 
 Collects changes from:
 - Git commit history since last tag
@@ -32,7 +32,7 @@ Outputs:
 - Change severity assessment (MAJOR/MINOR/PATCH)
 - Suggested next version following semver
 
-### 2. Use `release-approval` skill
+### 2. Use `smaqit.release-approval` skill
 
 Determines approval mode:
 - **Interactive mode**: Present suggestion and request user approval
@@ -46,7 +46,7 @@ Auto-confirm patterns:
 Outputs:
 - Approved version with validation
 
-### 3. Use `release-prepare-files` skill
+### 3. Use `smaqit.release-prepare-files` skill
 
 Validates and prepares release files:
 - Verifies git working tree is clean
@@ -58,7 +58,7 @@ Validates and prepares release files:
 Outputs:
 - List of modified files ready for commit
 
-### 4. Use `release-git-local` skill
+### 4. Use `smaqit.release-git-local` skill
 
 Executes git operations:
 - Stages changes (CHANGELOG.md and any version files)

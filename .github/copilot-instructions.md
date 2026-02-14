@@ -6,8 +6,8 @@ This repository uses its own agents, prompts, and skills for development (dogfoo
 
 **Source files:**
 - `agents/` - Agent definitions (3 agents)
-- `prompts/` - Prompt stubs (8 prompts)
-- `skills/` - Skill implementations (13 skills)
+- `prompts/` - Prompt stubs (9 prompts)
+- `skills/` - Skill implementations (15 skills)
 
 **Synced files:**
 - `.github/agents/` - Synced from `agents/`

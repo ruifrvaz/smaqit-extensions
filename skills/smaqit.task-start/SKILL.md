@@ -2,7 +2,7 @@
 name: smaqit.task-start
 description: Start working on a task. Supports autonomous mode (AI completes) or assisted mode (user approval required). Use when beginning work on tasks to set proper workflow.
 metadata:
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Task Start

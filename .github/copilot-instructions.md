@@ -35,13 +35,49 @@ This command:
 # 1. Edit source files
 vim agents/smaqit.release.pr.agent.md
 
-# 2. Sync to .github/
+# 2. Update version in frontmatter metadata
+# Bump version following semver (e.g., 0.1.0 → 0.2.0 for changes)
+
+# 3. Sync to .github/
 make sync
 
-# 3. Commit both source and synced files together
+# 4. Commit both source and synced files together
 git add agents/smaqit.release.pr.agent.md .github/agents/smaqit.release.pr.agent.md
 git commit -m "fix: update release PR agent"
 ```
+
+## Version Management
+
+**ALWAYS update version numbers when modifying prompts, agents, or skills.**
+
+All prompts, agents, and skills include version metadata in their frontmatter:
+
+```yaml
+---
+name: smaqit.example
+description: Example description
+metadata:
+  version: "0.2.0"
+---
+```
+
+**Versioning rules:**
+- Follow semantic versioning (MAJOR.MINOR.PATCH)
+- Increment PATCH (0.1.0 → 0.1.1) for bug fixes or minor text changes
+- Increment MINOR (0.1.0 → 0.2.0) for new functionality or significant changes
+- Increment MAJOR (0.1.0 → 1.0.0) for breaking changes
+
+**When to update versions:**
+- Any change to frontmatter (name, description, metadata)
+- Any change to file content (implementation, documentation, examples)
+- Renaming files or directories
+- Updating references to other resources
+
+**Example workflow:**
+1. Modify `agents/smaqit.release.pr.agent.md`
+2. Update `metadata.version` from "0.1.0" to "0.2.0" in the frontmatter
+3. Run `make sync`
+4. Commit changes
 
 ## CI Verification
 

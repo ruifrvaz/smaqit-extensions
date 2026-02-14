@@ -2,7 +2,7 @@
 name: smaqit.task-complete
 description: Mark a task as completed with verification. Use when finishing tasks to update status and verify criteria.
 metadata:
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Task Complete

@@ -1,6 +1,8 @@
 ---
 name: smaqit.release.pr
 description: Orchestrate a release process via pull request (CI/CD, Coding Agent)
+metadata:
+  version: "0.2.0"
 tools: ['edit', 'search', 'runCommands', 'usages', 'changes', 'todos']
 ---
 

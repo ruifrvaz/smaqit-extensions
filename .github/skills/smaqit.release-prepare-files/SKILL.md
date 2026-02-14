@@ -2,7 +2,7 @@
 name: smaqit.release-prepare-files
 description: Validate git state and prepare all files (CHANGELOG.md, version files) for release
 metadata:
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Release Prepare Files

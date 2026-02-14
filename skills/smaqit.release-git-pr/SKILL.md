@@ -2,7 +2,7 @@
 name: smaqit.release-git-pr
 description: Execute git operations for PR-based releases (commit, push via report_progress)
 metadata:
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Release Git PR

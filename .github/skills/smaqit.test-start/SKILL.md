@@ -2,7 +2,7 @@
 name: smaqit.test-start
 description: Start testing session with focused context. Use when beginning test workflows with the user-testing agent.
 metadata:
-  version: "0.1.0"
+  version: "0.2.0"
 agent: smaqit.user-testing
 ---
 

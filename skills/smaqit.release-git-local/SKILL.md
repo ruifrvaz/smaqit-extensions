@@ -2,7 +2,7 @@
 name: smaqit.release-git-local
 description: Execute git operations (commit, tag, push) for local releases
 metadata:
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Release Git Local

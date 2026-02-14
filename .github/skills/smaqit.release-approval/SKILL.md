@@ -2,7 +2,7 @@
 name: smaqit.release-approval
 description: Obtain approval for suggested version (auto-confirm or interactive)
 metadata:
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Release Approval

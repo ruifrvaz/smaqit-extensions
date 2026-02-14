@@ -7,26 +7,26 @@ Enhance your agentic development with streamlined session management, task track
 ### Skills
 
 #### Session Management
-- **session.start** - Load full project context at session start
-- **session.assess** - Analyze requests before implementation
-- **session.finish** - Document session history at completion
-- **session.title** - Generate concise session titles
+- **smaqit.session.start** - Load full project context at session start
+- **smaqit.session.assess** - Analyze requests before implementation
+- **smaqit.session.finish** - Document session history at completion
+- **smaqit.session.title** - Generate concise session titles
 
 #### Task Tracking
-- **task.create** - Create new tasks with auto-numbering
-- **task.start** - Start working on a task with workflow mode
-- **task.list** - Show current active tasks
-- **task.complete** - Mark tasks as completed with verification
+- **smaqit.task.create** - Create new tasks with auto-numbering
+- **smaqit.task.start** - Start working on a task with workflow mode
+- **smaqit.task.list** - Show current active tasks
+- **smaqit.task.complete** - Mark tasks as completed with verification
 
 #### Testing
-- **test.start** - Initialize testing workflows
+- **smaqit.test.start** - Initialize testing workflows
 
 #### Release Management
-- **release-analysis** - Collect changes, assess severity, and suggest next version
-- **release-approval** - Obtain approval for suggested version (auto-confirm or interactive)
-- **release-prepare-files** - Validate git state and prepare all files for release
-- **release-git-local** - Execute git operations for local releases (commit, tag, push)
-- **release-git-pr** - Execute git operations for PR-based releases (via report_progress)
+- **smaqit.release-analysis** - Collect changes, assess severity, and suggest next version
+- **smaqit.release-approval** - Obtain approval for suggested version (auto-confirm or interactive)
+- **smaqit.release-prepare-files** - Validate git state and prepare all files for release
+- **smaqit.release-git-local** - Execute git operations for local releases (commit, tag, push)
+- **smaqit.release-git-pr** - Execute git operations for PR-based releases (via report_progress)
 
 ### Utility Agents
 - **@smaqit.release.local** - Automated release management (local development)
@@ -52,18 +52,18 @@ curl -fsSL https://raw.githubusercontent.com/ruifrvaz/smaqit-extensions/main/ins
 The installer copies files to your project's `.github/` directory:
 - `prompts/` - 9 workflow prompts (stubs that reference skills)
 - `agents/` - 3 utility agents (release local, release PR, user-testing)
-- `skills/` - 14 workflow skills (complete implementations)
+- `skills/` - 15 workflow skills (complete implementations)
 
 ## Usage
 
 Skills can be invoked via prompts in GitHub Copilot:
 
 ```
-User: /session.start
-User: /task.create Implement new feature
-User: /task.start 001               # Assisted mode (default) - user approval required
-User: /task.start 002 --autonomous  # Autonomous mode - AI completes automatically
-User: /session.finish
+User: /smaqit.session.start
+User: /smaqit.task.create Implement new feature
+User: /smaqit.task.start 001               # Assisted mode (default) - user approval required
+User: /smaqit.task.start 002 --autonomous  # Autonomous mode - AI completes automatically
+User: /smaqit.session.finish
 ```
 
 ### Task Workflow Modes
@@ -71,7 +71,7 @@ User: /session.finish
 **Assisted Mode (default):**
 - AI implements the task and stops
 - User reviews and approves
-- User invokes `/task.complete [id]` when satisfied
+- User invokes `/smaqit.task.complete [id]` when satisfied
 - Use for: complex features, user-facing changes, quality gates
 
 **Autonomous Mode:**

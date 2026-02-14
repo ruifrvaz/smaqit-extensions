@@ -89,7 +89,7 @@ func printHelp() {
 	fmt.Println("What gets installed:")
 	fmt.Println("  .github/prompts/    - 9 workflow prompts")
 	fmt.Println("  .github/agents/     - 3 utility agents")
-	fmt.Println("  .github/skills/     - 14 workflow skills")
+	fmt.Println("  .github/skills/     - 15 workflow skills")
 }
 
 func cmdInstall(targetDir string) {
@@ -247,7 +247,7 @@ func cmdInstall(targetDir string) {
 	fmt.Println("Extensions installed successfully!")
 	fmt.Println()
 	fmt.Println("Get started:")
-	fmt.Println("  Use prompts in GitHub Copilot: /session.start, /task.create, etc.")
+	fmt.Println("  Use prompts in GitHub Copilot: /smaqit.session.start, /smaqit.task.create, etc.")
 	fmt.Println("  Use agents: @smaqit.release.local, @smaqit.release.pr, @smaqit.user-testing")
 	fmt.Println("  Use skills: Skills are available via prompts or direct invocation")
 }
@@ -260,30 +260,38 @@ func cmdUninstall() {
 
 	// List files to remove
 	promptFiles := []string{
-		"session.start.prompt.md",
-		"session.assess.prompt.md",
-		"session.finish.prompt.md",
-		"session.title.prompt.md",
-		"task.create.prompt.md",
-		"task.list.prompt.md",
-		"task.complete.prompt.md",
-		"test.start.prompt.md",
+		"smaqit.session.start.prompt.md",
+		"smaqit.session.assess.prompt.md",
+		"smaqit.session.finish.prompt.md",
+		"smaqit.session.title.prompt.md",
+		"smaqit.task.create.prompt.md",
+		"smaqit.task.list.prompt.md",
+		"smaqit.task.complete.prompt.md",
+		"smaqit.task.start.prompt.md",
+		"smaqit.test.start.prompt.md",
 	}
 
 	agentFiles := []string{
-		"smaqit.release.agent.md",
+		"smaqit.release.local.agent.md",
+		"smaqit.release.pr.agent.md",
 		"smaqit.user-testing.agent.md",
 	}
 
 	skillDirs := []string{
-		"session-start",
-		"session-finish",
-		"session-assess",
-		"session-title",
-		"task-create",
-		"task-list",
-		"task-complete",
-		"test-start",
+		"smaqit.session-start",
+		"smaqit.session-finish",
+		"smaqit.session-assess",
+		"smaqit.session-title",
+		"smaqit.task-create",
+		"smaqit.task-list",
+		"smaqit.task-complete",
+		"smaqit.task-start",
+		"smaqit.test-start",
+		"smaqit.release-analysis",
+		"smaqit.release-approval",
+		"smaqit.release-prepare-files",
+		"smaqit.release-git-local",
+		"smaqit.release-git-pr",
 	}
 
 	removedCount := 0

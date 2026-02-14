@@ -6,7 +6,7 @@ sync:
 	@mkdir -p .github/agents .github/prompts .github/skills
 	@cp -f agents/*.md .github/agents/
 	@cp -f prompts/*.md .github/prompts/
-	@for skill in session-start session-finish session-assess session-title task-create task-list task-complete task-start test-start release-analysis release-approval release-prepare-files release-git-local release-git-pr; do \
+	@for skill in smaqit.session-start smaqit.session-finish smaqit.session-assess smaqit.session-title smaqit.task-create smaqit.task-list smaqit.task-complete smaqit.task-start smaqit.test-start smaqit.release-analysis smaqit.release-approval smaqit.release-prepare-files smaqit.release-git-local smaqit.release-git-pr; do \
 		mkdir -p .github/skills/$$skill; \
 		cp -f skills/$$skill/SKILL.md .github/skills/$$skill/; \
 		if [ -d skills/$$skill/references ]; then \

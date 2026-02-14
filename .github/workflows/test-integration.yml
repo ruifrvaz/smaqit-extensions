@@ -35,14 +35,15 @@ jobs:
       - name: Verify prompts installed
         run: |
           EXPECTED_PROMPTS=(
-            "session.start.prompt.md"
-            "session.assess.prompt.md"
-            "session.finish.prompt.md"
-            "session.title.prompt.md"
-            "task.create.prompt.md"
-            "task.list.prompt.md"
-            "task.complete.prompt.md"
-            "test.start.prompt.md"
+            "smaqit.session.start.prompt.md"
+            "smaqit.session.assess.prompt.md"
+            "smaqit.session.finish.prompt.md"
+            "smaqit.session.title.prompt.md"
+            "smaqit.task.create.prompt.md"
+            "smaqit.task.list.prompt.md"
+            "smaqit.task.complete.prompt.md"
+            "smaqit.task.start.prompt.md"
+            "smaqit.test.start.prompt.md"
           )
           
           for prompt in "${EXPECTED_PROMPTS[@]}"; do
@@ -72,19 +73,20 @@ jobs:
       - name: Verify skills installed
         run: |
           EXPECTED_SKILLS=(
-            "session-start"
-            "session-finish"
-            "session-assess"
-            "session-title"
-            "task-create"
-            "task-list"
-            "task-complete"
-            "test-start"
-            "release-analysis"
-            "release-approval"
-            "release-prepare-files"
-            "release-git-local"
-            "release-git-pr"
+            "smaqit.session-start"
+            "smaqit.session-finish"
+            "smaqit.session-assess"
+            "smaqit.session-title"
+            "smaqit.task-create"
+            "smaqit.task-list"
+            "smaqit.task-complete"
+            "smaqit.task-start"
+            "smaqit.test-start"
+            "smaqit.release-analysis"
+            "smaqit.release-approval"
+            "smaqit.release-prepare-files"
+            "smaqit.release-git-local"
+            "smaqit.release-git-pr"
           )
           
           for skill in "${EXPECTED_SKILLS[@]}"; do
@@ -125,7 +127,7 @@ jobs:
           ${{ github.workspace }}/installer/dist/smaqit-extensions uninstall
           
           # Verify files removed
-          if [ -f "/tmp/smaqit-extensions-test/.github/prompts/session.start.prompt.md" ]; then
+          if [ -f "/tmp/smaqit-extensions-test/.github/prompts/smaqit.session.start.prompt.md" ]; then
             echo "❌ Files not removed"
             exit 1
           fi

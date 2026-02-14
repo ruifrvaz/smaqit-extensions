@@ -34,7 +34,7 @@ Read the project files that define how tests are run (whichever exist):
 Read the complete test task file:
 - `.smaqit/tasks/{TASK_NUMBER}_*.md`
 
-If the task file does not exist, instruct the user to create it using `/task.create` (or create it yourself) before proceeding.
+If the task file does not exist, instruct the user to create it using `/smaqit.task.create` (or create it yourself) before proceeding.
 
 This file contains:
 - Test objectives

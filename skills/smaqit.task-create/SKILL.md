@@ -2,23 +2,23 @@
 name: smaqit.task-create
 description: Create a new task with auto-numbering. Use when creating new tasks to track work.
 metadata:
-  version: "0.3.0"
+  version: "0.3.1"
 ---
 
 # Task Create
 
 Create a new task with the format: `task.create [title]` or `task.create [title] - [description] - [criteria]`
 
-⚠️ **CRITICAL:** Task creation is a **planning activity** that MUST stop after completion. Do NOT implement the task after creating it.
+**Note:** Task creation is a planning activity. Stop after creating the task file and do not implement it.
 
 ## Steps
 
-1. **Load creation rules** by reading [references/RULES.md](references/RULES.md)
+1. Load creation rules by reading [references/RULES.md](references/RULES.md)
 2. Create new task file in `.smaqit/tasks/` directory
 3. Filename: `.smaqit/tasks/NNN_task_title.md` (NNN = next available number, zero-padded to 3 digits)
 4. Tasks are numbered sequentially starting at 001
-5. **Add entry to `.smaqit/tasks/PLANNING.md`** with status "Not Started"
-6. **STOP and hand back to user** - do NOT implement or start the task
+5. Add entry to `.smaqit/tasks/PLANNING.md` with status "Not Started"
+6. Stop and hand back to user - do not implement or start the task
 
 ## Flexible Input Formats
 
@@ -45,34 +45,34 @@ Create a new task with the format: `task.create [title]` or `task.create [title]
 [Optional additional context]
 ```
 
-## Critical Directives
+## Directives
 
-### ✅ Agent MUST
+### Must
 
-- **MUST** create the task file with provided information
-- **MUST** add entry to PLANNING.md with "Not Started" status
-- **MUST** stop immediately after task creation
-- **MUST** inform user how to start the task
+- Create the task file with provided information
+- Add entry to PLANNING.md with "Not Started" status
+- Stop immediately after task creation
+- Inform user how to start the task
 
-### ⛔ Agent MUST NOT
+### Must Not
 
-- **MUST NOT** implement the task after creating it
-- **MUST NOT** automatically invoke `task-start` skill
-- **MUST NOT** ask questions about implementation details
-- **MUST NOT** offer implementation suggestions
-- **MUST NOT** proceed to coding or making changes
+- Implement the task after creating it
+- Automatically invoke `task-start` skill
+- Ask questions about implementation details
+- Offer implementation suggestions
+- Proceed to coding or making changes
 
-⚠️ **Read [references/RULES.md](references/RULES.md) for complete workflow enforcement rules**
+Read [references/RULES.md](references/RULES.md) for complete workflow enforcement rules.
 
 ## Workflow Boundary
 
-**Task creation is separate from task implementation:**
+Task creation is separate from task implementation:
 
 ```
 task.create → Create file → Update PLANNING.md → STOP → User decides → task.start → Implementation
 ```
 
-**After creating a task, respond with:**
+After creating a task, respond with:
 > "Task [ID] created: [Title]
 > 
 > Status: Not Started
@@ -80,7 +80,7 @@ task.create → Create file → Update PLANNING.md → STOP → User decides →
 > 
 > To begin work on this task, use: `task.start [ID]`"
 
-Then **STOP**. Do not continue with implementation.
+Then stop. Do not continue with implementation.
 
 ## Central Planning File
 

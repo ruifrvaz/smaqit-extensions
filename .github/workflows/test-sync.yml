@@ -57,6 +57,18 @@ jobs:
               echo "Run 'make sync' to update .github/ with source changes."
               exit 1
             fi
+            # Check references directory if it exists
+            if [ -d "skills/$skill/references" ]; then
+              for ref_file in skills/$skill/references/*; do
+                ref_basename=$(basename "$ref_file")
+                if ! diff -q "$ref_file" ".github/skills/$skill/references/$ref_basename" > /dev/null 2>&1; then
+                  echo "❌ Out of sync: $ref_file"
+                  echo ""
+                  echo "Run 'make sync' to update .github/ with source changes."
+                  exit 1
+                fi
+              done
+            fi
           done
           echo "✓ Skills in sync"
       

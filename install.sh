@@ -192,8 +192,8 @@ main() {
     echo ""
     echo "Get started:"
     echo "  cd your-project"
-    echo "  smaqit-extensions      # Install extensions in current project"
-    echo "  smaqit-extensions --help   # View available options"
+    echo "  smaqit-extensions init      # Install extensions in current project"
+    echo "  smaqit-extensions --help    # View available options"
     echo ""
 }
 

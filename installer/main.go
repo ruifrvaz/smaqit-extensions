@@ -63,28 +63,31 @@ func main() {
 		case "uninstall":
 			cmdUninstall()
 			return
+		case "init":
+			targetDir := "."
+			if len(os.Args) > 2 {
+				targetDir = os.Args[2]
+			}
+			cmdInstall(targetDir)
+			return
 		}
 	}
 
-	// Default: install extensions
-	targetDir := "."
-	if len(os.Args) > 1 {
-		targetDir = os.Args[1]
-	}
-	cmdInstall(targetDir)
+	// Default: show help
+	printHelp()
 }
 
 func printHelp() {
 	fmt.Println("smaQit-extensions - Quality-of-life workflow prompts, agents, and skills")
 	fmt.Printf("Version: %s\n\n", Version)
-	fmt.Println("Usage: smaqit-extensions [dir]")
+	fmt.Println("Usage: smaqit-extensions <command> [args]")
 	fmt.Println()
 	fmt.Println("Commands:")
-	fmt.Println("  smaqit-extensions          Install extensions in current directory")
-	fmt.Println("  smaqit-extensions <dir>    Install extensions in specified directory")
-	fmt.Println("  smaqit-extensions --help   Show this help message")
-	fmt.Println("  smaqit-extensions --version Show version")
-	fmt.Println("  smaqit-extensions uninstall Remove extensions from current directory")
+	fmt.Println("  smaqit-extensions init           Install extensions in current directory")
+	fmt.Println("  smaqit-extensions init <dir>     Install extensions in specified directory")
+	fmt.Println("  smaqit-extensions uninstall      Remove extensions from current directory")
+	fmt.Println("  smaqit-extensions version        Show version")
+	fmt.Println("  smaqit-extensions --help         Show this help message")
 	fmt.Println()
 	fmt.Println("What gets installed:")
 	fmt.Println("  .github/prompts/    - 9 workflow prompts")

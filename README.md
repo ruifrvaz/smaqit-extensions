@@ -45,7 +45,7 @@ curl -fsSL https://raw.githubusercontent.com/ruifrvaz/smaqit-extensions/main/ins
 
 1. Download the latest release from [Releases](https://github.com/ruifrvaz/smaqit-extensions/releases)
 2. Extract the binary
-3. Run: `./smaqit-extensions`
+3. Run: `./smaqit-extensions init`
 
 ### What Gets Installed
 

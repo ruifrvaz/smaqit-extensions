@@ -50,20 +50,19 @@ curl -fsSL https://raw.githubusercontent.com/ruifrvaz/smaqit-extensions/main/ins
 ### What Gets Installed
 
 The installer copies files to your project's `.github/` directory:
-- `prompts/` - 9 workflow prompts (stubs that reference skills)
 - `agents/` - 3 utility agents (release local, release PR, user-testing)
 - `skills/` - 15 workflow skills (complete implementations)
 
 ## Usage
 
-Skills can be invoked via prompts in GitHub Copilot:
+Skills are the primary instruction component and can be invoked directly in GitHub Copilot by referencing the skill name in your request:
 
 ```
-User: /smaqit.session.start
-User: /smaqit.task.create Implement new feature
-User: /smaqit.task.start 001               # Assisted mode (default) - user approval required
-User: /smaqit.task.start 002 --autonomous  # Autonomous mode - AI completes automatically
-User: /smaqit.session.finish
+User: smaqit.session.start
+User: smaqit.task.create Implement new feature
+User: smaqit.task.start 001               # Assisted mode (default) - user approval required
+User: smaqit.task.start 002 --autonomous  # Autonomous mode - AI completes automatically
+User: smaqit.session.finish
 ```
 
 ### Task Workflow Modes
@@ -71,7 +70,7 @@ User: /smaqit.session.finish
 **Assisted Mode (default):**
 - AI implements the task and stops
 - User reviews and approves
-- User invokes `/smaqit.task.complete [id]` when satisfied
+- User invokes `smaqit.task.complete [id]` when satisfied
 - Use for: complex features, user-facing changes, quality gates
 
 **Autonomous Mode:**
@@ -88,12 +87,12 @@ Agents are available in GitHub Custom Agents:
 
 ## Requirements
 
-- GitHub Copilot with prompt/agent and skill support
+- GitHub Copilot with agent and skill support
 - A git repository
 
-The installer writes files under `.github/prompts/` and `.github/agents/` and will create the `.github/` folder if it doesn't exist.
+The installer writes files under `.github/agents/` and will create the `.github/` folder if it doesn't exist.
 
-The installer also scaffolds the `.smaqit/` directory structure used by prompts, agents, and skills:
+The installer also scaffolds the `.smaqit/` directory structure used by agents and skills:
 - `.smaqit/tasks/PLANNING.md` - Central task tracking file
 - `.smaqit/tasks/` - Individual task files
 - `.smaqit/history/` - Session documentation
@@ -111,14 +110,13 @@ make test     # Test installer
 
 ### Contributors
 
-This repository uses its own agents, prompts, and skills for development (dogfooding).
+This repository uses its own agents and skills for development (dogfooding).
 
 Source files are located in:
 - `agents/` - Agent definitions
-- `prompts/` - Prompt stubs
 - `skills/` - Skill implementations
 
-These are copied to `.github/{agents,prompts,skills}/` for use by GitHub Copilot.
+These are copied to `.github/{agents,skills}/` for use by GitHub Copilot.
 
 **Important:** After making changes to source files, run:
 

@@ -5,10 +5,8 @@ on:
     branches: [ main ]
     paths:
       - 'agents/**'
-      - 'prompts/**'
       - 'skills/**'
       - '.github/agents/**'
-      - '.github/prompts/**'
       - '.github/skills/**'
 
 jobs:
@@ -34,19 +32,6 @@ jobs:
             fi
           done
           echo "✓ Agents in sync"
-      
-      - name: Verify prompts in sync
-        run: |
-          for prompt in prompts/*.md; do
-            filename=$(basename "$prompt")
-            if ! diff -q "$prompt" ".github/prompts/$filename" > /dev/null 2>&1; then
-              echo "❌ Out of sync: $prompt"
-              echo ""
-              echo "Run 'make sync' to update .github/ with source changes."
-              exit 1
-            fi
-          done
-          echo "✓ Prompts in sync"
       
       - name: Verify skills in sync
         run: |

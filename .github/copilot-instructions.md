@@ -2,23 +2,21 @@
 
 ## Repository Structure (Dogfooding)
 
-This repository uses its own agents, prompts, and skills for development (dogfooding).
+This repository uses its own agents and skills for development (dogfooding).
 
 **Source files:**
 - `agents/` - Agent definitions (3 agents)
-- `prompts/` - Prompt stubs (9 prompts)
 - `skills/` - Skill implementations (15 skills)
 
 **Synced files:**
 - `.github/agents/` - Synced from `agents/`
-- `.github/prompts/` - Synced from `prompts/`
 - `.github/skills/` - Synced from `skills/`
 
 ## Critical Rule: Use `make sync`
 
 **NEVER manually copy, move, or edit files directly in `.github/` directories.**
 
-After modifying source files in `agents/`, `prompts/`, or `skills/`, always run:
+After modifying source files in `agents/` or `skills/`, always run:
 
 ```bash
 make sync
@@ -48,9 +46,9 @@ git commit -m "fix: update release PR agent"
 
 ## Version Management
 
-**ALWAYS update version numbers when modifying prompts, agents, or skills.**
+**ALWAYS update version numbers when modifying agents or skills.**
 
-All prompts, agents, and skills include version metadata in their frontmatter:
+All agents and skills include version metadata in their frontmatter:
 
 ```yaml
 ---
@@ -85,7 +83,7 @@ The sync verification workflow (`.github/workflows/test-sync.yml`) will fail if:
 - Source files are modified but not synced to `.github/`
 - Files in `.github/` don't match their source counterparts
 
-Always run `make sync` before committing changes to agents, prompts, or skills.
+Always run `make sync` before committing changes to agents or skills.
 
 ## Other Commands
 
@@ -97,6 +95,6 @@ make sync   # Sync source files to .github/
 ## Why This Structure?
 
 - **Dogfooding**: Repository uses its own workflows for development
-- **Source of truth**: `agents/`, `prompts/`, `skills/` are the canonical versions
+- **Source of truth**: `agents/`, `skills/` are the canonical versions
 - **Distribution**: `.github/` versions are what Copilot actually uses
 - **Sync ensures**: Both developer and user experience the same tools

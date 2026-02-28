@@ -2,7 +2,7 @@
 name: smaqit.release-analysis
 description: Collect changes, assess severity, and suggest next version for a release
 metadata:
-  version: "0.3.0"
+  version: "0.3.1"
 ---
 
 # Release Analysis
@@ -80,7 +80,7 @@ Analyze the collected changes from commit messages, file changes, and session hi
 - Deprecated features (warning, not removal)
 - New files added (agents, skills, workflows)
 - **Keywords to look for:** "Added", "New", "Deprecated"
-- **File patterns:** New agents/, prompts/, skills/ files
+- **File patterns:** New agents/, skills/ files
 
 **PATCH (0.0.X)** - Bug fixes only:
 - Fixed bugs or issues

@@ -30,7 +30,7 @@ jobs:
       - name: Run installer
         run: |
           cd /tmp/smaqit-extensions-test
-          ${{ github.workspace }}/installer/dist/smaqit-extensions
+          ${{ github.workspace }}/installer/dist/smaqit-extensions init
       
       - name: Verify prompts installed
         run: |

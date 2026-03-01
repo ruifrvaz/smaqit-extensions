@@ -1,6 +1,6 @@
 ---
 name: task-complete
-description: Mark a task as completed with verification. Use when finishing tasks to update status and verify criteria.
+description: Mark a task as completed by updating a task's status to completed, verify its acceptance criteria, and record it in PLANNING.md. Use when marking a task as done — whether just implemented, retroactively closing completed work, or responding to a status update request. Use when finishing tasks to update status and verify criteria.
 metadata:
   version: "0.1.0"
 ---

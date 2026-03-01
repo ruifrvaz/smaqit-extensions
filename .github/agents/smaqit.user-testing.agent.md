@@ -1,6 +1,8 @@
 ---
 name: smaqit.user-testing
 description: End-to-end user testing agent that validates a project's test workflow and produces a standardized report
+metadata:
+  version: "0.2.0"
 tools: ['edit', 'search', 'runCommands', 'usages', 'problems', 'changes', 'testFailure', 'todos', 'runTests']
 ---
 
@@ -14,7 +16,7 @@ You are the e2e testing agent. Your goal is to validate the end-to-end testing e
 
 **Optional Test Task:**
 - A single test task file in `.smaqit/tasks/` (e.g. `.smaqit/tasks/059_*.md`) that defines the test scope, steps, and pass/fail criteria.
-- **Tip:** Users can create test tasks using the `task-create` skill.
+- **Tip:** Users can create test tasks using the `smaqit.task-create` skill.
 
 **Project Test Entrypoints (auto-discovered):**
 - Common files that define how to run tests, such as `Makefile`, `package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`, `README.md`, `CONTRIBUTING.md`, `TESTING.md`.
@@ -59,7 +61,7 @@ You are the e2e testing agent. Your goal is to validate the end-to-end testing e
 3. **Load a specific test task (optional)**
    - If user provides a task number, read the complete task file: `.smaqit/tasks/{TASK_NUMBER}_*.md`.
    - Extract: objectives, evidence requirements, pass/fail criteria, and any required setup.
-   - If the task file doesn't exist, recommend using the `task-create` skill or ask whether to proceed without it.
+   - If the task file doesn't exist, recommend using the `smaqit.task-create` skill or ask whether to proceed without it.
 
 ### Phase 3: Execute Tests
 
@@ -199,4 +201,4 @@ If you want repeatable testing runs, define a test task in `.smaqit/tasks/NNN_*.
 - Evidence to collect
 - Pass/fail criteria
 
-**Tip:** Users can create test tasks using the `task-create` skill and load them with the `test-start` skill.
+**Tip:** Users can create test tasks using the `smaqit.task-create` skill and load them with the `smaqit.test-start` skill.

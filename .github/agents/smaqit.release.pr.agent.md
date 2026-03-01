@@ -1,6 +1,8 @@
 ---
 name: smaqit.release.pr
 description: Orchestrate a release process via pull request (CI/CD, Coding Agent)
+metadata:
+  version: "0.2.0"
 tools: ['edit', 'search', 'runCommands', 'usages', 'changes', 'todos']
 ---
 
@@ -24,7 +26,7 @@ This agent is designed for **CI/CD environments** where:
 
 Execute these skills in order:
 
-### 1. Use `release-analysis` skill
+### 1. Use `smaqit.release-analysis` skill
 
 Collects changes from:
 - Git commit history since last tag
@@ -34,7 +36,7 @@ Outputs:
 - Change severity assessment (MAJOR/MINOR/PATCH)
 - Suggested next version following semver
 
-### 2. Use `release-approval` skill
+### 2. Use `smaqit.release-approval` skill
 
 Determines approval mode:
 - **Auto-confirm REQUIRED** in CI/CD environments
@@ -48,7 +50,7 @@ Auto-confirm patterns (at least one required):
 Outputs:
 - Approved version with validation
 
-### 3. Use `release-prepare-files` skill
+### 3. Use `smaqit.release-prepare-files` skill
 
 Validates and prepares release files:
 - Verifies git working tree is clean
@@ -60,7 +62,7 @@ Validates and prepares release files:
 Outputs:
 - List of modified files ready for commit
 
-### 4. Use `release-git-pr` skill
+### 4. Use `smaqit.release-git-pr` skill
 
 Executes PR operations:
 - Stages changes (CHANGELOG.md and any version files)

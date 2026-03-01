@@ -1,45 +1,32 @@
-# smaQit-extensions
+**Quality-of-life workflows, agents and skills**
 
-**Quality-of-life workflow prompts, agents, and skills (smaQit-extensions)**
-
-A collection of prompts, agents, and skills that streamline session management, task tracking with approval gates, release automation, and testing workflows.
-
-These `smaQit` extensions are designed to work out of the box in any repository. Install once, and prompts/agents reference the `.smaqit/` directory for task tracking, session history, and testing artifacts.
+Enhance your agentic development with streamlined session management, task tracking, release and test automation. Designed to work out of the box in any repository with a simple one-time install.
 
 ## What's Included
 
 ### Skills
-- **session-start** - Load full project context at session start
-- **session-finish** - Document session history at completion
-- **session-assess** - Analyze requests before implementation
-- **session-title** - Generate concise session titles
-- **task-create** - Create new tasks with auto-numbering
-- **task-start** - Start working on a task (autonomous or assisted mode)
-- **task-list** - Show current active tasks
-- **task-complete** - Mark tasks as completed with verification
-- **test-start** - Initialize testing workflows
 
-### Session Management Prompts
-- **session.start** - Load full project context at session start
-- **session.assess** - Analyze requests before implementation
-- **session.finish** - Document session history at completion
-- **session.title** - Generate concise session titles
+#### Session Management
+- **smaqit.session.start** - Load full project context at session start
+- **smaqit.session.assess** - Analyze requests before implementation
+- **smaqit.session.finish** - Document session history at completion
+- **smaqit.session.title** - Generate concise session titles
 
-### Task Tracking Prompts
-- **task.create** - Create new tasks with auto-numbering
-- **task.start** - Start working on a task with workflow mode
-- **task.list** - Show current active tasks
-- **task.complete** - Mark tasks as completed with verification
+#### Task Tracking
+- **smaqit.task.create** - Create new tasks with auto-numbering
+- **smaqit.task.start** - Start working on a task with workflow mode
+- **smaqit.task.list** - Show current active tasks
+- **smaqit.task.complete** - Mark tasks as completed with verification
 
-### Testing Prompts
-- **test.start** - Initialize testing workflows
+#### Testing
+- **smaqit.test.start** - Initialize testing workflows
 
-### Release Management Skills
-- **release-analysis** - Collect changes, assess severity, and suggest next version
-- **release-approval** - Obtain approval for suggested version (auto-confirm or interactive)
-- **release-prepare-files** - Validate git state and prepare all files for release
-- **release-git-local** - Execute git operations for local releases (commit, tag, push)
-- **release-git-pr** - Execute git operations for PR-based releases (via report_progress)
+#### Release Management
+- **smaqit.release-analysis** - Collect changes, assess severity, and suggest next version
+- **smaqit.release-approval** - Obtain approval for suggested version (auto-confirm or interactive)
+- **smaqit.release-prepare-files** - Validate git state and prepare all files for release
+- **smaqit.release-git-local** - Execute git operations for local releases (commit, tag, push)
+- **smaqit.release-git-pr** - Execute git operations for PR-based releases (via report_progress)
 
 ### Utility Agents
 - **@smaqit.release.local** - Automated release management (local development)
@@ -58,25 +45,25 @@ curl -fsSL https://raw.githubusercontent.com/ruifrvaz/smaqit-extensions/main/ins
 
 1. Download the latest release from [Releases](https://github.com/ruifrvaz/smaqit-extensions/releases)
 2. Extract the binary
-3. Run: `./smaqit-extensions`
+3. Run: `./smaqit-extensions init`
 
 ### What Gets Installed
 
 The installer copies files to your project's `.github/` directory:
 - `prompts/` - 9 workflow prompts (stubs that reference skills)
 - `agents/` - 3 utility agents (release local, release PR, user-testing)
-- `skills/` - 14 workflow skills (complete implementations)
+- `skills/` - 15 workflow skills (complete implementations)
 
 ## Usage
 
 Skills can be invoked via prompts in GitHub Copilot:
 
 ```
-User: /session.start
-User: /task.create Implement new feature
-User: /task.start 001               # Assisted mode (default) - user approval required
-User: /task.start 002 --autonomous  # Autonomous mode - AI completes automatically
-User: /session.finish
+User: /smaqit.session.start
+User: /smaqit.task.create Implement new feature
+User: /smaqit.task.start 001               # Assisted mode (default) - user approval required
+User: /smaqit.task.start 002 --autonomous  # Autonomous mode - AI completes automatically
+User: /smaqit.session.finish
 ```
 
 ### Task Workflow Modes
@@ -84,15 +71,13 @@ User: /session.finish
 **Assisted Mode (default):**
 - AI implements the task and stops
 - User reviews and approves
-- User invokes `/task.complete [id]` when satisfied
+- User invokes `/smaqit.task.complete [id]` when satisfied
 - Use for: complex features, user-facing changes, quality gates
 
 **Autonomous Mode:**
 - AI implements, verifies, and completes automatically
 - No user approval gate
 - Use for: CI/CD pipelines, batch operations, well-defined refactoring
-
-**Note:** Prompts are now lightweight stubs that reference the corresponding skills. The actual implementation logic resides in the skills under `.github/skills/`.
 
 Agents are available in GitHub Custom Agents:
 ```
@@ -103,8 +88,8 @@ Agents are available in GitHub Custom Agents:
 
 ## Requirements
 
-- GitHub Copilot with prompt/agent support
-- A git repository (recommended)
+- GitHub Copilot with prompt/agent and skill support
+- A git repository
 
 The installer writes files under `.github/prompts/` and `.github/agents/` and will create the `.github/` folder if it doesn't exist.
 
@@ -124,7 +109,7 @@ make build    # Build installer
 make test     # Test installer
 ```
 
-### Dogfooding (Repository Contributors)
+### Contributors
 
 This repository uses its own agents, prompts, and skills for development (dogfooding).
 

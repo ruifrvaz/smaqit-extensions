@@ -2,7 +2,7 @@
 name: smaqit.task-complete
 description: Mark a task as completed by updating a task's status. Verify its acceptance criteria and record state in PLANNING.md. Use when marking a task as done — whether just implemented, retroactively closing completed work, or responding to a status update request. Follow the steps and mode-specific rules to ensure proper task management.
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # Task Complete

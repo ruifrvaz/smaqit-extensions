@@ -2,7 +2,7 @@
 name: smaqit.session-start
 description: Start a new chat with full project context. Use when beginning a session to load README, recent history, and task planning.
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # Session Start
@@ -25,14 +25,19 @@ Start a new chat with full project context. Execute these steps IN ORDER:
    - Read `.smaqit/tasks/PLANNING.md` (NOT individual task files).
    - Note: Task workflow rules (autonomous vs assisted modes) are loaded via `task-list` skill when working on tasks.
 
-4. **Synthesize and present** a summary covering:
+4. **Read the codebase for the next unblocked task**:
+   - Identify the next unblocked task from PLANNING.md.
+   - Read the source areas it would touch: relevant interfaces, abstractions, factories, pools, and existing implementations.
+   - This step is MANDATORY before presenting tasks. Do not skip it because the task description appears complete.
+
+5. **Synthesize and present** a summary covering:
    - Current project state (from READMEs)
    - Recent changes and decisions (from history)
-   - Open tasks sorted by priority
-   - Suggested next steps
+   - Open tasks sorted by priority, with a brief assessment of each task's approach against the codebase
+   - Suggested next steps for the user to take (e.g., which task to start, what information to provide, or what questions to ask).
 
 ## Critical Requirements
 
-**CRITICAL:** Read complete files without line limits. Do NOT truncate at any arbitrary limit.
+**CRITICAL:** Read complete markdown (.md) files without line limits. Do NOT truncate at any arbitrary limit.
 
 **Note:** Only read individual task files (`.smaqit/tasks/NNN_*.md`) when actively working on that specific task.

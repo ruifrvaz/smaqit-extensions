@@ -2,7 +2,7 @@
 name: smaqit.task-create
 description: Create a new task with auto-numbering. Use when creating new tasks to track work.
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # Task Create
@@ -15,6 +15,11 @@ Create a new task with the format: `task.create [title]` or `task.create [title]
 2. Filename: `.smaqit/tasks/NNN_task_title.md` (NNN = next available number, zero-padded to 3 digits)
 3. Tasks are numbered sequentially starting at 001
 4. **Add entry to `.smaqit/tasks/PLANNING.md`** with status "Not Started"
+5. **Store task state in memory** using the `store_memory` tool:
+   - `subject`: `"task state"`
+   - `fact`: `"[NNN] [Title] — Not Started (created YYYY-MM-DD)"` (≤ 200 chars)
+   - `citations`: path to the task file just created (e.g., `.smaqit/tasks/NNN_task_title.md`)
+   - `reason`: `"Ensures new task is visible in any branch without reading files, supporting parallel agent workflows"`
 
 ## Flexible Input Formats
 

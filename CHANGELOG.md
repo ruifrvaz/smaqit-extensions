@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-04-02
+
+### Changed
+- **Session-start skill v0.5.0** - Memory is now primary source for session context
+  - Memory entries for `"session history"` and `"next steps"` read first on session start
+  - File-based history (`.smaqit/history/`) used as fallback/supplement
+  - Ensures cross-branch continuity when working on parallel or feature branches
+- **Session-finish skill v0.4.0** - Writes memory facts at session end
+  - Stores session history, next steps, and task state via `store_memory` tool
+  - Memory entries available across all branches immediately after session close
+- **Task-complete skill v0.4.0** - Scope-correct memory integration
+  - Task skills now own `"task state"` memory scope
+  - Consistent with memory scope separation between session and task skills
+- **Task-create skill v0.3.0** - Scope-correct memory integration
+  - Task skills now own `"task state"` memory scope
+- **Task-start skill v0.3.0** - Scope-correct memory integration
+  - Task skills now own `"task state"` memory scope
+
 ## [0.7.0] - 2026-03-26
 
 ### Added
@@ -228,7 +246,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.4.2...v0.5.0

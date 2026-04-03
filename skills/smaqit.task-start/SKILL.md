@@ -2,7 +2,7 @@
 name: smaqit.task-start
 description: Start working on a task. Supports autonomous mode (AI completes) or assisted mode (user approval required). Use when beginning work on tasks to set proper workflow.
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # Task Start
@@ -59,8 +59,13 @@ task.start [id] --assisted         # Explicit assisted mode
    **Mode:** Autonomous | Assisted
    ```
 5. **Update PLANNING.md** to reflect "In Progress" status
-6. **Load workflow rules** by reading [references/RULES.md](references/RULES.md)
-7. **Begin implementation** following task requirements
+6. **Store task state in memory** using the `store_memory` tool:
+   - `subject`: `"task state"`
+   - `fact`: `"[NNN] [Title] — In Progress ([Assisted|Autonomous], started YYYY-MM-DD)"` (≤ 200 chars)
+   - `citations`: path to the task file (e.g., `.smaqit/tasks/NNN_task_title.md`)
+   - `reason`: `"Ensures in-progress task and mode are visible in any branch, supporting parallel agent workflows"`
+7. **Load workflow rules** by reading [references/RULES.md](references/RULES.md)
+8. **Begin implementation** following task requirements
 
 ## Task File Format with Mode
 

@@ -1,8 +1,8 @@
 ---
 name: smaqit.task-complete
-description: Mark a task as completed with verification. Use when finishing tasks to update status and verify criteria.
+description: Mark a task as completed by updating a task's status. Verify its acceptance criteria and record state in PLANNING.md. Use when marking a task as done — whether just implemented, retroactively closing completed work, or responding to a status update request. Follow the steps and mode-specific rules to ensure proper task management.
 metadata:
-  version: "0.2.0"
+  version: "0.4.0"
 ---
 
 # Task Complete
@@ -18,10 +18,15 @@ Mark a task as done with the format: `task.complete [id]`
    - **Autonomous mode:** AI may self-complete after verification
 4. **Verify all criteria are met** - Do NOT complete if any criteria remain unfinished
 5. Check off completed acceptance criteria (`- [x]`)
-6. Update task file status to "Completed" and add completion date
+6. Update task file status to "Completed" or "Abandoned" and add completion date
 7. Move task from Active table to appropriate destination in `.smaqit/tasks/PLANNING.md`:
    - **Completed** if successfully finished
    - **Abandoned** if superseded, no longer relevant, or incorrect approach (include reason)
+8. **Store task state in memory** using the `store_memory` tool:
+   - `subject`: `"task state"`
+   - `fact`: `"[NNN] [Title] — [Completed|Abandoned] (YYYY-MM-DD)"` (≤ 200 chars)
+   - `citations`: path to the task file (e.g., `.smaqit/tasks/NNN_task_title.md`)
+   - `reason`: `"Ensures final task state is visible in any branch without reading files, supporting parallel agent workflows"`
 
 ## Mode-Aware Enforcement
 

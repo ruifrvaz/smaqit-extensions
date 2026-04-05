@@ -109,4 +109,8 @@ jobs:
             echo "❌ Agent files not removed"
             exit 1
           fi
+          if [ -d "/tmp/smaqit-extensions-test/.github/skills" ] && find "/tmp/smaqit-extensions-test/.github/skills" -mindepth 1 -print -quit | grep -q .; then
+            echo "❌ Skill files or directories not removed"
+            exit 1
+          fi
           echo "✓ Uninstall successful"

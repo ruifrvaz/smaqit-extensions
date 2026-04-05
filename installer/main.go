@@ -255,8 +255,10 @@ func cmdUninstall() {
 	// Remove skills
 	for _, dir := range skillDirs {
 		skillPath := filepath.Join(skillsDir, dir)
-		if err := os.RemoveAll(skillPath); err == nil {
-			removedCount++
+		if _, err := os.Stat(skillPath); err == nil {
+			if err := os.RemoveAll(skillPath); err == nil {
+				removedCount++
+			}
 		}
 	}
 

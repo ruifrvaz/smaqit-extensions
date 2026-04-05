@@ -7,19 +7,19 @@ Enhance your agentic development with streamlined session management, task track
 ### Skills
 
 #### Session Management
-- **smaqit.session.start** - Load full project context at session start
-- **smaqit.session.assess** - Analyze requests before implementation
-- **smaqit.session.finish** - Document session history at completion
-- **smaqit.session.title** - Generate concise session titles
+- **smaqit.session-start** - Load full project context at session start
+- **smaqit.session-assess** - Analyze requests before implementation
+- **smaqit.session-finish** - Document session history at completion
+- **smaqit.session-title** - Generate concise session titles
 
 #### Task Tracking
-- **smaqit.task.create** - Create new tasks with auto-numbering
-- **smaqit.task.start** - Start working on a task with workflow mode
-- **smaqit.task.list** - Show current active tasks
-- **smaqit.task.complete** - Mark tasks as completed with verification
+- **smaqit.task-create** - Create new tasks with auto-numbering
+- **smaqit.task-start** - Start working on a task with workflow mode
+- **smaqit.task-list** - Show current active tasks
+- **smaqit.task-complete** - Mark tasks as completed with verification
 
 #### Testing
-- **smaqit.test.start** - Initialize testing workflows
+- **smaqit.test-start** - Initialize testing workflows
 
 #### Release Management
 - **smaqit.release-analysis** - Collect changes, assess severity, and suggest next version
@@ -58,11 +58,11 @@ The installer copies files to your project's `.github/` directory:
 Skills are the primary instruction component and can be invoked directly in GitHub Copilot by referencing the skill name in your request:
 
 ```
-User: smaqit.session.start
-User: smaqit.task.create Implement new feature
-User: smaqit.task.start 001               # Assisted mode (default) - user approval required
-User: smaqit.task.start 002 --autonomous  # Autonomous mode - AI completes automatically
-User: smaqit.session.finish
+User: smaqit.session-start
+User: smaqit.task-create Implement new feature
+User: smaqit.task-start 001               # Assisted mode (default) - user approval required
+User: smaqit.task-start 002 --autonomous  # Autonomous mode - AI completes automatically
+User: smaqit.session-finish
 ```
 
 ### Task Workflow Modes
@@ -70,7 +70,7 @@ User: smaqit.session.finish
 **Assisted Mode (default):**
 - AI implements the task and stops
 - User reviews and approves
-- User invokes `smaqit.task.complete [id]` when satisfied
+- User invokes `smaqit.task-complete [id]` when satisfied
 - Use for: complex features, user-facing changes, quality gates
 
 **Autonomous Mode:**
@@ -90,7 +90,7 @@ Agents are available in GitHub Custom Agents:
 - GitHub Copilot with agent and skill support
 - A git repository
 
-The installer writes files under `.github/agents/` and will create the `.github/` folder if it doesn't exist.
+The installer writes files under `.github/agents/` and `.github/skills/` and will create the `.github/` folder if it doesn't exist.
 
 The installer also scaffolds the `.smaqit/` directory structure used by agents and skills:
 - `.smaqit/tasks/PLANNING.md` - Central task tracking file

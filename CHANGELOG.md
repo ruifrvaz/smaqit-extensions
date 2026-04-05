@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-04-05
+
+### Changed
+- **Removed prompts directory** — Skills are now the sole instruction component
+  - All prompt stubs (`session.start`, `session.assess`, `session.finish`, `session.title`, `task.*`, `test.start`) removed
+  - Skills in `skills/` and `.github/skills/` are the canonical instruction source
+  - Simplifies the architecture and reduces duplication between prompts and skills
+- **Documentation refactored** to align with skills-only architecture
+  - Updated README to reflect current skills-based structure
+
 ## [0.8.0] - 2026-04-02
 
 ### Changed
@@ -246,7 +256,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.5.0...v0.6.0

@@ -10,9 +10,6 @@ import (
 	"strings"
 )
 
-//go:embed prompts/*.md
-var promptFiles embed.FS
-
 //go:embed agents/*.md
 var agentFiles embed.FS
 
@@ -78,7 +75,7 @@ func main() {
 }
 
 func printHelp() {
-	fmt.Println("smaQit-extensions - Quality-of-life workflow prompts, agents, and skills")
+	fmt.Println("smaQit-extensions - Quality-of-life workflow agents and skills")
 	fmt.Printf("Version: %s\n\n", Version)
 	fmt.Println("Usage: smaqit-extensions <command> [args]")
 	fmt.Println()
@@ -90,25 +87,18 @@ func printHelp() {
 	fmt.Println("  smaqit-extensions --help         Show this help message")
 	fmt.Println()
 	fmt.Println("What gets installed:")
-	fmt.Println("  .github/prompts/    - 9 workflow prompts")
 	fmt.Println("  .github/agents/     - 3 utility agents")
 	fmt.Println("  .github/skills/     - 15 workflow skills")
 }
 
 func cmdInstall(targetDir string) {
 	// Create target directories
-	promptsDir := filepath.Join(targetDir, ".github", "prompts")
 	agentsDir := filepath.Join(targetDir, ".github", "agents")
 	skillsDir := filepath.Join(targetDir, ".github", "skills")
 	smaqitDir := filepath.Join(targetDir, ".smaqit")
 	tasksDir := filepath.Join(smaqitDir, "tasks")
 	historyDir := filepath.Join(smaqitDir, "history")
 	userTestingDir := filepath.Join(smaqitDir, "user-testing")
-
-	if err := os.MkdirAll(promptsDir, 0755); err != nil {
-		fmt.Printf("Error creating prompts directory: %v\n", err)
-		os.Exit(1)
-	}
 
 	if err := os.MkdirAll(agentsDir, 0755); err != nil {
 		fmt.Printf("Error creating agents directory: %v\n", err)
@@ -120,7 +110,7 @@ func cmdInstall(targetDir string) {
 		os.Exit(1)
 	}
 
-	// Create .smaqit scaffolding used by prompts/agents
+	// Create .smaqit scaffolding used by agents/skills
 	if err := os.MkdirAll(tasksDir, 0755); err != nil {
 		fmt.Printf("Error creating tasks directory: %v\n", err)
 		os.Exit(1)
@@ -137,35 +127,6 @@ func cmdInstall(targetDir string) {
 	planningPath := filepath.Join(tasksDir, "PLANNING.md")
 	if err := writeFileIfMissing(planningPath, []byte(planningTemplate), 0644); err != nil {
 		fmt.Printf("Error creating planning file: %v\n", err)
-		os.Exit(1)
-	}
-
-	// Install prompts
-	promptCount := 0
-	if err := fs.WalkDir(promptFiles, "prompts", func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if d.IsDir() {
-			return nil
-		}
-
-		content, err := fs.ReadFile(promptFiles, path)
-		if err != nil {
-			return fmt.Errorf("reading %s: %w", path, err)
-		}
-
-		filename := filepath.Base(path)
-		targetPath := filepath.Join(promptsDir, filename)
-
-		if err := os.WriteFile(targetPath, content, 0644); err != nil {
-			return fmt.Errorf("writing %s: %w", targetPath, err)
-		}
-
-		promptCount++
-		return nil
-	}); err != nil {
-		fmt.Printf("Error installing prompts: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -243,36 +204,20 @@ func cmdInstall(targetDir string) {
 		os.Exit(1)
 	}
 
-	fmt.Printf("✓ Installed %d prompts to %s\n", promptCount, promptsDir)
 	fmt.Printf("✓ Installed %d agents to %s\n", agentCount, agentsDir)
 	fmt.Printf("✓ Installed %d skills to %s\n", skillCount, skillsDir)
 	fmt.Println()
 	fmt.Println("Extensions installed successfully!")
 	fmt.Println()
 	fmt.Println("Get started:")
-	fmt.Println("  Use prompts in GitHub Copilot: /smaqit.session.start, /smaqit.task.create, etc.")
 	fmt.Println("  Use agents: @smaqit.release.local, @smaqit.release.pr, @smaqit.user-testing")
-	fmt.Println("  Use skills: Skills are available via prompts or direct invocation")
+	fmt.Println("  Use skills: Skills are available via direct invocation in GitHub Copilot")
 }
 
 func cmdUninstall() {
 	targetDir := "."
-	promptsDir := filepath.Join(targetDir, ".github", "prompts")
 	agentsDir := filepath.Join(targetDir, ".github", "agents")
 	skillsDir := filepath.Join(targetDir, ".github", "skills")
-
-	// List files to remove
-	promptFiles := []string{
-		"smaqit.session.start.prompt.md",
-		"smaqit.session.assess.prompt.md",
-		"smaqit.session.finish.prompt.md",
-		"smaqit.session.title.prompt.md",
-		"smaqit.task.create.prompt.md",
-		"smaqit.task.list.prompt.md",
-		"smaqit.task.complete.prompt.md",
-		"smaqit.task.start.prompt.md",
-		"smaqit.test.start.prompt.md",
-	}
 
 	agentFiles := []string{
 		"smaqit.release.local.agent.md",
@@ -299,14 +244,6 @@ func cmdUninstall() {
 
 	removedCount := 0
 
-	// Remove prompts
-	for _, file := range promptFiles {
-		path := filepath.Join(promptsDir, file)
-		if err := os.Remove(path); err == nil {
-			removedCount++
-		}
-	}
-
 	// Remove agents
 	for _, file := range agentFiles {
 		path := filepath.Join(agentsDir, file)
@@ -318,8 +255,10 @@ func cmdUninstall() {
 	// Remove skills
 	for _, dir := range skillDirs {
 		skillPath := filepath.Join(skillsDir, dir)
-		if err := os.RemoveAll(skillPath); err == nil {
-			removedCount++
+		if _, err := os.Stat(skillPath); err == nil {
+			if err := os.RemoveAll(skillPath); err == nil {
+				removedCount++
+			}
 		}
 	}
 

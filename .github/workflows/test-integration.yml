@@ -32,28 +32,6 @@ jobs:
           cd /tmp/smaqit-extensions-test
           ${{ github.workspace }}/installer/dist/smaqit-extensions init
       
-      - name: Verify prompts installed
-        run: |
-          EXPECTED_PROMPTS=(
-            "smaqit.session.start.prompt.md"
-            "smaqit.session.assess.prompt.md"
-            "smaqit.session.finish.prompt.md"
-            "smaqit.session.title.prompt.md"
-            "smaqit.task.create.prompt.md"
-            "smaqit.task.list.prompt.md"
-            "smaqit.task.complete.prompt.md"
-            "smaqit.task.start.prompt.md"
-            "smaqit.test.start.prompt.md"
-          )
-          
-          for prompt in "${EXPECTED_PROMPTS[@]}"; do
-            if [ ! -f "/tmp/smaqit-extensions-test/.github/prompts/$prompt" ]; then
-              echo "❌ Missing prompt: $prompt"
-              exit 1
-            fi
-            echo "✓ Found prompt: $prompt"
-          done
-      
       - name: Verify agents installed
         run: |
           EXPECTED_AGENTS=(
@@ -127,8 +105,12 @@ jobs:
           ${{ github.workspace }}/installer/dist/smaqit-extensions uninstall
           
           # Verify files removed
-          if [ -f "/tmp/smaqit-extensions-test/.github/prompts/smaqit.session.start.prompt.md" ]; then
-            echo "❌ Files not removed"
+          if [ -d "/tmp/smaqit-extensions-test/.github/agents" ] && ls "/tmp/smaqit-extensions-test/.github/agents/"smaqit.*.agent.md 2>/dev/null | grep -q .; then
+            echo "❌ Agent files not removed"
+            exit 1
+          fi
+          if [ -d "/tmp/smaqit-extensions-test/.github/skills" ] && find "/tmp/smaqit-extensions-test/.github/skills" -mindepth 1 -print -quit | grep -q .; then
+            echo "❌ Skill files or directories not removed"
             exit 1
           fi
           echo "✓ Uninstall successful"

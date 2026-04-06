@@ -2,7 +2,7 @@
 name: smaqit.session-finish
 description: End session by documenting the entire conversation. Use at session completion to create history entries.
 metadata:
-  version: "0.4.0"
+  version: "0.4.1"
 ---
 
 # Session Finish
@@ -12,6 +12,7 @@ End a session by documenting the **entire session** (not just recent activity).
 ## Steps
 
 1. **Review full conversation** - All topics discussed, decisions made, files modified
+   - **If a `<conversation-summary>` block is present in context**, it represents work done earlier in this same session — not background from a previous session. Treat it as the first segment of the session arc and include all work described in it in the history file.
 
 2. **Create history file** if session qualifies as significant
    - Filename: `.smaqit/history/NNN_description_YYYY-MM-DD.md`

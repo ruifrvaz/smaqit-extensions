@@ -2,7 +2,7 @@
 name: smaqit.session-finish
 description: End session by documenting the entire conversation. Use at session completion to create history entries.
 metadata:
-  version: "0.4.1"
+  version: "0.5.0"
 ---
 
 # Session Finish
@@ -32,7 +32,10 @@ End a session by documenting the **entire session** (not just recent activity).
    - Focus on **what** and **why**, not implementation details
    - Cover the **complete session arc**, not just the last activity
 
-3. **Store session context in memory** using the `store_memory` tool (call both in parallel):
+3. **Store session context in memory** using the `memory` tool with `type: workspace` (call both in parallel):
+
+   **CRITICAL:** Always use `type: workspace` — never `type: user`. This ensures session context is scoped to the project, not the individual user account.
+
    - **Session summary** — captures what happened so any future session on any branch can pick up where this one left off:
      - `subject`: `"session history"`
      - `fact`: `"[NNN] [YYYY-MM-DD]: [2–3 sentence summary of key actions, decisions, and outcomes]"` (≤ 200 chars)
@@ -53,4 +56,4 @@ End a session by documenting the **entire session** (not just recent activity).
 - **Do NOT create** separate RESUME or TODO files (history file serves this purpose)
 - Document the complete session, not just the final activity
 - Focus on decisions and rationale, not implementation details
-- Always call `store_memory` (Step 3) even when no history file was created — memory is the cross-branch context mechanism
+- Always call the `memory` tool with `type: workspace` (Step 3) even when no history file was created — memory is the cross-branch context mechanism

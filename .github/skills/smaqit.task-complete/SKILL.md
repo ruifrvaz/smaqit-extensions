@@ -12,7 +12,7 @@ Mark a task as done with the format: `task.complete [id]`
 ## Steps
 
 1. **Load workflow rules** by reading [references/RULES.md](references/RULES.md)
-2. Read the task file to review acceptance criteria **and task mode**
+2. Read the task file (see [.smaqit/templates/task.template.md](.smaqit/templates/task.template.md) for the canonical task file structure) to review acceptance criteria **and task mode**
 3. **Check task mode enforcement:**
    - **Assisted mode:** Verify this is user-invoked (not AI self-completion)
    - **Autonomous mode:** AI may self-complete after verification
@@ -66,7 +66,7 @@ Mark a task as done with the format: `task.complete [id]`
 
 ## Task Mode Detection
 
-See [.smaqit/templates/task.template.md](.smaqit/templates/task.template.md) for the canonical task file structure. Check the task file for mode metadata:
+Check the task file for mode metadata:
 
 ```markdown
 **Mode:** Assisted | Autonomous

@@ -2,7 +2,7 @@
 name: smaqit.project-init
 description: Bootstrap a new smaqit project by generating a structured .github/copilot-instructions.md from a template. Use when the user asks to start a new smaqit project, init this project with smaqit, or set up smaqit for this project.
 metadata:
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Project Init
@@ -22,28 +22,35 @@ Bootstrap a new smaqit project by generating `.github/copilot-instructions.md` f
    - If the template file does not exist, stop and inform the user:
      > Template not found at `.smaqit/templates/copilot-instructions.template.md`. Run `smaqit-extensions init` to install the required scaffolding files.
 
-3. **Gather project details from the user**
-   - Ask the user for the following information (prompt for all at once):
-     - **Project name** — what is this project called?
-     - **Purpose / goal** — what problem does it solve or what is its main objective?
-     - **Tech stack** — primary languages, frameworks, and infrastructure used.
-     - **Key conventions** — coding style, branching strategy, naming rules, testing approach, or any other conventions the AI should follow.
-     - **Any other domain context** — anything else the AI should know about the business domain, architecture, or constraints.
-   - If the user cannot provide some details yet, use placeholder text (e.g., `[TODO: add purpose]`) for those fields.
+3. **Assess the repository to infer project details**
+   - Scan the repository to gather as much context as possible without making assumptions. Read in parallel (whichever exist):
+     - `README.md` — project name, purpose, description
+     - `CONTRIBUTING.md` — conventions, branching strategy, contribution guidelines
+     - Build/dependency manifests: `package.json`, `go.mod`, `Cargo.toml`, `pyproject.toml`, `pom.xml`, `build.gradle` — tech stack, dependencies, scripts
+     - `Makefile` — build, test, and lint commands; inferred conventions
+     - Any `docs/` or `documentation/` index files
+   - For each `# Project` placeholder field, derive the value only if the evidence is clear and unambiguous:
+     - **Project name** — from the root `README.md` title, `package.json` `"name"`, or repository name
+     - **Purpose / goal** — from the `README.md` introduction or description section
+     - **Tech stack** — from manifest files (language runtimes, frameworks, key libraries)
+     - **Key conventions** — from `CONTRIBUTING.md`, linting config files, or clearly documented patterns
+     - **Domain context** — from `README.md` or `docs/` files that describe the business or architectural domain
+   - **If the evidence for a field is absent, ambiguous, or insufficient, leave the original placeholder text exactly as it appears in the template. Do NOT invent or assume values.**
 
 4. **Populate the `# Project` section**
    - Take the template content from Step 2.
-   - Replace the placeholders in the `# Project` section with the user-provided details gathered in Step 3.
+   - Replace only the placeholders for which clear evidence was found in Step 3.
    - Keep the `# Scaffolding` section exactly as it appears in the template — do **not** modify it.
 
 5. **Write the output file**
    - Write the populated content to `.github/copilot-instructions.md`.
-   - Confirm success to the user:
+   - Confirm success to the user and list which fields were filled in and which were left as placeholders:
      > ✓ `.github/copilot-instructions.md` created successfully. Review and commit the file to include it in your project.
 
 ## Requirements
 
 - **Never overwrite** an existing `.github/copilot-instructions.md` (Step 1 is a hard guard).
 - The `# Scaffolding` section must be copied verbatim from the template — it is static and must not be altered.
-- Placeholders are acceptable for any `# Project` fields the user cannot fill in immediately.
+- **Never assume or invent** values for placeholder fields — only fill in what can be directly inferred from existing repo files.
+- Placeholders must remain for any field that cannot be confidently inferred.
 - Do **not** create any additional files beyond `.github/copilot-instructions.md`.

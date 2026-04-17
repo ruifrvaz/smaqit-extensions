@@ -1,6 +1,6 @@
 # Session Recap Table Template
 
-**Version:** 0.1.0  
+**Version:** 0.2.0  
 **Purpose:** Define the strict output format for session step reviews
 
 This template defines the exact table format for session recaps. Populate each column based on the current session conversation.
@@ -9,26 +9,31 @@ This template defines the exact table format for session recaps. Populate each c
 
 ## Table Format
 
-| Steps Accomplished | Steps Pending | Notes / Outcome |
-|--------------------|---------------|-----------------|
-| [Step or decision completed] | [Step or action still outstanding] | [Brief result or context] |
-| … | … | … |
+| Step | Status | Notes |
+|------|--------|-------|
+| 1. [Step description] | ✅ Done | [One-liner note] |
+| 2. [Step description] | ⏳ Pending | [One-liner note] |
+| 3. [Step description] | 🚫 Blocked | [One-liner note] |
+| 4. [Step description] | 🗑️ Abandoned | [One-liner note] |
 
 ---
 
 ## Column Definitions
 
-- **Steps Accomplished** — Steps, decisions, or work items completed during the session. Use `-` if there is no accomplished step for this row.
-- **Steps Pending** — Steps, action items, or work still outstanding. Use `-` if there is no pending step for this row.
-- **Notes / Outcome** — Brief context, result, or rationale for the step (one short phrase). Use `-` if not applicable.
+- **Step** — Sequential step number (1, 2, 3 …) followed by a short description of the step, decision, or action item.
+- **Status** — Current status of the step, using the emoji indicator:
+  - ✅ Done — completed during this session
+  - ⏳ Pending — not yet started or still in progress
+  - 🚫 Blocked — cannot proceed due to a dependency or blocker
+  - 🗑️ Abandoned — dropped or superseded
+- **Notes** — One short phrase with context, outcome, or reason. Use `-` if not applicable.
 
 ---
 
 ## Rendering Rules
 
 - Output the table as the primary response body. A single brief intro line and a single brief closing line are acceptable.
-- Rows are ordered chronologically: accomplished steps first (in session order), followed by pending steps.
-- If an accomplished step and a pending step are directly related, they may appear in the same row.
+- Rows are ordered chronologically by step number.
 - Each row represents one unit of work (step, decision, action item, or deliverable).
 - Every significant session action MUST appear in the table — do not omit steps.
 - Use `-` to fill empty cells. Never leave a cell blank.

@@ -17,7 +17,7 @@ build: prepare
 clean:
 	@echo "Cleaning build artifacts..."
 	rm -rf dist/
-	rm -rf agents/ skills/ templates/
+	rm -rf agents/ skills/
 
 test: build
 	@echo "Testing installer..."

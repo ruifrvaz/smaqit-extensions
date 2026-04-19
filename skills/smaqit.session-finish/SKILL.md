@@ -2,7 +2,7 @@
 name: smaqit.session-finish
 description: End session by documenting the entire conversation. Use at session completion to create history entries.
 metadata:
-  version: "0.4.1"
+  version: "0.5.0"
 ---
 
 # Session Finish
@@ -12,7 +12,7 @@ End a session by documenting the **entire session** (not just recent activity).
 ## Steps
 
 1. **Review full conversation** - All topics discussed, decisions made, files modified
-   - **If a `<conversation-summary>` block is present in context**, it represents work done earlier in this same session — not background from a previous session. Treat it as the first segment of the session arc and include all work described in it in the history file.
+   - **CRITICAL — `<conversation-summary>` block:** If one is present in context, it is the **first segment of the current session**, not background from a prior session. You **MUST** treat it as the opening part of the session arc and include everything described in it in the history file. Do NOT skip or minimise it.
 
 2. **Create history file** if session qualifies as significant
    - Filename: `.smaqit/history/NNN_description_YYYY-MM-DD.md`
@@ -54,3 +54,7 @@ End a session by documenting the **entire session** (not just recent activity).
 - Document the complete session, not just the final activity
 - Focus on decisions and rationale, not implementation details
 - Always call `store_memory` (Step 3) even when no history file was created — memory is the cross-branch context mechanism
+
+## Critical Requirements
+
+**CRITICAL:** A `<conversation-summary>` block found in context is **the current session's earlier work** — never prior session background. Always include its content in the history file. Omitting it produces an incomplete history.

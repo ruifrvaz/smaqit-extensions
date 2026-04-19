@@ -92,6 +92,7 @@ func printHelp() {
 	fmt.Println("What gets installed:")
 	fmt.Println("  .github/agents/     - 3 utility agents")
 	fmt.Println("  .github/skills/     - 16 workflow skills")
+	fmt.Println("  .smaqit/templates/  - 3 canonical templates")
 }
 
 func cmdInstall(targetDir string) {
@@ -138,7 +139,7 @@ func cmdInstall(targetDir string) {
 		os.Exit(1)
 	}
 
-	// Install templates
+	// Install template files (never overwrite existing ones)
 	if err := fs.WalkDir(templateFiles, "templates", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err

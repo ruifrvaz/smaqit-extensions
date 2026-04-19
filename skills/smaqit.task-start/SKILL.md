@@ -2,7 +2,7 @@
 name: smaqit.task-start
 description: Start working on a task. Supports autonomous mode (AI completes) or assisted mode (user approval required). Use when beginning work on tasks to set proper workflow.
 metadata:
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # Task Start
@@ -67,26 +67,11 @@ task.start [id] --assisted         # Explicit assisted mode
 7. **Load workflow rules** by reading [references/RULES.md](references/RULES.md)
 8. **Begin implementation** following task requirements
 
-## Task File Format with Mode
+## Task File Format
 
-```markdown
-# [Task Title]
+See [.smaqit/templates/task.template.md](.smaqit/templates/task.template.md) for the canonical task file structure.
 
-**Status:** In Progress
-**Mode:** Assisted
-**Created:** YYYY-MM-DD
-**Started:** YYYY-MM-DD
-
-## Description
-[Task description]
-
-## Acceptance Criteria
-- [ ] Criterion 1
-- [ ] Criterion 2
-
-## Notes
-[Additional context]
-```
+This skill adds the **Mode** field (set to `Autonomous` or `Assisted`) and the **Started** field (set to today's date) when starting a task.
 
 ## Critical Rules
 

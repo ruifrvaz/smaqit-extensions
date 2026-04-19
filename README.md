@@ -97,6 +97,7 @@ The installer also scaffolds the `.smaqit/` directory structure used by agents a
 - `.smaqit/tasks/` - Individual task files
 - `.smaqit/history/` - Session documentation
 - `.smaqit/user-testing/` - Test reports
+- `.smaqit/templates/` - Canonical task and planning templates
 
 ## Development
 

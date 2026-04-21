@@ -11,8 +11,13 @@ End a session by documenting the **entire session** (not just recent activity).
 
 ## Steps
 
-1. **Review full conversation** - All topics discussed, decisions made, files modified
-   - **CRITICAL — `<conversation-summary>` block:** If one is present in context, it is the **first segment of the current session**, not background from a prior session. You **MUST** treat it as the opening part of the session arc and include everything described in it in the history file. Do NOT skip or minimise it.
+0. **Preflight: establish the full session arc before writing anything**
+   - Check the context for a `<conversation-summary>` block.
+   - **If present:** that block is the first segment of this session — not a previous session. List all work it describes. You MUST include that work in the history file.
+   - **If absent:** the live conversation is the full session.
+   - Do not begin writing the history file until you can answer: "What is the earliest thing that happened in this session?" If you cannot answer that from the live conversation alone and a `<conversation-summary>` is present, read it now.
+
+1. **Review full conversation** - All topics discussed, decisions made, files modified (covering both the `<conversation-summary>` segment and the live conversation segment)
 
 2. **Create history file** if session qualifies as significant
    - Filename: `.smaqit/history/NNN_description_YYYY-MM-DD.md`
@@ -54,7 +59,3 @@ End a session by documenting the **entire session** (not just recent activity).
 - Document the complete session, not just the final activity
 - Focus on decisions and rationale, not implementation details
 - Always call `store_memory` (Step 3) even when no history file was created — memory is the cross-branch context mechanism
-
-## Critical Requirements
-
-**CRITICAL:** A `<conversation-summary>` block found in context is **the current session's earlier work** — never prior session background. Always include its content in the history file. Omitting it produces an incomplete history.

@@ -2,7 +2,7 @@
 name: smaqit.task-create
 description: Create a new task with auto-numbering. Use when creating new tasks to track work.
 metadata:
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # Task Create
@@ -29,22 +29,9 @@ Create a new task with the format: `task.create [title]` or `task.create [title]
 
 ## Task File Format
 
-```markdown
-# [Task Title]
+See [.smaqit/templates/task.template.md](.smaqit/templates/task.template.md) for the canonical task file structure.
 
-**Status:** Not Started | In Progress | Completed | Blocked  
-**Created:** YYYY-MM-DD
-
-## Description
-[Clear description of what needs to be done]
-
-## Acceptance Criteria
-- [ ] Criterion 1
-- [ ] Criterion 2
-
-## Notes
-[Optional additional context]
-```
+Fields populated at creation time: **Status** (set to `Not Started`) and **Created** (set to today's date). Fields such as `Mode`, `Started`, and `Completed` are omitted at creation and added later by the relevant skill as the task progresses.
 
 ## Central Planning File
 

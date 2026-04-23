@@ -16,6 +16,9 @@ var agentFiles embed.FS
 //go:embed skills/*
 var skillFiles embed.FS
 
+//go:embed templates/*
+var templateFiles embed.FS
+
 // Version is set via ldflags during build: -X main.Version=$(VERSION)
 var Version = "0.4.2"
 
@@ -88,7 +91,8 @@ func printHelp() {
 	fmt.Println()
 	fmt.Println("What gets installed:")
 	fmt.Println("  .github/agents/     - 3 utility agents")
-	fmt.Println("  .github/skills/     - 16 workflow skills")
+	fmt.Println("  .github/skills/     - 17 workflow skills")
+	fmt.Println("  .smaqit/templates/  - 3 canonical templates")
 }
 
 func cmdInstall(targetDir string) {
@@ -99,6 +103,7 @@ func cmdInstall(targetDir string) {
 	tasksDir := filepath.Join(smaqitDir, "tasks")
 	historyDir := filepath.Join(smaqitDir, "history")
 	userTestingDir := filepath.Join(smaqitDir, "user-testing")
+	templatesDir := filepath.Join(smaqitDir, "templates")
 
 	if err := os.MkdirAll(agentsDir, 0755); err != nil {
 		fmt.Printf("Error creating agents directory: %v\n", err)
@@ -123,10 +128,41 @@ func cmdInstall(targetDir string) {
 		fmt.Printf("Error creating user-testing directory: %v\n", err)
 		os.Exit(1)
 	}
+	if err := os.MkdirAll(templatesDir, 0755); err != nil {
+		fmt.Printf("Error creating templates directory: %v\n", err)
+		os.Exit(1)
+	}
 
 	planningPath := filepath.Join(tasksDir, "PLANNING.md")
 	if err := writeFileIfMissing(planningPath, []byte(planningTemplate), 0644); err != nil {
 		fmt.Printf("Error creating planning file: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Install template files (never overwrite existing ones)
+	if err := fs.WalkDir(templateFiles, "templates", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			return nil
+		}
+
+		content, err := fs.ReadFile(templateFiles, path)
+		if err != nil {
+			return fmt.Errorf("reading %s: %w", path, err)
+		}
+
+		filename := filepath.Base(path)
+		targetPath := filepath.Join(templatesDir, filename)
+
+		if err := writeFileIfMissing(targetPath, content, 0644); err != nil {
+			return fmt.Errorf("writing %s: %w", targetPath, err)
+		}
+
+		return nil
+	}); err != nil {
+		fmt.Printf("Error installing templates: %v\n", err)
 		os.Exit(1)
 	}
 

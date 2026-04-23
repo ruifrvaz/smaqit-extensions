@@ -5,9 +5,10 @@ VERSION ?= 0.1.0
 prepare:
 	@echo "Preparing build environment..."
 	@mkdir -p dist
-	@mkdir -p agents skills
+	@mkdir -p agents skills templates
 	@cp -r ../agents/*.md agents/ 2>/dev/null || true
 	@cp -rL ../skills/* skills/ 2>/dev/null || true
+	@cp -r ../.smaqit/templates/* templates/ 2>/dev/null || true
 
 build: prepare
 	@echo "Building smaqit-extensions..."

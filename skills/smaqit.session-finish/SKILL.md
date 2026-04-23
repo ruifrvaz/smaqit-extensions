@@ -2,7 +2,7 @@
 name: smaqit.session-finish
 description: End session by documenting the entire conversation. Use at session completion to create history entries.
 metadata:
-  version: "0.5.0"
+  version: "0.5.1"
 ---
 
 # Session Finish
@@ -33,9 +33,6 @@ End a session by documenting the **entire session** (not just recent activity).
    - Cover the **complete session arc**, not just the last activity
 
 3. **Store session context in memory** using the `memory` tool with `type: workspace` (call both in parallel):
-
-   **CRITICAL:** Always use `type: workspace` — never `type: user`. This ensures session context is scoped to the project, not the individual user account.
-
    - **Session summary** — captures what happened so any future session on any branch can pick up where this one left off:
      - `subject`: `"session history"`
      - `fact`: `"[NNN] [YYYY-MM-DD]: [2–3 sentence summary of key actions, decisions, and outcomes]"` (≤ 200 chars)

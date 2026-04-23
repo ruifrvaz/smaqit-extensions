@@ -91,8 +91,8 @@ func printHelp() {
 	fmt.Println()
 	fmt.Println("What gets installed:")
 	fmt.Println("  .github/agents/     - 3 utility agents")
-	fmt.Println("  .github/skills/     - 15 workflow skills")
-	fmt.Println("  .smaqit/templates/  - 2 canonical task and planning templates")
+	fmt.Println("  .github/skills/     - 16 workflow skills")
+	fmt.Println("  .smaqit/templates/  - 3 canonical templates")
 }
 
 func cmdInstall(targetDir string) {
@@ -262,20 +262,21 @@ func cmdUninstall() {
 	}
 
 	skillDirs := []string{
-		"smaqit.session-start",
-		"smaqit.session-finish",
-		"smaqit.session-assess",
-		"smaqit.session-title",
-		"smaqit.task-create",
-		"smaqit.task-list",
-		"smaqit.task-complete",
-		"smaqit.task-start",
-		"smaqit.test-start",
+		"smaqit.project-init",
 		"smaqit.release-analysis",
 		"smaqit.release-approval",
-		"smaqit.release-prepare-files",
 		"smaqit.release-git-local",
 		"smaqit.release-git-pr",
+		"smaqit.release-prepare-files",
+		"smaqit.session-assess",
+		"smaqit.session-finish",
+		"smaqit.session-start",
+		"smaqit.session-title",
+		"smaqit.task-complete",
+		"smaqit.task-create",
+		"smaqit.task-list",
+		"smaqit.task-start",
+		"smaqit.test-start",
 	}
 
 	removedCount := 0

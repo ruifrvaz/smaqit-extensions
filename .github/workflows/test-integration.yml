@@ -65,6 +65,8 @@ jobs:
             "smaqit.release-prepare-files"
             "smaqit.release-git-local"
             "smaqit.release-git-pr"
+            "smaqit.project-init"
+            "smaqit.session-recap"
           )
           
           for skill in "${EXPECTED_SKILLS[@]}"; do

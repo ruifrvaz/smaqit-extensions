@@ -91,7 +91,7 @@ func printHelp() {
 	fmt.Println()
 	fmt.Println("What gets installed:")
 	fmt.Println("  .github/agents/     - 3 utility agents")
-	fmt.Println("  .github/skills/     - 16 workflow skills")
+	fmt.Println("  .github/skills/     - 17 workflow skills")
 	fmt.Println("  .smaqit/templates/  - 3 canonical templates")
 }
 
@@ -255,45 +255,36 @@ func cmdUninstall() {
 	agentsDir := filepath.Join(targetDir, ".github", "agents")
 	skillsDir := filepath.Join(targetDir, ".github", "skills")
 
-	agentFiles := []string{
-		"smaqit.release.local.agent.md",
-		"smaqit.release.pr.agent.md",
-		"smaqit.user-testing.agent.md",
-	}
-
-	skillDirs := []string{
-		"smaqit.project-init",
-		"smaqit.release-analysis",
-		"smaqit.release-approval",
-		"smaqit.release-git-local",
-		"smaqit.release-git-pr",
-		"smaqit.release-prepare-files",
-		"smaqit.session-assess",
-		"smaqit.session-finish",
-		"smaqit.session-start",
-		"smaqit.session-title",
-		"smaqit.task-complete",
-		"smaqit.task-create",
-		"smaqit.task-list",
-		"smaqit.task-start",
-		"smaqit.test-start",
-	}
-
 	removedCount := 0
 
-	// Remove agents
-	for _, file := range agentFiles {
-		path := filepath.Join(agentsDir, file)
-		if err := os.Remove(path); err == nil {
+	// Remove agents: discover from embedded FS
+	if err := fs.WalkDir(agentFiles, "agents", func(path string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return err
+		}
+		targetPath := filepath.Join(agentsDir, filepath.Base(path))
+		if removeErr := os.Remove(targetPath); removeErr == nil {
 			removedCount++
 		}
+		return nil
+	}); err != nil {
+		fmt.Printf("Error enumerating agents: %v\n", err)
+		os.Exit(1)
 	}
 
-	// Remove skills
-	for _, dir := range skillDirs {
-		skillPath := filepath.Join(skillsDir, dir)
-		if _, err := os.Stat(skillPath); err == nil {
-			if err := os.RemoveAll(skillPath); err == nil {
+	// Remove skills: discover top-level skill directories from embedded FS
+	entries, err := skillFiles.ReadDir("skills")
+	if err != nil {
+		fmt.Printf("Error enumerating skills: %v\n", err)
+		os.Exit(1)
+	}
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		skillPath := filepath.Join(skillsDir, entry.Name())
+		if _, statErr := os.Stat(skillPath); statErr == nil {
+			if removeErr := os.RemoveAll(skillPath); removeErr == nil {
 				removedCount++
 			}
 		}

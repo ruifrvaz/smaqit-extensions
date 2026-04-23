@@ -11,6 +11,7 @@ Enhance your agentic development with streamlined session management, task track
 - **smaqit.session-assess** - Analyze requests before implementation
 - **smaqit.session-finish** - Document session history at completion
 - **smaqit.session-title** - Generate concise session titles
+- **smaqit.session-recap** - Summarize session progress as a structured table
 
 #### Task Tracking
 - **smaqit.task-create** - Create new tasks with auto-numbering
@@ -51,7 +52,7 @@ curl -fsSL https://raw.githubusercontent.com/ruifrvaz/smaqit-extensions/main/ins
 
 The installer copies files to your project's `.github/` directory:
 - `agents/` - 3 utility agents (release local, release PR, user-testing)
-- `skills/` - 15 workflow skills (complete implementations)
+- `skills/` - 16 workflow skills (complete implementations)
 
 ## Usage
 

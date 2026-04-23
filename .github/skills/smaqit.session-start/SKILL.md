@@ -2,7 +2,7 @@
 name: smaqit.session-start
 description: Start a new chat with full project context. Use when beginning a session to load README, recent history, and task planning.
 metadata:
-  version: "0.5.0"
+  version: "0.6.1"
 ---
 
 # Session Start
@@ -19,13 +19,13 @@ Start a new chat with full project context. Execute these steps IN ORDER:
    - Build/test entrypoints (whichever exist): `Makefile`, `package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`
 
 2. **Load recent session context** (use both sources; memory takes priority for cross-branch continuity):
-   - **From memory (primary):** Retrieve stored memory entries with subjects `"session history"` and `"next steps"`. These are written by `session-finish` and are available across all branches, making them the most reliable source when working in parallel or on a new branch.
+   - **From memory (primary):** Use the `memory` tool with `type: workspace` to retrieve stored entries with subjects `"session history"` and `"next steps"`. These are written by `session-finish` and are available across all branches, making them the most reliable source when working in parallel or on a new branch.
    - **From files (fallback/supplement):** Read the most recent history entry from `.smaqit/history/` for full detail. If no entries exist yet, continue without file history.
    - If both sources exist, memory provides the freshest cross-branch context; the history file provides the full narrative.
 
 3. **Load task planning**:
    - Read `.smaqit/tasks/PLANNING.md` (NOT individual task files).
-   - Supplement with any stored memory entries with subject `"task state"` — these are written by task skills (`task-create`, `task-start`, `task-complete`) and reflect the most recent state across all branches.
+   - Supplement with any stored memory entries with subject `"task state"` using the `memory` tool with `type: workspace` — these are written by task skills (`task-create`, `task-start`, `task-complete`) and reflect the most recent state across all branches.
    - Note: Task workflow rules (autonomous vs assisted modes) are loaded via `task-list` skill when working on tasks.
 
 4. **Read the codebase for the next unblocked task**:

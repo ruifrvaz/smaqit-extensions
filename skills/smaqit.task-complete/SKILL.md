@@ -2,7 +2,7 @@
 name: smaqit.task-complete
 description: Mark a task as completed by updating a task's status. Verify its acceptance criteria and record state in PLANNING.md. Use when marking a task as done — whether just implemented, retroactively closing completed work, or responding to a status update request. Follow the steps and mode-specific rules to ensure proper task management.
 metadata:
-  version: "0.4.0"
+  version: "0.5.0"
 ---
 
 # Task Complete
@@ -12,7 +12,7 @@ Mark a task as done with the format: `task.complete [id]`
 ## Steps
 
 1. **Load workflow rules** by reading [references/RULES.md](references/RULES.md)
-2. Read the task file to review acceptance criteria **and task mode**
+2. Read the task file (see [.smaqit/templates/task.template.md](.smaqit/templates/task.template.md) for the canonical task file structure) to review acceptance criteria **and task mode**
 3. **Check task mode enforcement:**
    - **Assisted mode:** Verify this is user-invoked (not AI self-completion)
    - **Autonomous mode:** AI may self-complete after verification

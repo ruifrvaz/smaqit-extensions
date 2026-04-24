@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.2] - 2026-04-24
+
+### Added
+- **Session-recap skill v0.2.0** — new skill for summarizing session progress as a structured table (PR #43)
+  - `smaqit.session-recap` skill invoked when user asks for a "recap", "review", or "progress" of the session
+  - Renders a strict 3-column table (Step / Status / Notes) covering every significant session action
+  - Includes `references/TABLE.md` template enforcing consistent table layout and emoji status indicators (✅ Done, ⏳ Pending, 🚫 Blocked, 🗑️ Abandoned)
+- **Project-init skill v0.2.0** — new skill to bootstrap a smaqit project by generating `.github/copilot-instructions.md` from a template (PR #45)
+  - Infers project details (name, description, tech stack) from the repository instead of asking the user
+  - Installs `copilot-instructions.template.md` in `.smaqit/templates/` via the installer
+- **`.smaqit/templates/` directory** — canonical task and planning templates installed by the Go installer (PR #47)
+  - `task.template.md` — standard task file scaffold used by `task-create`
+  - `PLANNING-template.md` — standard planning file scaffold
+  - Installer creates templates in `.smaqit/templates/` with non-overwriting logic to preserve local customizations
+
+### Changed
+- **Task skills refactored to reference templates** — `task-create`, `task-start`, and `task-complete` now reference canonical templates in `.smaqit/templates/` (PR #47)
+- **Installer: dynamic uninstall** — `smaqit-extensions uninstall` now removes all skills present in the binary rather than a hard-coded list, ensuring newly added skills are always cleaned up (PR #45)
+
+### Fixed
+- **Session-finish skill v0.5.2** — added preflight step to handle `<conversation-summary>` blocks correctly; improved classification of session content (PR #49)
+- **Session-start skill v0.6.1 / Session-finish skill v0.5.2** — switched from deprecated `store_memory` to `memory` tool with `type: workspace` for cross-branch context (PR #41)
+
 ## [0.9.1] - 2026-04-06
 
 ### Fixed
@@ -263,7 +286,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.9.1...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.9.2...HEAD
+[0.9.2]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.9.1...v0.9.2
 [0.9.1]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.7.0...v0.8.0

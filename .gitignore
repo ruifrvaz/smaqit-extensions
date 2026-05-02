@@ -19,6 +19,7 @@ installer/smaqit-extensions
 # Installer temp directories (populated by make prepare)
 installer/agents/
 installer/skills/
+installer/prompts/
 
 # IDEs
 .vscode/

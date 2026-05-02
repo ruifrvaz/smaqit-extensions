@@ -1,6 +1,6 @@
 # Task Workflow Rules
 
-**Version:** 0.1.0  
+**Version:** 0.2.0  
 **Purpose:** Enforce proper task completion gates and workflow modes
 
 This document defines the rules for task workflow execution. These rules are loaded into context when working with tasks to ensure proper approval gates and autonomous/assisted mode behavior.
@@ -134,6 +134,28 @@ For skills that interact with tasks:
 - [ ] Load RULES.md into context
 - [ ] Display task mode indicators in output
 - [ ] Remind agent of workflow constraints
+
+### Rule 5: Implementation Step Idempotency
+
+**Every implementation step must be safe to run multiple times.**
+
+Before executing any mutating command (writing files, installing packages, modifying system config, firewall rules, running installers, etc.):
+
+1. **Check first:** Run a read or scan command to determine current state
+2. **Proceed only if needed:** Skip the step entirely if the desired state is already in place
+3. **Prefer idempotent forms:** Use flags like `--if-exists`, `--force`, or `--no-clobber` where available
+
+**Examples:**
+
+| Step | Non-idempotent risk | Safe approach |
+|------|--------------------|--------------|
+| Firewall rule | `ufw allow 18789` may duplicate | Check `ufw status` first; add only if rule is missing |
+| Config file patch | Overwriting may lose existing keys | Read file first; patch only missing keys |
+| Installer script | Re-running may reinstall/reset | Check if binary exists first; skip if present |
+| `apt install` | Already idempotent | Run directly |
+| `ollama pull` | Already idempotent | Run directly |
+
+**When a step is not naturally idempotent:** Run a read/scan command first, report current state, and proceed with the mutation only if needed.
 
 ---
 

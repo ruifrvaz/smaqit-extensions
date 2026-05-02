@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.5] - 2026-05-02
+
+### Added
+- **smaqit.project-glossary skill v1.0.0** — new skill for managing a per-project glossary at `.smaqit/glossary.md`
+  - Four trigger phrases: `list glossary`, `fetch from glossary [term]`, `update glossary [term]`, `remove from glossary [term]`
+  - `update glossary` implements upsert semantics (adds term if absent, edits if present)
+  - `remove from glossary` requires confirmation before deletion; cleans up empty category sections
+  - Glossary stored as category-grouped markdown tables (Term | Definition | Category)
+  - Handles missing glossary file gracefully on all read operations
+
+### Changed
+- **smaqit.session-start v0.7.0** — new step 4: conditionally loads `.smaqit/glossary.md` into session context at startup (skipped silently if file does not exist)
+- **README** — added Project Management section with `smaqit.project-glossary`; updated skill count to 18
+
 ## [0.9.4] - 2026-05-02
 
 ### Changed

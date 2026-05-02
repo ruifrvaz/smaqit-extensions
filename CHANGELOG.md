@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.4] - 2026-05-02
+
+### Changed
+- **smaqit.utilities.read-pdf** — renamed from `smaqit.read-pdf` to `smaqit.utilities.read-pdf` to align with the utilities skill namespace convention
+- **README** — added Utilities section; updated skill count to 17
+- **Makefile** — updated skill reference from `smaqit.read-pdf` to `smaqit.utilities.read-pdf`
+
 ## [0.9.3] - 2026-05-02
 
 ### Added
@@ -298,7 +305,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.9.3...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.9.4...HEAD
+[0.9.4]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.9.3...v0.9.4
 [0.9.3]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.9.2...v0.9.3
 [0.9.2]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.9.1...v0.9.2
 [0.9.1]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.9.0...v0.9.1

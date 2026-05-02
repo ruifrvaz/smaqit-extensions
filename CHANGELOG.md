@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.3] - 2026-05-02
+
+### Added
+- **smaqit.read-pdf skill v0.1.0** — new skill for extracting text from PDF files using `pdftotext`
+  - Writes a `.extracted.txt` sidecar next to the source PDF
+  - Checks for `poppler-utils` at runtime and surfaces install instruction if missing
+  - Continues with the caller's original goal after extraction (mid-request pipeline step)
+  - Includes `scripts/extract.sh` — self-contained bash wrapper with `[CHECK]`/`[OK]`/`[ERROR]` output
+
+### Changed
+- **Makefile sync** — added `smaqit.read-pdf` to the skill list; added `scripts/` directory handling so skill scripts are synced to `.github/skills/` alongside `SKILL.md`
+
 ## [0.9.2] - 2026-04-24
 
 ### Added
@@ -286,7 +298,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.9.2...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.9.3...HEAD
+[0.9.3]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.9.2...v0.9.3
 [0.9.2]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.9.1...v0.9.2
 [0.9.1]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.8.0...v0.9.0

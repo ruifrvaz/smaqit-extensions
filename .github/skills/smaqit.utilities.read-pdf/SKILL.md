@@ -1,5 +1,5 @@
 ---
-name: smaqit.read-pdf
+name: smaqit.utilities.read-pdf
 description: Extracts text from a PDF file, writes a sidecar .extracted.txt file, reads it, and continues with the caller's original goal. Use when the user references a .pdf file path and requests any content-based action: review, summarize, analyze, benchmark extraction, or similar.
 compatibility: Requires poppler-utils (pdftotext). Install with: sudo apt install poppler-utils
 allowed-tools: Bash run_in_terminal read_file
@@ -8,8 +8,6 @@ metadata:
 ---
 
 # Read PDF
-
-Extract text from a PDF and continue with the caller's original goal.
 
 ## When to use this skill
 

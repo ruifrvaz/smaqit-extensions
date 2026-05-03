@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.7] - 2026-05-03
+
+### Changed
+- **smaqit.session-finish v0.6.0** — Step 0 rewritten: reads full session from the JSONL transcript (derived from `{{VSCODE_TARGET_SESSION_LOG}}`); uses first user message (`session.start` invocation) as the guaranteed session anchor; removes unreliable `<conversation-summary>` block logic
+- **smaqit.session-recap v0.3.0** — new Step 0 added: reads full session from transcript before enumerating steps; Step 2 updated to enumerate from the loaded arc
+- **smaqit.session-title v0.3.0** — new Step 0 added: reads full session from transcript before generating title; Step 1 updated to review the loaded arc
+
 ## [0.9.6] - 2026-05-03
 
 ### Added

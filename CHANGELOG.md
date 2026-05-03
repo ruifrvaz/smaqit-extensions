@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.6] - 2026-05-03
+
+### Added
+- **smaqit.project-research skill v1.0.0** — project-scoped documentation topology mapper
+  - Two-layer model: project layer (full stack from manifests + copilot instructions) always runs; task layer (task-specific relevance annotation) runs only when a task is active or specified
+  - Discovers section-level documentation URLs using agent knowledge, `fetch_webpage`, `github_repo`, and `github_text_search`
+  - Verifies URL liveness via bundled `scripts/verify-urls.sh` (curl --head; follows redirects; discards 4xx/5xx)
+  - Writes persistent map to `.smaqit/references/project-research.md` (one file per project, not per task)
+  - Output includes `Task-relevant` annotation column when a task is active
+  - Satisfies `smaqit.utilities.triage-issues` (Task 022) contract: `Tool | Section | URL | Status` table
+  - Gracefully handles unreachable tools, unknown tools, missing manifests, and missing `.smaqit/references/`
+
+### Changed
+- **smaqit.task-start v0.5.0** — new Step 2: research map verification; checks for `.smaqit/references/project-research.md` before implementation; invokes `smaqit.project-research` automatically if absent; surfaces map in-context
+- **smaqit.utils.read-pdf** — renamed from `smaqit.utilities.read-pdf` to `smaqit.utils.read-pdf` to align with `smaqit.utils.*` namespace convention
+- **README** — Project Management section completed (`smaqit.project-init` added, `smaqit.project-research` moved from Utilities); Utilities section corrected
+- **Makefile** — updated skill references for renamed skills
+- **installer/main.go** — skill count updated to 18
+
 ## [0.9.5] - 2026-05-02
 
 ### Added
@@ -27,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **smaqit.utilities.read-pdf** — renamed from `smaqit.read-pdf` to `smaqit.utilities.read-pdf` to align with the utilities skill namespace convention
 - **README** — added Utilities section; updated skill count to 17
 - **Makefile** — updated skill reference from `smaqit.read-pdf` to `smaqit.utilities.read-pdf`
+
 
 ## [0.9.3] - 2026-05-02
 

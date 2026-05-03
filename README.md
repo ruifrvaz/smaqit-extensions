@@ -30,10 +30,12 @@ Enhance your agentic development with streamlined session management, task track
 - **smaqit.release-git-pr** - Execute git operations for PR-based releases (via report_progress)
 
 #### Project Management
+- **smaqit.project-init** - Bootstrap a new smaqit project by generating `.github/copilot-instructions.md` from a template
 - **smaqit.project-glossary** - Manage a per-project glossary (`list glossary`, `fetch from glossary`, `update glossary`, `remove from glossary`)
+- **smaqit.project-research** - Build and maintain a documentation topology map for the current project (`project.research`, `project.research [task-id]`)
 
 #### Utilities
-- **smaqit.utilities.read-pdf** - Extract text from a PDF file and continue with the caller's original goal
+- **smaqit.utils.read-pdf** - Extract text from a PDF file and continue with the caller's original goal
 
 ### Utility Agents
 - **@smaqit.release.local** - Automated release management (local development)

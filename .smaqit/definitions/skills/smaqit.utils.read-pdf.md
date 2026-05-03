@@ -2,7 +2,7 @@
 
 ## Name
 
-`smaqit.utilities.read-pdf`
+`smaqit.utils.read-pdf`
 
 ## Description
 

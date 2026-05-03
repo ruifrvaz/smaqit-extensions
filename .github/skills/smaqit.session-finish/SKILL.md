@@ -2,7 +2,7 @@
 name: smaqit.session-finish
 description: End session by documenting the entire conversation. Use at session completion to create history entries.
 metadata:
-  version: "0.5.2"
+  version: "0.6.0"
 ---
 
 # Session Finish
@@ -11,12 +11,12 @@ End a session by documenting the **entire session** (not just recent activity).
 
 ## Steps
 
-0. **Preflight: establish the full session arc before writing anything**
-   - Check the context for a `<conversation-summary>` block.
-   - **If present:** that block is the first segment of this session — not a previous session. List all work it describes. You MUST include that work in the history file.
-   - **If absent:** the live conversation is the full session.
-   - Do not begin writing the history file until you can answer: "What is the earliest thing that happened in this session?" If you cannot answer that from the live conversation alone and a `<conversation-summary>` is present, read it now.
-   - **Review full conversation** - All topics discussed, decisions made, files modified (covering both the `<conversation-summary>` segment and the live conversation segment)
+0. **Read the full session from the transcript**
+   - Derive the transcript path: take `{{VSCODE_TARGET_SESSION_LOG}}`, replace `debug-logs` with `transcripts`, and append `.jsonl`
+   - Run `wc -l <path>` in the terminal to check size, then read the file using the `read_file` tool
+   - The session begins at the first user message — this is always the `session.start` invocation and is the guaranteed anchor for "earliest action in this session"
+   - Build the complete session arc from that anchor to the current turn: all topics discussed, decisions made, and files modified
+   - Do not proceed to Step 1 until you can enumerate the full arc from `session.start` to now
 
 1. **Create history file** if session qualifies as significant
    - Filename: `.smaqit/history/NNN_description_YYYY-MM-DD.md`

@@ -2,7 +2,7 @@
 name: smaqit.session-title
 description: Generate a succinct title for the current session based on work accomplished. Use when finishing sessions to create history file titles.
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # Session Title
@@ -11,7 +11,13 @@ Generate a concise, descriptive title for the current session based on the work 
 
 ## Steps
 
-1. **Review the conversation** to identify:
+0. **Read the full session from the transcript**
+   - Derive the transcript path: take `{{VSCODE_TARGET_SESSION_LOG}}`, replace `debug-logs` with `transcripts`, and append `.jsonl`
+   - Run `wc -l <path>` in the terminal to check size, then read the file using the `read_file` tool
+   - The session begins at the first user message — this is always the `session.start` invocation and is the guaranteed anchor
+   - Build the complete session arc from that anchor to the current turn before generating the title
+
+1. **Review the session arc loaded in Step 0** to identify:
    - Primary focus/goal of the session
    - Key deliverables or outcomes
    - Major decisions or insights

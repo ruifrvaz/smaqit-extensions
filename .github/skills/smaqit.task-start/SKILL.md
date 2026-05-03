@@ -2,7 +2,7 @@
 name: smaqit.task-start
 description: Start working on a task. Supports autonomous mode (AI completes) or assisted mode (user approval required). Use when beginning work on tasks to set proper workflow.
 metadata:
-  version: "0.4.0"
+  version: "0.5.0"
 ---
 
 # Task Start
@@ -52,20 +52,23 @@ task.start [id] --assisted         # Explicit assisted mode
 ## Steps
 
 1. **Read task file** (`.smaqit/tasks/NNN_*.md`) to understand requirements
-2. **Determine mode** from command arguments (default: assisted)
-3. **Update task status** to "In Progress"
-4. **Store mode in task file** as metadata field:
+2. **Research map verification** — check whether `.smaqit/references/project-research.md` exists:
+   - If **absent** → invoke `smaqit.project-research [task-id]` before proceeding. Surface the resulting map in-context. Do not continue to Step 3 until the map is written.
+   - If **present** → proceed without refreshing. The existing map is sufficient. Surface it in-context (render the table) so the implementing agent has documentation topology available.
+3. **Determine mode** from command arguments (default: assisted)
+4. **Update task status** to "In Progress"
+5. **Store mode in task file** as metadata field:
    ```markdown
    **Mode:** Autonomous | Assisted
    ```
-5. **Update PLANNING.md** to reflect "In Progress" status
-6. **Store task state in memory** using the `store_memory` tool:
+6. **Update PLANNING.md** to reflect "In Progress" status
+7. **Store task state in memory** using the `store_memory` tool:
    - `subject`: `"task state"`
    - `fact`: `"[NNN] [Title] — In Progress ([Assisted|Autonomous], started YYYY-MM-DD)"` (≤ 200 chars)
    - `citations`: path to the task file (e.g., `.smaqit/tasks/NNN_task_title.md`)
    - `reason`: `"Ensures in-progress task and mode are visible in any branch, supporting parallel agent workflows"`
-7. **Load workflow rules** by reading [references/RULES.md](references/RULES.md)
-8. **Begin implementation** following task requirements
+8. **Load workflow rules** by reading [references/RULES.md](references/RULES.md)
+9. **Begin implementation** following task requirements
 
 ## Task File Format
 

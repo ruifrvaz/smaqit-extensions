@@ -2,7 +2,7 @@
 name: smaqit.task-start
 description: Start working on a task. Supports autonomous mode (AI completes) or assisted mode (user approval required). Use when beginning work on tasks to set proper workflow.
 metadata:
-  version: "0.5.0"
+  version: "0.6.0"
 ---
 
 # Task Start
@@ -53,8 +53,13 @@ task.start [id] --assisted         # Explicit assisted mode
 
 1. **Read task file** (`.smaqit/tasks/NNN_*.md`) to understand requirements
 2. **Research map verification** — check whether `.smaqit/references/project-research.md` exists:
-   - If **absent** → invoke `smaqit.project-research [task-id]` before proceeding. Surface the resulting map in-context. Do not continue to Step 3 until the map is written.
+   - If **absent** → invoke `smaqit.project-research [task-id]` before proceeding. Surface the resulting map in-context. Do not continue to Step 2a until the map is written.
    - If **present** → proceed without refreshing. The existing map is sufficient. Surface it in-context (render the table) so the implementing agent has documentation topology available.
+2a. **Issue triage** — invoke `smaqit.utils.triage-issues` with the current task ID:
+   - Skill reads the research map, extracts third-party tools, searches GitHub for known open issues, and writes `## Known Issues Triage` to the task file.
+   - **If blocking issues found** → STOP. Do not continue to Step 3. Present findings and await user direction (proceed, reframe scope, or mark as Blocked).
+   - **If advisory or clear** → continue to Step 3. Advisory findings are visible in-context but do not require approval.
+   - **If triage exits cleanly** (skip flag, no tools, gh unavailable, registry missing) → continue to Step 3 silently.
 3. **Determine mode** from command arguments (default: assisted)
 4. **Update task status** to "In Progress"
 5. **Store mode in task file** as metadata field:

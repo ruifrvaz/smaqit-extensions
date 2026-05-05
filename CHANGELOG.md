@@ -7,7 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.9.7] - 2026-05-03
+## [0.10.0] - 2026-05-05
+
+### Added
+- **smaqit.utils.triage-issues skill v1.1.0** — pre-implementation GitHub issue triage gate
+  - Searches upstream GitHub repos for open bugs/regressions matching a task's components before implementation begins
+  - Reads `.smaqit/references/github-repos-registry.md` to resolve tool names to `owner/repo` pairs
+  - Classifies results as Blocking, Advisory, Historical, or Clear
+  - Blocking issues halt `smaqit.task-start` and require user direction before proceeding
+  - Output written to task file as `## Known Issues Triage` block (format defined in `references/TRIAGE_BLOCK.md`)
+  - Invokable standalone as `task.triage [id]` or automatically via `smaqit.task-start` Step 2a
+- **smaqit.project-research/references/RESEARCH_MAP.md** — canonical output format template for project research map
+- **smaqit.utils.triage-issues/references/TRIAGE_BLOCK.md** — canonical output format template for triage block
+- **scripts/recap.py** in smaqit.session-finish, smaqit.session-recap, smaqit.session-title — compact transcript extractor for sessions ≥ 500 lines
+
+### Changed
+- **smaqit.task-start v0.6.0** — new Step 2a: invokes `smaqit.utils.triage-issues` after research map verified, before mode determination; full gate behavior with blocking/advisory/clear paths
+- **smaqit.project-research v1.1.0** — output format redesigned: project table and task block are now separate; `Task-relevant` column removed; task-specific URLs grouped under `## Task NNN — [title]` heading; `RESEARCH_MAP.md` template extracted to `references/`
+- **smaqit.session-finish v0.7.0** — Step 0: conditional transcript handling; < 500 lines reads directly, ≥ 500 lines runs `scripts/recap.py` to extract user + assistant messages
+- **smaqit.session-recap v0.4.0** — same Step 0 conditional as session-finish
+- **smaqit.session-title v0.4.0** — same Step 0 conditional as session-finish
+- **Makefile** — added `smaqit.project-glossary` and `smaqit.utils.triage-issues` to sync skill list; skill count corrected to 20
 
 ### Changed
 - **smaqit.session-finish v0.6.0** — Step 0 rewritten: reads full session from the JSONL transcript (derived from `{{VSCODE_TARGET_SESSION_LOG}}`); uses first user message (`session.start` invocation) as the guaranteed session anchor; removes unreliable `<conversation-summary>` block logic

@@ -2,7 +2,7 @@
 name: smaqit.session-recap
 description: Summarize session progress as a structured table of accomplished and pending steps. Invoke when the user asks for a "recap of the session", "review of the session", or "progress on the session".
 metadata:
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # Session Recap
@@ -11,7 +11,9 @@ metadata:
 
 0. **Read the full session from the transcript**
    - Derive the transcript path: take `{{VSCODE_TARGET_SESSION_LOG}}`, replace `debug-logs` with `transcripts`, and append `.jsonl`
-   - Run `wc -l <path>` in the terminal to check size, then read the file using the `read_file` tool
+   - Run `wc -l <path>` in the terminal to check size
+   - If **< 500 lines**: read the file directly using the `read_file` tool
+   - If **≥ 500 lines**: run `python3 <skill-dir>/scripts/recap.py <transcript-path>` via terminal, where `<skill-dir>` is the directory containing this SKILL.md (derivable from the skill listing path). Use the script output as the session arc source instead of the raw file.
    - The session begins at the first user message — this is always the `session.start` invocation and is the guaranteed anchor for the start of the session
    - Build the complete session arc from that anchor to the current turn before enumerating steps
 

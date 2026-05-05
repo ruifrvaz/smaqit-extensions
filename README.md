@@ -36,6 +36,7 @@ Enhance your agentic development with streamlined session management, task track
 
 #### Utilities
 - **smaqit.utils.read-pdf** - Extract text from a PDF file and continue with the caller's original goal
+- **smaqit.utils.triage-issues** - Search upstream GitHub repos for known issues before implementation begins (`task.triage [id]`)
 
 ### Utility Agents
 - **@smaqit.release.local** - Automated release management (local development)
@@ -60,7 +61,7 @@ curl -fsSL https://raw.githubusercontent.com/ruifrvaz/smaqit-extensions/main/ins
 
 The installer copies files to your project's `.github/` directory:
 - `agents/` - 3 utility agents (release local, release PR, user-testing)
-- `skills/` - 18 workflow skills (complete implementations)
+- `skills/` - 20 workflow skills (complete implementations)
 
 ## Usage
 

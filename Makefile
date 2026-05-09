@@ -1,4 +1,4 @@
-.PHONY: sync clean
+.PHONY: sync clean plugin\:validate
 
 # Sync source files to .github/ for dogfooding
 sync:
@@ -27,3 +27,14 @@ clean:
 	@echo "Cleaning .github/ dogfooding files..."
 	@rm -rf .github/agents .github/skills
 	@echo "✓ Clean complete"
+
+plugin\:validate:
+	@echo "Validating plugin.json version against CHANGELOG..."
+	@PLUGIN_VERSION=$$(grep '"version"' plugin.json | head -1 | sed 's/.*"version": "\([^"]*\)".*/\1/'); \
+	CHANGELOG_VERSION=$$(grep -m1 '## \[[0-9]' CHANGELOG.md | sed 's/## \[\([0-9.]*\)\].*/\1/'); \
+	if [ "$$PLUGIN_VERSION" = "$$CHANGELOG_VERSION" ]; then \
+		echo "✓ plugin.json version ($$PLUGIN_VERSION) matches CHANGELOG ($$CHANGELOG_VERSION)"; \
+	else \
+		echo "✗ Version mismatch: plugin.json=$$PLUGIN_VERSION, CHANGELOG=$$CHANGELOG_VERSION"; \
+		exit 1; \
+	fi

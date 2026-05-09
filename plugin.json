@@ -1,0 +1,48 @@
+{
+  "name": "smaqit-extensions",
+  "description": "Quality-of-life workflows, agents, and skills for GitHub Copilot. Includes session management, task tracking, release automation, and testing workflows.",
+  "version": "0.10.0",
+  "author": {
+    "name": "ruifrvaz",
+    "url": "https://github.com/ruifrvaz"
+  },
+  "repository": "https://github.com/ruifrvaz/smaqit-extensions",
+  "homepage": "https://github.com/ruifrvaz/smaqit-extensions",
+  "license": "MIT",
+  "keywords": [
+    "smaqit",
+    "session",
+    "tasks",
+    "release",
+    "workflow",
+    "agents",
+    "skills"
+  ],
+  "agents": [
+    "agents/smaqit.release.local.agent.md",
+    "agents/smaqit.release.pr.agent.md",
+    "agents/smaqit.user-testing.agent.md"
+  ],
+  "skills": [
+    "skills/smaqit.project-glossary/",
+    "skills/smaqit.project-init/",
+    "skills/smaqit.project-research/",
+    "skills/smaqit.release-analysis/",
+    "skills/smaqit.release-approval/",
+    "skills/smaqit.release-git-local/",
+    "skills/smaqit.release-git-pr/",
+    "skills/smaqit.release-prepare-files/",
+    "skills/smaqit.session-assess/",
+    "skills/smaqit.session-finish/",
+    "skills/smaqit.session-recap/",
+    "skills/smaqit.session-start/",
+    "skills/smaqit.session-title/",
+    "skills/smaqit.task-complete/",
+    "skills/smaqit.task-create/",
+    "skills/smaqit.task-list/",
+    "skills/smaqit.task-start/",
+    "skills/smaqit.test-start/",
+    "skills/smaqit.utils.read-pdf/",
+    "skills/smaqit.utils.triage-issues/"
+  ]
+}

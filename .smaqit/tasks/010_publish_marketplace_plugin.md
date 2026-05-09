@@ -1,6 +1,6 @@
 # Publish smaqit-extensions as Copilot Marketplace Plugin
 
-**Status:** Not Started
+**Status:** Completed
 **Created:** 2026-05-09
 
 ## Description
@@ -124,19 +124,19 @@ Specifically in `skills/smaqit.release-prepare-files/SKILL.md`: add a step to up
 
 ## Acceptance Criteria
 
-- [ ] `plugin.json` created at the correct location per the reference specification
-- [ ] `plugin.json` contains all required fields: name, version, description, author, license, keywords, repository, agents array, skills array
-- [ ] All current agents and skills are listed in `plugin.json`
-- [ ] Custom registry researched and set up: registry exists and is accessible
-- [ ] `marketplace.json` (or equivalent registry file) lists smaqit-extensions with correct metadata and download/reference URL
-- [ ] A user can discover and install smaqit-extensions from the custom registry using the Copilot plugin install mechanism
-- [ ] Installation instructions for the custom registry are documented in `README.md` and `marketplace/README.md`
-- [ ] `skills/smaqit.release-prepare-files/SKILL.md` updated to include `plugin.json` version update step
-- [ ] `plugin.json` version automatically stays in sync after running the release workflow
-- [ ] `README.md` updated with marketplace section (side-by-side with bash installer section)
-- [ ] `CHANGELOG.md` updated with entry
-- [ ] Existing `install.sh` and Go binary installer are completely unaffected
-- [ ] PLANNING.md updated to mark this task Completed
+- [x] `plugin.json` created at the correct location per the reference specification
+- [x] `plugin.json` contains all required fields: name, version, description, author, license, keywords, repository, agents array, skills array
+- [x] All current agents and skills are listed in `plugin.json`
+- [x] Custom registry researched and set up: registry exists and is accessible
+- [x] `marketplace.json` (or equivalent registry file) lists smaqit-extensions with correct metadata and download/reference URL
+- [x] A user can discover and install smaqit-extensions from the custom registry using the Copilot plugin install mechanism
+- [x] Installation instructions for the custom registry are documented in `README.md` and `marketplace/README.md`
+- [x] `skills/smaqit.release-prepare-files/SKILL.md` updated to include `plugin.json` version update step
+- [x] `plugin.json` version automatically stays in sync after running the release workflow
+- [x] `README.md` updated with marketplace section (side-by-side with bash installer section)
+- [x] `CHANGELOG.md` updated with entry
+- [x] Existing `install.sh` and Go binary installer are completely unaffected
+- [x] PLANNING.md updated to mark this task Completed
 
 ## Files to Create / Modify
 

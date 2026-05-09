@@ -1,4 +1,4 @@
-.PHONY: sync clean
+.PHONY: sync clean mcp-build mcp-sync
 
 # Sync source files to .github/ for dogfooding
 sync:
@@ -27,3 +27,19 @@ clean:
 	@echo "Cleaning .github/ dogfooding files..."
 	@rm -rf .github/agents .github/skills
 	@echo "✓ Clean complete"
+
+# Build the MCP server TypeScript
+mcp-build:
+	@echo "Building MCP server..."
+	@cd mcp && npm install --silent && npm run build
+	@echo "✓ MCP build complete"
+
+# Sync MCP server source files to .github/mcp/
+mcp-sync:
+	@echo "Syncing MCP server to .github/mcp/..."
+	@mkdir -p .github/mcp/src
+	@cp mcp/package.json .github/mcp/
+	@cp mcp/tsconfig.json .github/mcp/
+	@cp mcp/README.md .github/mcp/
+	@cp mcp/src/index.ts .github/mcp/src/
+	@echo "✓ MCP sync complete"

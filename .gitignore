@@ -20,6 +20,8 @@ installer/smaqit-extensions
 installer/agents/
 installer/skills/
 installer/prompts/
+installer/mcp/
+installer/templates/
 
 # IDEs
 .vscode/

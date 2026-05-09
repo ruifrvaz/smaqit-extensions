@@ -19,6 +19,9 @@ var skillFiles embed.FS
 //go:embed templates/*
 var templateFiles embed.FS
 
+//go:embed mcp/package.json mcp/tsconfig.json mcp/README.md mcp/src/index.ts
+var mcpFiles embed.FS
+
 // Version is set via ldflags during build: -X main.Version=$(VERSION)
 var Version = "0.4.2"
 
@@ -92,6 +95,7 @@ func printHelp() {
 	fmt.Println("What gets installed:")
 	fmt.Println("  .github/agents/     - 3 utility agents")
 	fmt.Println("  .github/skills/     - 20 workflow skills")
+	fmt.Println("  .github/mcp/        - smaqit MCP server (run: npm install && npm run build)")
 	fmt.Println("  .smaqit/templates/  - 3 canonical templates")
 }
 
@@ -99,6 +103,7 @@ func cmdInstall(targetDir string) {
 	// Create target directories
 	agentsDir := filepath.Join(targetDir, ".github", "agents")
 	skillsDir := filepath.Join(targetDir, ".github", "skills")
+	mcpDir := filepath.Join(targetDir, ".github", "mcp")
 	smaqitDir := filepath.Join(targetDir, ".smaqit")
 	tasksDir := filepath.Join(smaqitDir, "tasks")
 	historyDir := filepath.Join(smaqitDir, "history")
@@ -112,6 +117,11 @@ func cmdInstall(targetDir string) {
 
 	if err := os.MkdirAll(skillsDir, 0755); err != nil {
 		fmt.Printf("Error creating skills directory: %v\n", err)
+		os.Exit(1)
+	}
+
+	if err := os.MkdirAll(filepath.Join(mcpDir, "src"), 0755); err != nil {
+		fmt.Printf("Error creating mcp directory: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -240,14 +250,59 @@ func cmdInstall(targetDir string) {
 		os.Exit(1)
 	}
 
+	// Install MCP server source files
+	mcpCount := 0
+	if err := fs.WalkDir(mcpFiles, "mcp", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			return nil
+		}
+
+		content, err := fs.ReadFile(mcpFiles, path)
+		if err != nil {
+			return fmt.Errorf("reading %s: %w", path, err)
+		}
+
+		// path format: mcp/package.json, mcp/src/index.ts, etc.
+		relPath := filepath.ToSlash(path)
+		if !strings.HasPrefix(relPath, "mcp/") {
+			return nil
+		}
+
+		// Remove "mcp/" prefix to get mcp-relative path
+		mcpRelPath := strings.TrimPrefix(relPath, "mcp/")
+
+		// Create target path
+		targetPath := filepath.Join(mcpDir, mcpRelPath)
+		targetParent := filepath.Dir(targetPath)
+
+		if err := os.MkdirAll(targetParent, 0755); err != nil {
+			return fmt.Errorf("creating directory %s: %w", targetParent, err)
+		}
+
+		if err := os.WriteFile(targetPath, content, 0644); err != nil {
+			return fmt.Errorf("writing %s: %w", targetPath, err)
+		}
+
+		mcpCount++
+		return nil
+	}); err != nil {
+		fmt.Printf("Error installing MCP server: %v\n", err)
+		os.Exit(1)
+	}
+
 	fmt.Printf("✓ Installed %d agents to %s\n", agentCount, agentsDir)
 	fmt.Printf("✓ Installed %d skills to %s\n", skillCount, skillsDir)
+	fmt.Printf("✓ Installed %d MCP server files to %s\n", mcpCount, mcpDir)
 	fmt.Println()
 	fmt.Println("Extensions installed successfully!")
 	fmt.Println()
 	fmt.Println("Get started:")
 	fmt.Println("  Use agents: @smaqit.release.local, @smaqit.release.pr, @smaqit.user-testing")
 	fmt.Println("  Use skills: Skills are available via direct invocation in GitHub Copilot")
+	fmt.Println("  MCP server: cd .github/mcp && npm install && npm run build")
 }
 
 func cmdUninstall() {

@@ -1,0 +1,27 @@
+[
+  {
+    "name": "smaqit-extensions",
+    "description": "Quality-of-life workflows, agents, and skills for GitHub Copilot. Includes session management, task tracking, release automation, and testing workflows.",
+    "version": "0.10.0",
+    "author": {
+      "name": "ruifrvaz",
+      "url": "https://github.com/ruifrvaz"
+    },
+    "homepage": "https://github.com/ruifrvaz/smaqit-extensions",
+    "license": "MIT",
+    "keywords": [
+      "smaqit",
+      "session",
+      "tasks",
+      "release",
+      "workflow",
+      "agents",
+      "skills"
+    ],
+    "repository": "https://github.com/ruifrvaz/smaqit-extensions",
+    "source": {
+      "source": "github",
+      "repo": "ruifrvaz/smaqit-extensions"
+    }
+  }
+]

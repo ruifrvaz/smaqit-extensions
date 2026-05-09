@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Copilot Plugin Marketplace distribution** — smaqit-extensions is now installable as a GitHub Copilot plugin
+  - `plugin.json` at repo root: declares all 3 agents and 20 skills for marketplace discovery and installation
+  - `marketplace/marketplace.json`: custom registry listing smaqit-extensions as an installable plugin
+  - `marketplace/README.md`: full documentation for the custom registry, install UX, and comparison with bash installer
+  - Users can install via `copilot plugin install smaqit-extensions@smaqit-extensions` after registering the custom registry
+- **`make plugin:validate` Makefile target** — verifies `plugin.json` version matches the latest CHANGELOG version
+
+### Changed
+- **smaqit.release-prepare-files v0.3.0** — new Step 3: automatically updates `plugin.json` and `marketplace/marketplace.json` version fields when preparing a release; no user confirmation required
+
 ## [0.10.0] - 2026-05-05
 
 ### Added

@@ -45,6 +45,22 @@ Enhance your agentic development with streamlined session management, task track
 
 ## Installation
 
+### Copilot Plugin Marketplace (Recommended)
+
+Register the smaqit-extensions custom registry and install the plugin directly in GitHub Copilot:
+
+```bash
+copilot plugin marketplace add ruifrvaz/smaqit-extensions
+copilot plugin install smaqit-extensions@smaqit-extensions
+```
+
+Or browse available plugins first:
+```bash
+/plugin marketplace browse smaqit-extensions
+```
+
+> See [`marketplace/README.md`](marketplace/README.md) for full registry documentation, VS Code instructions, and how this differs from the bash installer.
+
 ### Quick Install (Bash)
 
 ```bash

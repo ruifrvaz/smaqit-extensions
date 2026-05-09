@@ -2,7 +2,7 @@
 name: smaqit.release-prepare-files
 description: Validate git state and prepare all files (CHANGELOG.md, version files) for release
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # Release Prepare Files
@@ -87,7 +87,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [X.Y.Z]: https://github.com/owner/repo/releases/tag/vX.Y.Z
 ```
 
-### Step 3: Optionally Sync Version Files
+### Step 3: Update plugin.json and marketplace.json (if present)
+
+**A. Check if `plugin.json` exists:**
+```bash
+test -f plugin.json && echo "exists" || echo "not found"
+```
+
+**B. If `plugin.json` exists, update the version field:**
+
+Find the `"version"` field in `plugin.json` and update it to the new version (without 'v' prefix):
+
+```json
+{
+  "version": "X.Y.Z"
+}
+```
+
+Use a targeted replacement — only update the top-level `"version"` field, not any nested occurrences.
+
+**C. Check if `marketplace/marketplace.json` exists:**
+```bash
+test -f marketplace/marketplace.json && echo "exists" || echo "not found"
+```
+
+**D. If `marketplace/marketplace.json` exists, update its version field too:**
+
+Find the `"version"` field in the marketplace entry for this plugin and update it to match `plugin.json`.
+
+**E. Verify both files are consistent:**
+```bash
+grep '"version"' plugin.json marketplace/marketplace.json 2>/dev/null
+```
+Both should show the same version string.
+
+### Step 4: Optionally Sync Version Files
 
 **A. Ask user for version files:**
 
@@ -126,13 +160,15 @@ version = "0.3.0"
 - Skip this step
 - Only CHANGELOG.md will be modified
 
-### Step 4: Verify All Changes
+### Step 5: Verify All Changes
 
 Before completing:
 1. Confirm CHANGELOG.md has new version section
 2. Confirm CHANGELOG.md comparison links are updated
-3. Confirm version files (if any) have consistent versions
-4. List all files that will be committed
+3. Confirm `plugin.json` version matches the new release version (if present)
+4. Confirm `marketplace/marketplace.json` version matches (if present)
+5. Confirm version files (if any) have consistent versions
+6. List all files that will be committed
 
 ## Output
 
@@ -141,6 +177,8 @@ Provide a summary of files prepared:
 ```yaml
 files_modified:
   - CHANGELOG.md
+  - plugin.json
+  - marketplace/marketplace.json
   - package.json
 validation_passed: true
 version_synced: true
@@ -165,6 +203,7 @@ version_synced: true
 - This skill modifies files but does NOT commit them (git operations are separate)
 - All file modifications are reversible with `git checkout`
 - Version files are optional - CHANGELOG.md is the only required file
+- `plugin.json` and `marketplace/marketplace.json` are updated automatically if present — no user confirmation required
 - Keep a Changelog format uses version WITHOUT 'v' prefix in headers (e.g., `## [0.3.0]`), but git tags use 'v' prefix (e.g., `v0.3.0`)
 - For PR-based releases, validation rules are slightly relaxed (feature branch OK)
 

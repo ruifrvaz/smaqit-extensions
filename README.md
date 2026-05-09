@@ -43,6 +43,16 @@ Enhance your agentic development with streamlined session management, task track
 - **@smaqit.release.pr** - Automated release management (PR-based, CI/CD)
 - **@smaqit.user-testing** - End-to-end testing workflows
 
+### MCP Server
+
+- **smaqit-mcp-server** - Local MCP (Model Context Protocol) server for GitHub Copilot Desktop
+
+#### Available Tools
+
+| Tool | Description |
+|------|-------------|
+| `get_task_list` | Returns the current task list from `.smaqit/tasks/PLANNING.md` as structured data |
+
 ## Installation
 
 ### Quick Install (Bash)
@@ -62,6 +72,7 @@ curl -fsSL https://raw.githubusercontent.com/ruifrvaz/smaqit-extensions/main/ins
 The installer copies files to your project's `.github/` directory:
 - `agents/` - 3 utility agents (release local, release PR, user-testing)
 - `skills/` - 20 workflow skills (complete implementations)
+- `mcp/` - smaqit MCP server source files (build with `npm install && npm run build`)
 
 ## Usage
 
@@ -94,6 +105,32 @@ Agents are available in GitHub Custom Agents:
 @smaqit.release.pr      # PR-based release (CI/CD, auto-confirm only)
 @smaqit.user-testing    # End-to-end testing
 ```
+
+### MCP Server Setup
+
+After running `smaqit-extensions init`, build and configure the MCP server:
+
+```bash
+cd .github/mcp
+npm install
+npm run build
+```
+
+Then add to your Copilot Desktop MCP configuration:
+
+```json
+{
+  "mcpServers": {
+    "smaqit": {
+      "command": "node",
+      "args": ["${workspaceFolder}/.github/mcp/dist/index.js"],
+      "env": {}
+    }
+  }
+}
+```
+
+See `.github/mcp/README.md` for full setup instructions.
 
 ## Requirements
 

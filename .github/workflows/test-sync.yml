@@ -6,8 +6,10 @@ on:
     paths:
       - 'agents/**'
       - 'skills/**'
+      - 'mcp/**'
       - '.github/agents/**'
       - '.github/skills/**'
+      - '.github/mcp/**'
 
 jobs:
   verify-sync:
@@ -44,6 +46,18 @@ jobs:
             fi
           done
           echo "✓ Skills in sync"
+      
+      - name: Verify MCP server in sync
+        run: |
+          for file in mcp/package.json mcp/tsconfig.json mcp/README.md mcp/src/index.ts; do
+            if ! diff -q "$file" ".github/$file" > /dev/null 2>&1; then
+              echo "❌ Out of sync: $file"
+              echo ""
+              echo "Run 'make mcp-sync' to update .github/mcp/ with source changes."
+              exit 1
+            fi
+          done
+          echo "✓ MCP server in sync"
       
       - name: All files in sync
         run: |

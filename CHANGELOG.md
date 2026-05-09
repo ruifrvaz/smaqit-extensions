@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **smaqit MCP server v1.0.0** — local MCP (Model Context Protocol) server for GitHub Copilot Desktop
+  - Implements `get_task_list` tool: reads `.smaqit/tasks/PLANNING.md` and returns structured task data (active and completed tasks)
+  - Uses stdio transport for local GitHub Copilot Desktop integration
+  - Written in TypeScript using `@modelcontextprotocol/sdk` with Zod input validation
+  - Deployed to `.github/mcp/` by `smaqit-extensions init` (build with `npm install && npm run build`)
+  - Security: validates paths stay within `workspace_path`; read-only, no network access
+  - Added `mcp-build` and `mcp-sync` targets to root Makefile
+  - Added `mcp-build` target and `prepare` step to installer Makefile
+
 ## [0.10.0] - 2026-05-05
 
 ### Added

@@ -75,6 +75,25 @@ User: smaqit.task-start 002 --autonomous  # Autonomous mode - AI completes autom
 User: smaqit.session-finish
 ```
 
+The `smaqit-extensions` binary also accepts CLI commands:
+
+```bash
+smaqit-extensions init           # Install extensions in current directory
+smaqit-extensions update         # Update binary to the latest release (Linux only)
+smaqit-extensions uninstall      # Remove extensions from current directory
+smaqit-extensions version        # Show version
+```
+
+### Self-Update
+
+```bash
+smaqit-extensions update
+```
+
+Fetches the latest release from GitHub, downloads the new binary, and replaces the running binary atomically. If the current directory contains a `.smaqit/` project, it automatically re-runs `init` to deploy updated agents, skills, and templates without overwriting your project state (tasks, history, glossary).
+
+> **Note:** Self-update is currently supported on Linux only.
+
 ### Task Workflow Modes
 
 **Assisted Mode (default):**

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **`smaqit-extensions update` command** — self-update the binary to the latest GitHub release (Linux only)
+  - Queries GitHub API for latest release and compares using semver
+  - Downloads linux-amd64 binary asset to a temp file, sets executable bit, atomically replaces the running binary (cross-filesystem fallback included)
+  - If current directory contains `.smaqit/`, automatically re-runs `init` to deploy updated agents, skills, and templates without overwriting project state
+  - Reports "Already up to date" when local version matches latest
+  - All error paths print clear messages and exit non-zero without corrupting the binary
+
 ## [0.10.0] - 2026-05-05
 
 ### Added

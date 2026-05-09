@@ -1,6 +1,6 @@
 ---
 name: smaqit.project-research
-description: Builds and maintains a documentation topology map for the current project. Identifies the full tech stack from project manifests and session context, discovers section-level documentation URLs using agent knowledge and multi-platform web fetch (GitHub, official docs, readthedocs, pkg.go.dev, npm, PyPI, and more), verifies each URL is reachable, and writes a persistent map to `.smaqit/references/project-research.md`. If a task is active or specified, adds a task layer that annotates which sections are directly relevant to that task. Invoke explicitly with `project.research`, `project.research [task-id]`, or `project.research --refresh` to force a rebuild. Also triggered automatically by `smaqit.task-start` when the research map is absent, and by `smaqit.session-finish` to keep the map current.
+description: Builds and maintains a documentation topology map for the current project, identifying the full tech stack and discovering section-level documentation URLs across multiple platforms (GitHub, official docs, ReadTheDocs, pkg.go.dev, npm, PyPI, and more). Writes a persistent map to `.smaqit/references/project-research.md`; adds task-specific annotation when a task is active. Invoke when the user asks to research project dependencies, build or refresh the documentation map, or find documentation for project tools and libraries.
 metadata:
   version: "1.2.0"
 ---

@@ -1,8 +1,8 @@
 ---
 name: smaqit.project-research
-description: Builds and maintains a documentation topology map for the current project. Identifies the full tech stack from project manifests and session context, discovers section-level documentation URLs using agent knowledge and web fetch tools, verifies each URL is reachable, and writes a persistent map to `.smaqit/references/project-research.md`. If a task is active or specified, adds a task layer that annotates which sections are directly relevant to that task. Invoke explicitly with `project.research` or `project.research [task-id]`, or automatically from `smaqit.task-start` when the research map is absent.
+description: Builds and maintains a documentation topology map for the current project. Identifies the full tech stack from project manifests and session context, discovers section-level documentation URLs using agent knowledge and multi-platform web fetch (GitHub, official docs, readthedocs, pkg.go.dev, npm, PyPI, and more), verifies each URL is reachable, and writes a persistent map to `.smaqit/references/project-research.md`. If a task is active or specified, adds a task layer that annotates which sections are directly relevant to that task. Invoke explicitly with `project.research`, `project.research [task-id]`, or `project.research --refresh` to force a rebuild. Also triggered automatically by `smaqit.task-start` when the research map is absent, and by `smaqit.session-finish` to keep the map current.
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
 ---
 
 # smaqit.project-research
@@ -14,18 +14,37 @@ Maintains a persistent, project-scoped documentation map. The map covers the ent
 This separation ensures:
 - The map is always current and project-complete, regardless of which task is active
 - Implementing agents always have access to documentation topology before touching code
-- The map is built once and reused; it is only refreshed explicitly or when absent at task-start
+- The map is refreshed automatically at session-finish and can be forced with `--refresh`
 
 ## Invocation
 
 ```
 project.research              # Full project map, no task layer
 project.research [task-id]    # Full project map + task annotation layer
+project.research --refresh    # Force full rebuild regardless of staleness
 ```
 
-Also invoked automatically by `smaqit.task-start` when `.smaqit/references/project-research.md` is absent.
+Also invoked automatically by:
+- `smaqit.task-start` — when `.smaqit/references/project-research.md` is absent
+- `smaqit.session-finish` — when the map is older than the staleness threshold (default: 7 days) or when project manifests have changed
 
 ## Steps
+
+### Step 0 — Staleness check (always runs first)
+
+Before building or reusing the existing map, determine whether a rebuild is needed:
+
+1. If the `--refresh` flag was passed → **force rebuild**: skip to Step 1 immediately.
+2. Check whether `.smaqit/references/project-research.md` exists:
+   - **Does not exist** → proceed to Step 1 (build from scratch).
+   - **Exists** → read the `**Refreshed:**` date from the map header.
+3. Compute the age of the map in days (current date minus `Refreshed:` date).
+4. Check whether any project manifest file (`package.json`, `requirements.txt`, `go.mod`, `pyproject.toml`, `*.csproj`, `pom.xml`, `Cargo.toml`, `Gemfile`, `composer.json`, `build.gradle`) has a modification timestamp **newer** than the map's `Refreshed:` date.
+5. **Map is stale** if either condition is true:
+   - Age ≥ staleness threshold (default **7 days**; override by running `project.research --refresh`)
+   - Any manifest file is newer than the map's `Refreshed:` date
+6. **Map is current** → report "Research map is current (last updated: YYYY-MM-DD)" and stop. Do not proceed to Step 1.
+7. **Map is stale** → proceed to Step 1 (full rebuild).
 
 ### Step 1 — Project stack extraction (always runs)
 
@@ -50,7 +69,24 @@ If no task is specified and no task is active, skip this step entirely.
 
 ### Step 3 — URL discovery
 
-For each tool in the unified list, use your knowledge plus `fetch_webpage`, `github_repo`, and `github_text_search` to identify section-level documentation URLs:
+For each tool in the unified list, apply the **platform-aware discovery cascade** below in order. Stop at the first strategy that yields a reachable URL. If all strategies fail, mark the tool as `Unknown` and continue — never omit a tool silently.
+
+**Discovery cascade (apply in this order):**
+
+1. **GitHub** (first): use `github_repo` to find the tool's repository. Use `github_text_search` to locate any associated GitHub Pages docs. Prefer the `docs/` subdirectory or the repository's website URL if set.
+2. **Agent knowledge** (second): if you already know the canonical docs URL for this tool (e.g., `docs.docker.com`, `docs.python.org`, `go.dev/doc`, `react.dev`), use it directly without fetching.
+3. **Best-guess URL patterns** (third): attempt the following patterns in order, using `fetch_webpage` to check reachability:
+   - `https://docs.{tool-name}.io`
+   - `https://{tool-name}.readthedocs.io`
+   - `https://pkg.go.dev/{module-path}` (for Go modules — use the full module path from `go.mod`)
+   - `https://www.npmjs.com/package/{package-name}` (for npm packages — use the exact name from `package.json`)
+   - `https://pypi.org/project/{package-name}` (for Python packages — use the exact name from `requirements.txt` or `pyproject.toml`)
+4. **GitHub wiki** (last resort): `https://github.com/{owner}/{repo}/wiki`
+5. **Unknown**: if no strategy produced a reachable URL, set the tool's URL to `Unknown` in the research map.
+
+Read `references/DOC_PLATFORMS.md` (in the same directory as this SKILL.md) for the full platform-aware URL discovery pattern catalogue, including additional ecosystem-specific patterns and examples.
+
+**Section depth per layer:**
 
 **Project-layer tools:**
 - Include 1–2 high-value sections per tool: quickstart, installation, or API overview
@@ -59,7 +95,6 @@ For each tool in the unified list, use your knowledge plus `fetch_webpage`, `git
 **Task-layer tools (added in Step 2) or project-layer tools flagged as task-relevant:**
 - Include up to 3–5 sections per tool, scoped to what the task needs (e.g., prefer `configuration` and `proxy-setup` over `changelog` for a networking task)
 - Use `fetch_webpage` to inspect a doc site's structure when the correct section URL is uncertain
-- Use `github_repo` or `github_text_search` for tools whose primary documentation lives in their GitHub repo
 
 Produce a candidate list of `(tool, section-label, url, layer)` entries, where `layer` is `project` or `task`.
 
@@ -98,9 +133,10 @@ Render the same output in-context as part of the response.
 
 ## Completion
 
+- [ ] Staleness check was performed; map was rebuilt only if stale or absent (Step 0)
 - [ ] Project manifests, copilot instructions, and session context were all consulted (Step 1)
 - [ ] Task file was read if a task was specified or active (Step 2)
-- [ ] Every tool has at least one candidate URL (Step 3)
+- [ ] Every tool has at least one candidate URL or is marked Unknown (Step 3)
 - [ ] `verify-urls.sh` ran without error (Step 4)
 - [ ] `.smaqit/references/project-research.md` exists, matches the output format, and was overwritten if it previously existed (Step 5)
 - [ ] Map was rendered in-context
@@ -114,6 +150,8 @@ Render the same output in-context as part of the response.
 | `curl` not available | Report and stop; do not write a partial map |
 | `verify-urls.sh` not found at expected path | Report path resolution failure; surface the skill install location and stop |
 | All URLs for a tool are unreachable | Include the tool with `Status: unreachable`; do not omit silently |
-| Tool not recognised (no knowledge of its docs) | Mark `Status: unknown`; attempt `fetch_webpage` on a best-guess URL before giving up |
+| Tool not recognised (no knowledge of its docs) | Mark `URL: Unknown`; attempt all platform cascade strategies before giving up |
+| All cascade strategies fail for a tool | Mark `URL: Unknown`; continue with remaining tools — do not block execution |
 | `.smaqit/references/` does not exist | Create it silently |
 | Map file already exists | Overwrite silently — re-runs are idempotent |
+| Research refresh invoked from session-finish and skill unavailable | Skip silently; session-finish completes normally — research refresh is best-effort |

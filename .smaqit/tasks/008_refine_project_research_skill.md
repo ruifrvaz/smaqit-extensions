@@ -1,7 +1,8 @@
 # Refine smaqit.project-research Skill
 
-**Status:** Not Started
+**Status:** Completed
 **Created:** 2026-05-09
+**Completed:** 2026-05-09
 
 ## Description
 
@@ -67,19 +68,19 @@ Add a step to `smaqit.session-finish` (after compendium update, before session h
 
 ## Acceptance Criteria
 
-- [ ] `skills/smaqit.project-research/SKILL.md` version bumped to `1.2.0`
-- [ ] Frontmatter description updated to mention session-finish trigger and multi-platform discovery
-- [ ] Step 1 (or new Step 0) includes staleness check: compare map's `Last updated:` date against current date and manifest modification times
-- [ ] Staleness threshold documented in skill: 7 days (configurable via instruction, not hardcoded)
-- [ ] Step 3 (URL discovery) expanded to include the full platform-aware cascade: GitHub → agent knowledge → best-guess patterns → GitHub wiki → Unknown fallback
-- [ ] `skills/smaqit.project-research/references/DOC_PLATFORMS.md` created with the full platform-aware URL pattern catalogue (one section per ecosystem: docs.{tool}.io, readthedocs.io, pkg.go.dev, npmjs.com, pypi.org, GitHub wiki)
-- [ ] SKILL.md includes a brief summary of the cascade strategy with a conditional reference to `references/DOC_PLATFORMS.md` for the full pattern list
-- [ ] `skills/smaqit.session-finish/SKILL.md` updated with research map refresh step (staleness check → conditional rebuild)
-- [ ] `skills/smaqit.session-finish/SKILL.md` version bumped
-- [ ] Research map output format unchanged (no breaking change to RESEARCH_MAP.md template)
-- [ ] `project.research --refresh` flag documented: forces full rebuild regardless of staleness
-- [ ] All modified files synced to `.github/` via `make sync`
-- [ ] PLANNING.md updated to mark this task Completed
+- [x] `skills/smaqit.project-research/SKILL.md` version bumped to `1.2.0`
+- [x] Frontmatter description updated to mention session-finish trigger and multi-platform discovery
+- [x] Step 1 (or new Step 0) includes staleness check: compare map's `Last updated:` date against current date and manifest modification times
+- [x] Staleness threshold documented in skill: 7 days (configurable via instruction, not hardcoded)
+- [x] Step 3 (URL discovery) expanded to include the full platform-aware cascade: GitHub → agent knowledge → best-guess patterns → GitHub wiki → Unknown fallback
+- [x] `skills/smaqit.project-research/references/DOC_PLATFORMS.md` created with the full platform-aware URL pattern catalogue (one section per ecosystem: docs.{tool}.io, readthedocs.io, pkg.go.dev, npmjs.com, pypi.org, GitHub wiki)
+- [x] SKILL.md includes a brief summary of the cascade strategy with a conditional reference to `references/DOC_PLATFORMS.md` for the full pattern list
+- [x] `skills/smaqit.session-finish/SKILL.md` updated with research map refresh step (staleness check → conditional rebuild)
+- [x] `skills/smaqit.session-finish/SKILL.md` version bumped
+- [x] Research map output format unchanged (no breaking change to RESEARCH_MAP.md template)
+- [x] `project.research --refresh` flag documented: forces full rebuild regardless of staleness
+- [x] All modified files synced to `.github/` via `make sync`
+- [x] PLANNING.md updated to mark this task Completed
 
 ## Files to Create / Modify
 

@@ -421,7 +421,7 @@ func fetchLatestRelease() (*githubRelease, error) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == 429 {
+	if resp.StatusCode == http.StatusTooManyRequests {
 		return nil, fmt.Errorf("GitHub API rate limit reached. Try again in a few minutes, or download manually from https://github.com/ruifrvaz/smaqit-extensions/releases")
 	}
 	if resp.StatusCode == http.StatusForbidden {
@@ -559,8 +559,10 @@ func copyFile(src, dst string) error {
 	}
 	defer out.Close()
 
-	_, err = io.Copy(out, in)
-	return err
+	if _, err = io.Copy(out, in); err != nil {
+		return fmt.Errorf("copying file: %w", err)
+	}
+	return nil
 }
 
 // checkAndReInit checks whether dir contains a .smaqit/ directory. If so it

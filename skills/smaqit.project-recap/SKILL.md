@@ -14,13 +14,6 @@ Generates a dashboard-style snapshot of the project's current state from its liv
 
 This is NOT `smaqit.session-recap` (which summarizes what happened in a session). Data sources are live files only: source files, manifests, and frontmatter. Task files, `PLANNING.md`, and session history are explicitly excluded.
 
-## Invocation
-
-```
-project.recap              # Generate dashboard; skip if .smaqit/project-recap.md exists and --refresh not set
-project.recap --refresh    # Force re-scan; overwrite .smaqit/project-recap.md unconditionally
-```
-
 ## Steps
 
 ### Step 1 — Read project manifests

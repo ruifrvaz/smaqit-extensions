@@ -1,6 +1,6 @@
 # Create smaqit.project-recap Skill
 
-**Status:** Not Started
+**Status:** Completed
 **Created:** 2026-05-09
 
 ## Description

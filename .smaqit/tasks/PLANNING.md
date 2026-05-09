@@ -7,7 +7,6 @@ Central task tracking and planning for smaqit-extensions.
 | ID | Title | Status | Created |
 |----|-------|--------|---------|
 | 002 | Fix Changelog Extraction for Cumulative Releases | Not Started | 2026-02-13 |
-| 005 | Create smaqit.compendium Skill | Not Started | 2026-05-09 |
 | 006 | Create smaqit.project-recap Skill | Not Started | 2026-05-09 |
 | 007 | Create smaqit MCP Server (PoC) | Not Started | 2026-05-09 |
 | 008 | Refine smaqit.project-research Skill | Not Started | 2026-05-09 |
@@ -22,6 +21,7 @@ Central task tracking and planning for smaqit-extensions.
 | 001 | Fix Post-Merge Tag Workflow Trigger Issue | Completed | 2026-02-13 | 2026-02-13 |
 | 003 | Create smaqit.read-pdf Skill | Completed | 2026-05-02 | 2026-05-02 |
 | 004 | Create smaqit.project-glossary Skill | Completed | 2026-05-02 | 2026-05-02 |
+| 005 | Create smaqit.compendium Skill | Completed | 2026-05-09 | 2026-05-09 |
 
 ## Notes
 

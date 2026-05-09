@@ -116,8 +116,14 @@ function readPlanningFile(workspacePath: string): TaskList {
   );
 
   // Security: ensure the resolved planning path is within the workspace
-  if (!planningPath.startsWith(resolvedWorkspace + path.sep) &&
-      planningPath !== resolvedWorkspace) {
+  // Use path.relative() for robust cross-platform path containment check
+  const relative = path.relative(resolvedWorkspace, planningPath);
+  const isInsideWorkspace =
+    relative.length > 0 &&
+    !relative.startsWith("..") &&
+    !path.isAbsolute(relative);
+
+  if (!isInsideWorkspace) {
     throw new Error(
       `Security error: resolved path "${planningPath}" is outside workspace "${resolvedWorkspace}"`
     );

@@ -259,7 +259,8 @@ func cmdInstall(targetDir string) {
 	fmt.Println("  Use skills: Skills are available via direct invocation in GitHub Copilot")
 }
 
-func cmdUninstall() {	targetDir := "."
+func cmdUninstall() {
+	targetDir := "."
 	agentsDir := filepath.Join(targetDir, ".github", "agents")
 	skillsDir := filepath.Join(targetDir, ".github", "skills")
 
@@ -337,7 +338,11 @@ func runUpdate() {
 	remoteVersion := strings.TrimPrefix(release.TagName, "v")
 	localVersionTrimmed := strings.TrimPrefix(localVersion, "v")
 
-	cmp := compareVersions(localVersionTrimmed, remoteVersion)
+	cmp, err := compareVersions(localVersionTrimmed, remoteVersion)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error comparing versions: %v\n", err)
+		os.Exit(1)
+	}
 	if cmp == 0 {
 		fmt.Printf("Already up to date (%s)\n", localVersion)
 		return
@@ -416,8 +421,11 @@ func fetchLatestRelease() (*githubRelease, error) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusForbidden || resp.StatusCode == 429 {
+	if resp.StatusCode == 429 {
 		return nil, fmt.Errorf("GitHub API rate limit reached. Try again in a few minutes, or download manually from https://github.com/ruifrvaz/smaqit-extensions/releases")
+	}
+	if resp.StatusCode == http.StatusForbidden {
+		return nil, fmt.Errorf("GitHub API request forbidden (status 403). Check your network or try again later")
 	}
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("GitHub API returned status %d", resp.StatusCode)
@@ -434,9 +442,9 @@ func fetchLatestRelease() (*githubRelease, error) {
 }
 
 // compareVersions compares two semver strings (without leading "v").
-// Returns -1 if a < b, 0 if equal, 1 if a > b.
-// Returns 0 and prints a warning if either version cannot be parsed.
-func compareVersions(a, b string) int {
+// Returns -1 if a < b, 0 if equal, 1 if a > b, and a non-nil error if
+// either version string cannot be parsed.
+func compareVersions(a, b string) (int, error) {
 	parse := func(v string) ([]int, error) {
 		parts := strings.Split(v, ".")
 		nums := make([]int, len(parts))
@@ -452,9 +460,11 @@ func compareVersions(a, b string) int {
 
 	av, aerr := parse(a)
 	bv, berr := parse(b)
-	if aerr != nil || berr != nil {
-		fmt.Fprintf(os.Stderr, "Warning: could not parse versions %q vs %q; skipping update\n", a, b)
-		return 0
+	if aerr != nil {
+		return 0, aerr
+	}
+	if berr != nil {
+		return 0, berr
 	}
 
 	// Pad shorter slice
@@ -467,13 +477,13 @@ func compareVersions(a, b string) int {
 
 	for i := range av {
 		if av[i] < bv[i] {
-			return -1
+			return -1, nil
 		}
 		if av[i] > bv[i] {
-			return 1
+			return 1, nil
 		}
 	}
-	return 0
+	return 0, nil
 }
 
 // downloadBinary downloads url into destPath.
@@ -517,7 +527,7 @@ func replaceBinary(tmpPath, currentPath string) error {
 
 	// Fallback: write to a temp file in the same directory, then rename.
 	sameDir := filepath.Dir(currentPath)
-	tmpSameFS := filepath.Join(sameDir, ".smaqit-extensions.new")
+	tmpSameFS := filepath.Join(sameDir, fmt.Sprintf(".smaqit-extensions-%d.new", os.Getpid()))
 
 	if err := copyFile(tmpPath, tmpSameFS); err != nil {
 		_ = os.Remove(tmpSameFS)

@@ -12,6 +12,10 @@ sync:
 			mkdir -p .github/skills/$$skill/references; \
 			cp -fL skills/$$skill/references/* .github/skills/$$skill/references/ 2>/dev/null || true; \
 		fi; \
+		if [ -d skills/$$skill/assets ]; then \
+			mkdir -p .github/skills/$$skill/assets; \
+			cp -fL skills/$$skill/assets/* .github/skills/$$skill/assets/ 2>/dev/null || true; \
+		fi; \
 		if [ -d skills/$$skill/scripts ]; then \
 			mkdir -p .github/skills/$$skill/scripts; \
 			cp -f skills/$$skill/scripts/* .github/skills/$$skill/scripts/ 2>/dev/null || true; \

@@ -2,7 +2,7 @@
 name: smaqit.session-finish
 description: End session by documenting the entire conversation. Use at session completion to create history entries.
 metadata:
-  version: "0.7.0"
+  version: "0.8.0"
 ---
 
 # Session Finish
@@ -53,6 +53,16 @@ End a session by documenting the **entire session** (not just recent activity).
    **Note:** Task state in memory is owned by task skills (`task-create`, `task-start`, `task-complete`). Do NOT store task lists or task status here.
 
 3. **Update this history file** as the session reference for next chat
+
+4. **Update the project compendium** (after history file is written):
+   - Read `references/COMPENDIUM_FORMAT.md` from the `smaqit.compendium` skill before writing any entries.
+   - Scan the session transcript for user questions — identify questions that are project-specific, non-trivial, and were answered substantively by the agent.
+   - Filter out: purely navigational inputs ("what's next?", "continue", "proceed"), one-word commands, meta-session phrases ("new session", "session start", "can you recap?"), and questions whose answers are entirely generic (not project-specific).
+   - For each candidate question: check `.smaqit/compendium.md` for semantically similar existing entries.
+     - Similar entry found → merge or update: rewrite the answer to incorporate new information, increment Sessions, update Last Updated.
+     - No similar entry found → create new entry, assign appropriate category, set Sessions = 1.
+   - Write the updated compendium atomically (overwrite the file); create the file if it does not exist.
+   - Report: "Compendium updated — N entries added, M entries updated." (Skip this report if no candidate questions were found.)
 
 ## Requirements
 

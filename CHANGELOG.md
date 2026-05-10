@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-05-10
+
 ### Added
 - **`smaqit-extensions update` command** — self-update the binary to the latest GitHub release (Linux only)
   - Queries GitHub API for latest release and compares using semver
@@ -374,7 +376,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.9.4...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.10.0...v1.0.0
 [0.9.4]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.9.3...v0.9.4
 [0.9.3]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.9.2...v0.9.3
 [0.9.2]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.9.1...v0.9.2

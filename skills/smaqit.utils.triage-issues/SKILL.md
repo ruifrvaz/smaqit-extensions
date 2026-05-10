@@ -1,9 +1,9 @@
 ---
 name: smaqit.utils.triage-issues
-description: Searches upstream GitHub repositories for known open issues relevant to a task before implementation begins. Acts as a pre-implementation gate — halts task-start if blocking bugs exist that match the task's components, surfacing them for user direction. Invoked automatically as step 2a of smaqit.task-start (after research map verified, before mode determination). Also invokable standalone as `task.triage [id]`.
+description: Pre-implementation gate that searches upstream GitHub repositories for open bugs and regressions relevant to a task. Resolves tool names to owner/repo pairs from GitHub URLs in the project research map, with gh search repos as fallback. Classifies results as Blocking (halts smaqit.task-start and requires user direction), Advisory (surfaced but non-blocking), Historical (closed issues with workarounds), or Clear. Invoked automatically as step 2a of smaqit.task-start; also invokable standalone as `task.triage [id]`.
 compatibility: Requires gh CLI (GitHub CLI). Install with: https://cli.github.com
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
 ---
 
 # Triage Issues
@@ -50,20 +50,17 @@ Exit cleanly. Do not block `smaqit.task-start` from proceeding.
 
 ### Step 5: Resolve repos
 
-Read `.smaqit/references/github-repos-registry.md`. For each extracted tool, look up the corresponding `owner/repo`. 
+Read `.smaqit/references/project-research.md` if it exists. For each extracted tool, first look for any `https://github.com/owner/repo` URL already present in the research map for that tool and parse `owner/repo` from it.
 
-- Tools found in the registry → add to resolved list
-- Tools not found → record as unresolvable (do not error; do not stop)
+- GitHub URL found in the research map for a tool → add parsed `owner/repo` to the resolved list
+- No GitHub URL found for a tool → run `gh search repos "<tool-name>" --limit 1 --json fullName` and use the top `fullName` result
+- No GitHub URL and `gh search repos` returns no result for a tool → record it as unresolvable (do not error; do not stop)
 
-If the registry file does not exist, log:
-
-> github-repos-registry.md not found — triage skipped.
-
-Exit cleanly.
+If `.smaqit/references/project-research.md` is absent, continue without research-map repo resolution and resolve all tools via the `gh search repos` fallback.
 
 ### Step 6: Read research map
 
-Read `.smaqit/references/project-research.md`. The `Tool | Section | URL` table provides verified documentation URLs. Use this in step 8 to assess whether a matched GitHub issue describes documented expected behavior (known limitation) vs. a regression (unexpected breakage). If the file is absent, continue without it and note absence in the triage output header.
+Read `.smaqit/references/project-research.md`. Reuse the contents loaded in step 5 if already available. The `Tool | Section | URL` table provides verified documentation URLs. Use this in step 8 to assess whether a matched GitHub issue describes documented expected behavior (known limitation) vs. a regression (unexpected breakage). If the file is absent, continue without it and note absence in the triage output header.
 
 ### Step 7: Search GitHub issues
 
@@ -141,7 +138,7 @@ Continue silently. Triage block is written but no in-context message is needed.
 
 ## Scope
 
-- Only searches repos listed in `.smaqit/references/github-repos-registry.md` — no general GitHub search
+- Resolves tool `owner/repo` pairs from GitHub URLs in `.smaqit/references/project-research.md`; falls back to `gh search repos` for tools not found there. Does not search repos outside of tools identified from the task.
 - Does not set task status — that remains in `smaqit.task-start` step 4
 - Does not modify `PLANNING.md`
 - Session-scoped result caching only — not persisted across sessions
@@ -151,7 +148,7 @@ Continue silently. Triage block is written but no in-context message is needed.
 - [ ] `triage: skip` flag respected — exits cleanly with log note
 - [ ] Exits cleanly when no third-party tools identified
 - [ ] Exits cleanly (with warning) when `gh` CLI not available
-- [ ] Tool names resolved against `github-repos-registry.md`; unresolvable tools logged without error
+- [ ] Tool names resolved from GitHub URLs in `project-research.md`, with `gh search repos` fallback for unmatched tools
 - [ ] Research map read from `.smaqit/references/project-research.md`
 - [ ] GitHub issues searched with `gh issue list` using platform + feature query combination
 - [ ] Triage output written to task file under `## Known Issues Triage` in the specified format
@@ -166,8 +163,8 @@ Continue silently. Triage block is written but no in-context message is needed.
 | `triage: skip` in task Notes | Exit cleanly with log note; do not search |
 | No third-party tools identified | Exit cleanly with log note; do not search |
 | `gh` CLI not available | Log warning; exit cleanly — do not block task-start |
-| `github-repos-registry.md` missing | Log warning; exit cleanly — do not block task-start |
-| Tool not in registry | Record as unresolvable in triage output; continue with resolved tools |
+| `project-research.md` absent | Continue without research map context; resolve all tools via `gh search repos` fallback |
+| `gh search repos` returns no results for a tool | Record as unresolvable in triage output; continue |
 | `gh issue list` exits non-zero | Log error for that repo; continue with remaining repos |
 | Task file not found | Report error; stop |
-| `project-research.md` absent | Continue without research context; note absence in triage output header |
+| Research map unavailable for categorization | Continue without research context; note absence in triage output header |

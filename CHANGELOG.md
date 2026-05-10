@@ -16,6 +16,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - If current directory contains `.smaqit/`, automatically re-runs `init` to deploy updated agents, skills, and templates without overwriting project state
   - Reports "Already up to date" when local version matches latest
   - All error paths print clear messages and exit non-zero without corrupting the binary
+- **`smaqit.compendium` skill v0.1.0** — live Q&A knowledge manifest manager
+  - Manages `.smaqit/compendium.md` with list, fetch, update, and remove operations
+  - Semantic search across Q&A entries grouped by category
+  - Upserts Q&A pairs (add or update) and removes entries with confirmation
+  - Output format defined in `references/COMPENDIUM_FORMAT.md`
+- **`smaqit.project-recap` skill v0.1.0** — live project dashboard generator
+  - Generates a structured project dashboard written to `.smaqit/project-recap.md`
+  - `project.recap` generates the dashboard; `project.recap --refresh` forces re-scan
+  - Script-based scanning via `scripts/scan-metadata.py` (requires `uv`); falls back to sequential frontmatter reads when `uv` is unavailable
+  - Output format defined in `references/OUTPUT_FORMAT.md`
+- **`smaqit.project-research/references/DOC_PLATFORMS.md`** — curated documentation platform registry used by the research skill
+
+### Changed
+- **`smaqit.project-research` v1.2.0** — documentation topology improvements
+  - Added `references/DOC_PLATFORMS.md` as a curated registry of documentation platforms and URL patterns
+  - Trimmed skill description to lean, inferred-invocation pattern
+- **`smaqit.task-create` v0.5.0** — task template now sourced from `assets/TASK_TEMPLATE.md`; standardized task file structure
+- **`smaqit.task-complete` v0.6.0** — updated verification logic and task status recording
+- **`smaqit.task-start` v0.7.0** — workflow improvements to mode determination and research map integration
+- **`smaqit.session-finish` v0.8.0** — updated compendium integration step; aligned with smaqit.compendium skill
+- **`smaqit.session-start` v0.8.0** — updated compendium integration step; aligned with smaqit.compendium skill
+- **Makefile** — added `smaqit.project-recap` and `smaqit.task-create` assets to sync list; skill count updated to 22
+
+### Fixed
+- Code review feedback on `update` command: improved error handling and HTTP status code usage
+- `http.StatusTooManyRequests` constant replaces literal `429`; `io.Copy` error now properly wrapped
+- Removed erroneous `Invocation` section from `smaqit.project-recap` SKILL.md
 
 ## [0.10.0] - 2026-05-05
 

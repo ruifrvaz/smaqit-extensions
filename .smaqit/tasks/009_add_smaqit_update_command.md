@@ -1,6 +1,6 @@
 # Add smaqit-extensions update Self-Update Command
 
-**Status:** Not Started
+**Status:** Completed
 **Created:** 2026-05-09
 
 ## Description

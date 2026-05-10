@@ -2,7 +2,7 @@
 name: smaqit.session-start
 description: Start a new chat with full project context. Use when beginning a session to load README, recent history, and task planning.
 metadata:
-  version: "0.7.0"
+  version: "0.8.0"
 ---
 
 # Session Start
@@ -33,12 +33,17 @@ Start a new chat with full project context. Execute these steps IN ORDER:
    - Surface the terms in context so they are available to the agent throughout the session without requiring explicit invocation.
    - If the file does not exist, skip this step silently.
 
-5. **Read the codebase for the next unblocked task**:
+5. **Load project compendium** (conditional — only if `.smaqit/compendium.md` exists):
+   - Read `.smaqit/compendium.md` in full.
+   - Surface all Q&A entries in context so they are available throughout the session for reference and consistency.
+   - If the file does not exist, skip this step silently.
+
+6. **Read the codebase for the next unblocked task**:
    - Identify the next unblocked task from PLANNING.md.
    - Read the source areas it would touch: relevant interfaces, abstractions, factories, pools, and existing implementations.
    - This step is MANDATORY before presenting tasks. Do not skip it because the task description appears complete.
 
-5. **Synthesize and present** a summary covering:
+7. **Synthesize and present** a summary covering:
    - Current project state (from READMEs)
    - Recent changes and decisions (from memory and/or history)
    - Open tasks sorted by priority, with a brief assessment of each task's approach against the codebase

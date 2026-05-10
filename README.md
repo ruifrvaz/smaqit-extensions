@@ -33,6 +33,8 @@ Enhance your agentic development with streamlined session management, task track
 - **smaqit.project-init** - Bootstrap a new smaqit project by generating `.github/copilot-instructions.md` from a template
 - **smaqit.project-glossary** - Manage a per-project glossary (`list glossary`, `fetch from glossary`, `update glossary`, `remove from glossary`)
 - **smaqit.project-research** - Build and maintain a documentation topology map for the current project (`project.research`, `project.research [task-id]`)
+- **smaqit.project-recap** - Generate a live project dashboard from the current codebase state (`project.recap`, `project.recap --refresh`)
+- **smaqit.compendium** - Manage a live Q&A knowledge base (`list compendium`, `fetch from compendium`, `update compendium`, `remove from compendium`)
 
 #### Utilities
 - **smaqit.utils.read-pdf** - Extract text from a PDF file and continue with the caller's original goal
@@ -61,7 +63,7 @@ curl -fsSL https://raw.githubusercontent.com/ruifrvaz/smaqit-extensions/main/ins
 
 The installer copies files to your project's `.github/` directory:
 - `agents/` - 3 utility agents (release local, release PR, user-testing)
-- `skills/` - 20 workflow skills (complete implementations)
+- `skills/` - 22 workflow skills (complete implementations)
 
 ## Usage
 
@@ -74,6 +76,25 @@ User: smaqit.task-start 001               # Assisted mode (default) - user appro
 User: smaqit.task-start 002 --autonomous  # Autonomous mode - AI completes automatically
 User: smaqit.session-finish
 ```
+
+The `smaqit-extensions` binary also accepts CLI commands:
+
+```bash
+smaqit-extensions init           # Install extensions in current directory
+smaqit-extensions update         # Update binary to the latest release (Linux only)
+smaqit-extensions uninstall      # Remove extensions from current directory
+smaqit-extensions version        # Show version
+```
+
+### Self-Update
+
+```bash
+smaqit-extensions update
+```
+
+Fetches the latest release from GitHub, downloads the new binary, and replaces the running binary atomically. If the current directory contains a `.smaqit/` project, it automatically re-runs `init` to deploy updated agents, skills, and templates without overwriting your project state (tasks, history, glossary).
+
+> **Note:** Self-update is currently supported on Linux only.
 
 ### Task Workflow Modes
 

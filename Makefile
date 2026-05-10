@@ -5,12 +5,16 @@ sync:
 	@echo "Syncing source files to .github/..."
 	@mkdir -p .github/agents .github/skills
 	@cp -f agents/*.md .github/agents/
-	@for skill in smaqit.session-start smaqit.session-finish smaqit.session-assess smaqit.session-title smaqit.session-recap smaqit.task-create smaqit.task-list smaqit.task-complete smaqit.task-start smaqit.test-start smaqit.project-init smaqit.project-glossary smaqit.release-analysis smaqit.release-approval smaqit.release-prepare-files smaqit.release-git-local smaqit.release-git-pr smaqit.utils.read-pdf smaqit.utils.triage-issues smaqit.project-research; do \
+	@for skill in smaqit.session-start smaqit.session-finish smaqit.session-assess smaqit.session-title smaqit.session-recap smaqit.task-create smaqit.task-list smaqit.task-complete smaqit.task-start smaqit.test-start smaqit.project-init smaqit.project-glossary smaqit.release-analysis smaqit.release-approval smaqit.release-prepare-files smaqit.release-git-local smaqit.release-git-pr smaqit.utils.read-pdf smaqit.utils.triage-issues smaqit.project-research smaqit.project-recap smaqit.compendium; do \
 		mkdir -p .github/skills/$$skill; \
 		cp -f skills/$$skill/SKILL.md .github/skills/$$skill/; \
 		if [ -d skills/$$skill/references ]; then \
 			mkdir -p .github/skills/$$skill/references; \
 			cp -fL skills/$$skill/references/* .github/skills/$$skill/references/ 2>/dev/null || true; \
+		fi; \
+		if [ -d skills/$$skill/assets ]; then \
+			mkdir -p .github/skills/$$skill/assets; \
+			cp -fL skills/$$skill/assets/* .github/skills/$$skill/assets/ 2>/dev/null || true; \
 		fi; \
 		if [ -d skills/$$skill/scripts ]; then \
 			mkdir -p .github/skills/$$skill/scripts; \

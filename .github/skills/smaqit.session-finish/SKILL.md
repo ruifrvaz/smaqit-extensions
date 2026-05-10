@@ -52,7 +52,17 @@ End a session by documenting the **entire session** (not just recent activity).
 
    **Note:** Task state in memory is owned by task skills (`task-create`, `task-start`, `task-complete`). Do NOT store task lists or task status here.
 
-3. **Update this history file** as the session reference for next chat
+3. **Refresh research map** (best-effort — do not let failure block session completion)
+   1. Check whether `.smaqit/references/project-research.md` exists.
+   2. **Does not exist** → invoke `smaqit.project-research` to build it for the first time, then continue to Step 4.
+   3. **Exists** → read the `**Refreshed:**` date from the map header.
+   4. Compute the age of the map in days (current date minus the `Refreshed:` date).
+   5. Check whether any project manifest file (`go.mod`, `package.json`, `requirements.txt`, `pyproject.toml`, `*.csproj`, `pom.xml`, `Cargo.toml`, `Gemfile`, `composer.json`, `build.gradle`) has a modification timestamp **newer** than the map's `Refreshed:` date.
+   6. **Map is stale** (age ≥ 7 days OR any manifest is newer) → invoke `smaqit.project-research` to rebuild.
+   7. **Map is current** → report "Research map is current (last updated: YYYY-MM-DD)" and skip rebuild.
+   8. If any error occurs during this step, log a brief warning and continue to Step 4 — research refresh is best-effort.
+
+4. **Update this history file** as the session reference for next chat
 
 4. **Update the project compendium** (after history file is written):
    - Read `references/COMPENDIUM_FORMAT.md` from the `smaqit.compendium` skill before writing any entries.

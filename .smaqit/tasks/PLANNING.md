@@ -12,7 +12,6 @@ Central task tracking and planning for smaqit-extensions.
 | 008 | Refine smaqit.project-research Skill | Not Started | 2026-05-09 |
 | 009 | Add smaqit-extensions update Self-Update Command | Not Started | 2026-05-09 |
 | 010 | Publish smaqit-extensions as Copilot Marketplace Plugin | Not Started | 2026-05-09 |
-| 011 | Add Findings Section to Task Workflow | Not Started | 2026-05-09 |
 
 ## Completed Tasks
 
@@ -22,6 +21,7 @@ Central task tracking and planning for smaqit-extensions.
 | 003 | Create smaqit.read-pdf Skill | Completed | 2026-05-02 | 2026-05-02 |
 | 004 | Create smaqit.project-glossary Skill | Completed | 2026-05-02 | 2026-05-02 |
 | 005 | Create smaqit.compendium Skill | Completed | 2026-05-09 | 2026-05-09 |
+| 011 | Add Findings Section to Task Workflow | Completed | 2026-05-09 | 2026-05-09 |
 
 ## Notes
 

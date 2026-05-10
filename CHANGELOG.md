@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **smaqit.utils.triage-issues v1.2.0** — fixed repo resolution so triage no longer depends on the nonexistent `.smaqit/references/github-repos-registry.md`
+  - Resolves `owner/repo` from GitHub URLs already present in `.smaqit/references/project-research.md`
+  - Falls back to `gh search repos` for tools not found in the research map and records unresolved tools without skipping triage
+  - Clarifies the skill description, scope, and failure handling around repo resolution
+
 ## [1.0.0] - 2026-05-10
 
 ### Added

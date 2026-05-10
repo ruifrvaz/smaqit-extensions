@@ -1,7 +1,8 @@
 # Add Findings Section to Task Workflow
 
-**Status:** Not Started
+**Status:** Completed
 **Created:** 2026-05-09
+**Completed:** 2026-05-09
 
 ## Description
 
@@ -148,16 +149,16 @@ Two extensions:
 
 ## Acceptance Criteria
 
-- [ ] `skills/smaqit.task-create/assets/TASK_TEMPLATE.md` created with the full canonical task structure (all sections including Findings and Known Issues Triage placeholders)
-- [ ] `skills/smaqit.task-create/SKILL.md` updated to include `## Findings` placeholder and `## Known Issues Triage` placeholder in all newly created task files; references TASK_TEMPLATE.md; version bumped
-- [ ] `skills/smaqit.task-complete/SKILL.md` updated with mandatory Findings write step before status update; task-complete blocks if Findings are empty/TBD; version bumped
-- [ ] Findings format enforced: four categories (Implementation approach, Decisions made, Blockers encountered, Follow-up identified) always present; bullets only; no URLs; no verbosity
-- [ ] `skills/smaqit.task-start/SKILL.md` updated to surface existing Findings on task resume; version bumped
-- [ ] `skills/smaqit.task-start/SKILL.md` Step 2a extended to write triage results to task file under `## Known Issues Triage` after triage completes
-- [ ] Triage block written to task file follows the format defined in `skills/smaqit.utils.triage-issues/references/TRIAGE_BLOCK.md`
-- [ ] All modified skill files synced to `.github/` via `make sync`
-- [ ] Existing task files (001-004) are NOT retroactively modified — new format is forward-only
-- [ ] PLANNING.md updated to mark this task Completed
+- [x] `skills/smaqit.task-create/assets/TASK_TEMPLATE.md` created with the full canonical task structure (all sections including Findings and Known Issues Triage placeholders)
+- [x] `skills/smaqit.task-create/SKILL.md` updated to include `## Findings` placeholder and `## Known Issues Triage` placeholder in all newly created task files; references TASK_TEMPLATE.md; version bumped
+- [x] `skills/smaqit.task-complete/SKILL.md` updated with mandatory Findings write step before status update; task-complete blocks if Findings are empty/TBD; version bumped
+- [x] Findings format enforced: four categories (Implementation approach, Decisions made, Blockers encountered, Follow-up identified) always present; bullets only; no URLs; no verbosity
+- [x] `skills/smaqit.task-start/SKILL.md` updated to surface existing Findings on task resume; version bumped
+- [x] `skills/smaqit.task-start/SKILL.md` Step 2a extended to write triage results to task file under `## Known Issues Triage` after triage completes
+- [x] Triage block written to task file follows the format defined in `skills/smaqit.utils.triage-issues/references/TRIAGE_BLOCK.md`
+- [x] All modified skill files synced to `.github/` via `make sync`
+- [x] Existing task files (001-004) are NOT retroactively modified — new format is forward-only
+- [x] PLANNING.md updated to mark this task Completed
 
 ## Files to Create / Modify
 

@@ -2,27 +2,12 @@
 name: smaqit.project-research
 description: Builds and maintains a documentation topology map for the current project, identifying the full tech stack and discovering section-level documentation URLs across multiple platforms (GitHub, official docs, ReadTheDocs, pkg.go.dev, npm, PyPI, and more). Writes a persistent map to `.smaqit/references/project-research.md`; adds task-specific annotation when a task is active. Invoke when the user asks to research project dependencies, build or refresh the documentation map, or find documentation for project tools and libraries.
 metadata:
-  version: "1.2.0"
+  version: "1.3.0"
 ---
 
 # smaqit.project-research
 
-## Purpose
-
-Maintains a persistent, project-scoped documentation map. The map covers the entire tech stack the project is built on — not just what a single task touches. A task, when specified, adds a focused annotation layer on top of the baseline without replacing it.
-
-This separation ensures:
-- The map is always current and project-complete, regardless of which task is active
-- Implementing agents always have access to documentation topology before touching code
-- The map is refreshed automatically at session-finish and can be forced with `--refresh`
-
-## Invocation
-
-```
-project.research              # Full project map, no task layer
-project.research [task-id]    # Full project map + task annotation layer
-project.research --refresh    # Force full rebuild regardless of staleness
-```
+## Context
 
 Also invoked automatically by:
 - `smaqit.task-start` — when `.smaqit/references/project-research.md` is absent

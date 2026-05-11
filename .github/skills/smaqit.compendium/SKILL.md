@@ -2,24 +2,18 @@
 name: smaqit.compendium
 description: Manages a live Q&A knowledge manifest at `.smaqit/compendium.md`. Invoked when the user says `list compendium`, `fetch from compendium [query]`, `update compendium [question]`, or `remove from compendium [question]`. Lists all Q&A entries grouped by category, semantically searches for relevant entries, upserts a Q&A pair (add or update), or removes an entry after confirmation.
 metadata:
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Project Compendium
 
-## Purpose
-
-Manages `.smaqit/compendium.md` as a per-project Q&A knowledge base. Supports four operations triggered by explicit phrases in the user's message: listing all entries, fetching entries by semantic query, upserting a Q&A pair (add if absent, update if semantically equivalent question exists), and removing an entry with confirmation. The compendium file is the sole artifact this skill reads or writes.
-
-Unlike the glossary (which stores term definitions), the compendium stores full Q&A pairs — questions asked during sessions, answered by the agent, grouped by topic category, with semantic deduplication.
-
-> **Before writing to the compendium**, read `references/COMPENDIUM_FORMAT.md` for the full entry format specification and deduplication rules.
-
 ## Gotchas
 
-1. `.smaqit/compendium.md` may not exist on first run — always create it on first write; never error on absence.
-2. Markdown table cells with multi-line answers require `<br>` for line breaks within a cell — use `<br>` for formatted answers, not raw newlines.
-3. The session-finish scan must filter out meta-session questions ("new session", "what's next?", "can you recap?") — these are navigation commands, not knowledge.
+1. Unlike the glossary (which stores term definitions), the compendium stores full Q&A pairs — questions asked during sessions, answered by the agent, grouped by topic category, with semantic deduplication.
+2. **Before writing to the compendium**, read `references/COMPENDIUM_FORMAT.md` for the full entry format specification and deduplication rules.
+3. `.smaqit/compendium.md` may not exist on first run — always create it on first write; never error on absence.
+4. Markdown table cells with multi-line answers require `<br>` for line breaks within a cell — use `<br>` for formatted answers, not raw newlines.
+5. The session-finish scan must filter out meta-session questions ("new session", "what's next?", "can you recap?") — these are navigation commands, not knowledge.
 
 ---
 

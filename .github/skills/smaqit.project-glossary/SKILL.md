@@ -2,14 +2,10 @@
 name: smaqit.project-glossary
 description: Manages a per-project glossary at `.smaqit/glossary.md`. Invoked when the user says `list glossary`, `fetch from glossary [term]`, `update glossary [term]`, or `remove from glossary [term]`. Lists all terms by category, retrieves a specific term, upserts a term (add or update), or removes a term after confirmation.
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Project Glossary
-
-## Purpose
-
-Manages `.smaqit/glossary.md` as a per-project term reference. Supports four operations triggered by explicit phrases in the user's message: listing all terms, fetching a specific term, upserting a term (add if absent, update if present), and removing a term with confirmation. The glossary file is the sole artifact this skill reads or writes.
 
 ## Steps
 

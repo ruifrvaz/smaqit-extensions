@@ -3,16 +3,14 @@ name: smaqit.project-recap
 description: Generates a live project dashboard from the current codebase state and writes it to `.smaqit/project-recap.md`. Invoke with `project.recap` to generate the dashboard, or `project.recap --refresh` to force re-scan even if the output file already exists.
 compatibility: Script-based scanning requires `uv` (https://github.com/astral-sh/uv). If `uv` is unavailable, the agent reads frontmatter files sequentially as a fallback.
 metadata:
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # smaqit.project-recap
 
-## Purpose
+## Gotchas
 
-Generates a dashboard-style snapshot of the project's current state from its live codebase and configuration. The output answers: **"What is this project right now?"** — its architecture, components, dependencies, and active process state.
-
-This is NOT `smaqit.session-recap` (which summarizes what happened in a session). Data sources are live files only: source files, manifests, and frontmatter. Task files, `PLANNING.md`, and session history are explicitly excluded.
+- This skill generates a snapshot of the **live project state** (source files, manifests, frontmatter). It is NOT `smaqit.session-recap`, which summarises what happened in a session. Task files, `PLANNING.md`, and session history are explicitly excluded.
 
 ## Steps
 

@@ -345,10 +345,12 @@ func runUpdate() {
 	}
 	if cmp == 0 {
 		fmt.Printf("Already up to date (%s)\n", localVersion)
+		checkAndReInit(".")
 		return
 	}
 	if cmp > 0 {
 		fmt.Printf("Local version (%s) is newer than latest release (%s). Nothing to do.\n", localVersion, release.TagName)
+		checkAndReInit(".")
 		return
 	}
 

@@ -2,7 +2,7 @@
 name: smaqit.release-prepare-files
 description: Validate git state and prepare all files (CHANGELOG.md, version files) for release
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # Release Prepare Files
@@ -40,7 +40,28 @@ grep "## \\[X.Y.Z\\]" CHANGELOG.md
 
 ### Step 2: Finalize CHANGELOG.md
 
-**A. Move Unreleased content to new version section:**
+**A. Collect all changes since last release (reconciliation source):**
+
+Run git log queries to get the authoritative delta since the last tag:
+
+```bash
+# Get the last release tag (should match latest_tag from release-analysis output):
+git tag --sort=-v:refname | head -1
+
+# PR merge commits — primary change descriptions:
+git log <last-tag>..HEAD --merges --pretty=format:"%h %s"
+
+# Individual commits — catch changes not associated with a PR merge:
+git log <last-tag>..HEAD --no-merges --pretty=format:"%h %s"
+```
+
+**B. Reconcile `[Unreleased]` section with git history:**
+
+Read the existing `## [Unreleased]` section of `CHANGELOG.md`. For each commit/PR in the git log output that is **not already represented** in `[Unreleased]`, add an entry under the appropriate category (`Added`, `Changed`, `Fixed`, `Removed`, `Deprecated`, `Security`). Use the `smaqit.release-analysis` changes list as a reference for descriptions and categorization.
+
+This step ensures the CHANGELOG is a complete delta since the last release — not merely whatever was manually maintained in `[Unreleased]`.
+
+**C. Move reconciled `[Unreleased]` content to new version section:**
 
 Find the `## [Unreleased]` section and move its content to a new version section with current date (YYYY-MM-DD):
 
@@ -57,7 +78,7 @@ Find the `## [Unreleased]` section and move its content to a new version section
 - Bug Y
 ```
 
-**B. Update comparison links at bottom of CHANGELOG.md:**
+**D. Update comparison links at bottom of CHANGELOG.md:**
 
 Update the link structure:
 ```markdown
@@ -66,7 +87,7 @@ Update the link structure:
 [Previous]: https://github.com/owner/repo/releases/tag/vPrevious
 ```
 
-**C. If creating CHANGELOG.md from scratch:**
+**E. If creating CHANGELOG.md from scratch:**
 
 Use Keep a Changelog format:
 ```markdown
@@ -167,5 +188,5 @@ version_synced: true
 - Version files are optional - CHANGELOG.md is the only required file
 - Keep a Changelog format uses version WITHOUT 'v' prefix in headers (e.g., `## [0.3.0]`), but git tags use 'v' prefix (e.g., `v0.3.0`)
 - For PR-based releases, validation rules are slightly relaxed (feature branch OK)
-
+- **Reconciliation is mandatory:** always cross-check `[Unreleased]` against the git log before promoting — the `[Unreleased]` section may not have been kept up to date
 - Uncommitted changes in working tree are acceptable - `release-git-local` handles commit grouping

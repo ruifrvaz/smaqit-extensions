@@ -12,20 +12,29 @@ Manages a per-project glossary at `.smaqit/glossary.md`. Use for: `list glossary
 
 **Path:** `.smaqit/glossary.md`
 
-**Structure:** Markdown file with a header and one table per category. Each table has three columns: Term, Definition, Category.
+**Structure:** Markdown file with a `# Project Glossary` heading and one `## [Category]` section per category. Terms are bolded headings (`**Term**`) followed by a blank line, the definition, and a `---` separator. No tables, no dates, no per-entry metadata.
 
 ```markdown
 # Project Glossary
 
-## [Category Name]
+## General
 
-| Term | Definition | Category |
-|------|-----------|----------|
-| example | What the term means | [Category Name] |
+**Idempotent**
+
+An operation that produces the same result whether applied once or many times.
+
+---
+
+## Engineering
+
+**Upsert**
+
+An operation that inserts a record if absent or updates it if already present.
+
+---
 ```
 
-- Categories group related terms under `## Heading` sections.
-- Terms within a category are sorted alphabetically.
+- Categories are sorted alphabetically; terms within each category are sorted alphabetically.
 - If a term belongs to no existing category, it is placed under a `## General` section.
 - The file is the single source of truth — no other files are read or written by this skill.
 
@@ -48,7 +57,7 @@ Manages a per-project glossary at `.smaqit/glossary.md`. Use for: `list glossary
    - If no term is specified, ask: "Which term would you like to fetch?"
 2. Check if `.smaqit/glossary.md` exists. If not, respond: "No glossary found. Use `update glossary` to create one."
 3. Read `.smaqit/glossary.md`.
-4. Search for the term (case-insensitive match on the Term column).
+4. Search for the term (case-insensitive match on bolded term headings).
 5. If found: present the term, its definition, and its category.
 6. If not found: respond with the exact term name and inform the user it is not in the glossary. Suggest `update glossary [term]` to add it.
 
@@ -84,7 +93,7 @@ Implements **upsert semantics**: adds the term if absent; edits it if it already
 5. If not found: inform the user the term does not exist.
 6. If found: present the term and its definition. Ask for confirmation before deleting:
    - "Remove **[term]** ([category]): [definition]? Reply `yes` to confirm."
-7. On confirmation: remove the row from the table. If removing the row leaves a category section empty (table with header only), remove the entire section.
+7. On confirmation: remove the term entry (bolded heading, definition, and `---` separator). If removing it leaves a category section empty, remove the entire section (heading and any trailing separator).
 8. Write the updated content back to `.smaqit/glossary.md`.
 9. Confirm removal.
 
@@ -114,10 +123,10 @@ Implements **upsert semantics**: adds the term if absent; edits it if it already
 - [ ] Frontmatter includes correct `name`, `description` (with all four trigger phrases), and `metadata.version`
 - [ ] `list glossary` trigger: reads and presents all terms grouped by category
 - [ ] `fetch from glossary` trigger: finds and displays a single term by name (case-insensitive)
-- [ ] `update glossary` trigger: upserts term (add if absent, edit if present); creates file if missing
+- [ ] `update glossary` trigger: upserts term (add if absent, edit if present); creates file if missing; no dates or metadata added
 - [ ] `remove from glossary` trigger: requires confirmation before deletion; cleans up empty sections
 - [ ] All operations handle missing `.smaqit/glossary.md` gracefully
-- [ ] Glossary file format documented in the skill (table per category, 3 columns)
+- [ ] Glossary file format documented in the skill (section per category, bolded term headings)
 
 ## Failure Handling
 

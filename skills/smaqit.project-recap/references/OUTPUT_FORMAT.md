@@ -1,9 +1,9 @@
 # Output Format Reference — smaqit.project-recap
 
-**Version:** 0.1.0
+**Version:** 0.2.0
 **Purpose:** Section-by-section format templates and Mermaid examples for the `project.recap` dashboard
 
-Read this file (Step 4 of SKILL.md) before generating the dashboard. Use the templates below as the canonical format for each section.
+Read this file (Step 5 of SKILL.md) before generating the dashboard. Use the templates below as the canonical format for each section.
 
 ---
 
@@ -12,12 +12,32 @@ Read this file (Step 4 of SKILL.md) before generating the dashboard. Use the tem
 ```markdown
 # Project Recap
 
-> Generated: YYYY-MM-DD HH:MM | Source: live project scan | Run: `project.recap`
+> Generated: YYYY-MM-DD HH:MM | Source: live project scan | Run: `project.recap` | Sections: 8 core + Next Steps (0–8)
 
 ---
 ```
 
 Replace `YYYY-MM-DD HH:MM` with the current UTC date and time.
+
+---
+
+## Section 0 — Situation Report
+
+```markdown
+## Situation Report
+
+### Current State
+[2–4 sentences describing what the project looks like today: active areas, maturity, recent focus]
+
+### Direction
+[2–4 sentences describing where the project is heading based on recent commit patterns]
+```
+
+**Rules for Section 0:**
+- Always prose. No bullet lists, no tables, no Mermaid.
+- Synthesized from git log output — NOT a list of commits.
+- Keep it high-signal: what a new team member would want to read first to orient themselves.
+- If git history is unavailable, write: `> No git history available for state inference.`
 
 ---
 
@@ -203,14 +223,39 @@ smaqit-extensions/
 
 ---
 
+## Section 8 — Next Steps
+
+```markdown
+## Next Steps
+
+| Priority | Suggestion | Rationale |
+|----------|-----------|-----------|
+| 1 | [action] | [one-line reason] |
+| 2 | [action] | [one-line reason] |
+| 3 | [action] | [one-line reason] |
+```
+
+**Rules for Section 8:**
+- 3–5 rows, ordered by priority (1 = highest).
+- Derived from `smaqit.session-assess` output applied to the full dashboard.
+- Focus on actionable improvements: gaps in coverage, missing documentation, architectural risks, process improvements.
+- If `session.assess` was not available, write: `> Assessment not available — install smaqit.session-assess to enable next steps.`
+- If your execution policy omits Section 8 when assessment is unavailable, add that omission note in the dashboard header instead.
+
+---
+
 ## Sparse Section Handling
 
 If a section has no data, include the heading and a note rather than omitting it:
 
 ```markdown
-## Dependency Graph
+## Situation Report
 
-> No external dependencies detected.
+> No git history available for state inference.
+
+## Next Steps
+
+> Assessment not available — install smaqit.session-assess to enable next steps.
 ```
 
-This ensures the dashboard always has all 7 sections for consistency.
+This ensures sparse-state guidance exists for both Section 0 and Section 8 when those sections are rendered.

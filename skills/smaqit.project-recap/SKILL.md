@@ -3,7 +3,7 @@ name: smaqit.project-recap
 description: Generates a live project dashboard from the current codebase state and writes it to `.smaqit/project-recap.md`. Invoke with `project.recap` to generate the dashboard, or `project.recap --refresh` to force re-scan even if the output file already exists.
 compatibility: Script-based scanning requires `uv` (https://github.com/astral-sh/uv). If `uv` is unavailable, the agent reads frontmatter files sequentially as a fallback.
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # smaqit.project-recap
@@ -49,19 +49,36 @@ Capture stdout (newline-delimited JSON). Each line is one component entry with f
 
 **Gotcha:** `skills/` and `agents/` directories may not exist in all projects. If neither is found, skip this step and omit the Active Skills/Agents section rather than erroring.
 
-### Step 3 — Derive architecture
+### Step 2.5 — Situation Report (git pulse)
 
-From manifests, entry points, and directory structure identified in Steps 1–2, construct the top-level architectural flow:
+Run the following commands from the workspace root to gather recent activity signals:
+
+```
+git log --oneline --no-merges -20
+git log --oneline --no-merges --since="4 weeks ago" --format="%s"
+git diff --stat HEAD~5 HEAD
+```
+
+From the output, infer and write narrative prose only:
+- **Current state** — 2–4 sentences describing what the project looks like right now (active codebase areas, mature/stable capabilities, recent focus)
+- **Direction** — 2–4 sentences describing where the project is heading (patterns from commit messages and changed files)
+
+Do NOT list commits. Do NOT produce a changelog. Synthesize high-signal orientation prose only.
+
+### Step 4 — Derive architecture
+
+From manifests, entry points, and directory structure identified in Steps 1–2.5, construct the top-level architectural flow:
 - What are the primary inputs (source directories, config files)?
 - What transformation steps exist (build steps, sync operations)?
 - What are the distribution outputs (binaries, installed files, synced directories)?
 
-### Step 4 — Build output sections
+### Step 5 — Build output sections
 
 Read `references/OUTPUT_FORMAT.md` from the skill install directory for section-by-section format templates and Mermaid examples before generating the dashboard.
 
-Build all 7 sections in order:
+Build all 8 core sections in order:
 
+0. **Situation Report** — prose-only current state and direction inferred from Step 2.5 git pulse
 1. **Project Header** — name, version, language/runtime, entry points
 2. **Architecture Overview** — Mermaid `flowchart LR` diagram of top-level flow
 3. **Component Map** — Mermaid diagram or table of major components/packages
@@ -72,7 +89,7 @@ Build all 7 sections in order:
 
 **Mermaid gotcha:** Keep diagrams to ≤15 nodes. If there are more components, group them by category rather than listing individually. Prefer `flowchart LR` — it renders reliably across GitHub, VS Code, and Copilot clients.
 
-### Step 5 — Assemble and write dashboard
+### Step 6 — Assemble and write dashboard
 
 Compose all sections under the standard output header:
 
@@ -86,9 +103,15 @@ Compose all sections under the standard output header:
 
 Write the assembled dashboard to `.smaqit/project-recap.md` (create if absent; overwrite if `--refresh` was specified or if no prior `project.recap` invocation exists for this session). Create `.smaqit/` if it does not exist.
 
-### Step 6 — Render in chat
+### Step 7 — Render in chat
 
 Output the full dashboard inline as the primary response. Include a one-line note showing the output file path.
+
+### Step 8 — Run session.assess for next steps
+
+After the dashboard is written, invoke `smaqit.session-assess` to perform a critical assessment of the full recap output.
+
+Use the assessment findings to populate **Section 8 — Next Steps** in the dashboard with 3–5 concrete, prioritized improvement suggestions. Each suggestion must include a one-line rationale.
 
 ## Output
 
@@ -99,7 +122,8 @@ Output the full dashboard inline as the primary response. Include a one-line not
 
 **In scope:**
 - Live codebase state: source files, manifests, frontmatter
-- All 7 dashboard sections, even if some are sparse (prefer "None detected" over omitting a section)
+- All 8 core dashboard sections, even if some are sparse (prefer "None detected" over omitting a section)
+- Section 8 (Next Steps) when `smaqit.session-assess` is available
 
 **Out of scope:**
 - Task files, `PLANNING.md`, session history — these are explicitly excluded
@@ -110,10 +134,12 @@ Output the full dashboard inline as the primary response. Include a one-line not
 
 - [ ] Step 1: Manifests read; project name, version, language, entry points, and dependencies extracted
 - [ ] Step 2: `scan-metadata.py` ran (or fallback applied); component list built
-- [ ] Step 3: Architectural flow derived from manifests and directory structure
-- [ ] Step 4: `references/OUTPUT_FORMAT.md` read; all 7 sections composed using correct templates
-- [ ] Step 5: Dashboard written to `.smaqit/project-recap.md`
-- [ ] Step 6: Dashboard rendered in chat
+- [ ] Step 2.5: Git pulse ran; current state and direction narrative written
+- [ ] Step 4: Architectural flow derived from manifests and directory structure
+- [ ] Step 5: `references/OUTPUT_FORMAT.md` read; all 8 core sections composed using correct templates
+- [ ] Step 6: Dashboard written to `.smaqit/project-recap.md`
+- [ ] Step 7: Dashboard rendered in chat
+- [ ] Step 8: session.assess invoked; Next Steps section populated
 
 ## Failure Handling
 
@@ -126,3 +152,5 @@ Output the full dashboard inline as the primary response. Include a one-line not
 | `.smaqit/` does not exist | Create it silently before writing output |
 | Output file exists and `--refresh` not set | Overwrite silently — `project.recap` is always idempotent |
 | Section has no data | Include the section heading with "None detected" rather than omitting it |
+| `.git` not found or no commits | Skip git pulse; write "No git history available" in Situation Report |
+| `session.assess` not available | Skip Step 8; omit Section 8 from dashboard; note in header |

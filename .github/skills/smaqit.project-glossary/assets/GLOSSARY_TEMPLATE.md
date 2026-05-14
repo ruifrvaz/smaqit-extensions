@@ -1,13 +1,9 @@
 # Project Glossary
 
-## General
+## [Category]
 
-<!-- Add terms here. Each entry uses the format below:
+**[Term]**
 
-**TermName**
-
-The definition of the term goes here.
+[DEFINITION]
 
 ---
-
--->

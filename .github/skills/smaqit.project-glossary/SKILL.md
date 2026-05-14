@@ -13,27 +13,7 @@ metadata:
 
 **Path:** `.smaqit/glossary.md`
 
-Terms are grouped under `## [Category]` section headings (sorted alphabetically by category). Within each category, terms are sorted alphabetically by name. Each term entry is a bolded name (`**Term**`), followed by a blank line, the definition, and a `---` separator. There are no dates, no YAML frontmatter, and no per-entry metadata fields.
-
-```markdown
-# Project Glossary
-
-## General
-
-**Idempotent**
-
-An operation that produces the same result whether applied once or many times.
-
----
-
-## Engineering
-
-**Upsert**
-
-An operation that inserts a record if absent or updates it if already present.
-
----
-```
+Terms are grouped under `## [Category]` section headings (sorted alphabetically by category). Within each category, terms are sorted alphabetically by name. Each term entry is a bolded name (`**Term**`), followed by a blank line, the definition, and a `---` separator. There are no dates, no YAML frontmatter, and no per-entry metadata fields. See `assets/GLOSSARY_TEMPLATE.md` for the placeholder structure.
 
 - Categories are sorted alphabetically; terms within each category are sorted alphabetically.
 - Terms with no specified category go under `## General`.

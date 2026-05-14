@@ -2,7 +2,7 @@
 name: smaqit.release-analysis
 description: Collect changes, assess severity, and suggest next version for a release
 metadata:
-  version: "0.3.1"
+  version: "0.4.0"
 ---
 
 # Release Analysis
@@ -33,14 +33,24 @@ If no tags exist, the repository is at version 0.0.0 and the suggested version w
 Collect changes from three sources:
 
 **A. Git commit history:**
+
+Run two queries to capture the full picture:
+
 ```bash
-git log <last-tag>..HEAD --pretty=format:"%s"
+# PR merge commits — high-level summaries (what shipped):
+git log <last-tag>..HEAD --merges --pretty=format:"%s"
+
+# Individual commits — details within each PR:
+git log <last-tag>..HEAD --no-merges --pretty=format:"%h %s"
 ```
 
 If no tags exist:
 ```bash
-git log --pretty=format:"%s"
+git log --merges --pretty=format:"%s"
+git log --no-merges --pretty=format:"%h %s"
 ```
+
+Use the merge-commit subjects as the primary change descriptions (e.g., "fix: re-initialize project assets on already-up-to-date update paths"). Use individual commits to fill in detail or catch changes that landed without a PR merge commit.
 
 **B. File changes analysis:**
 Analyze actual file modifications to supplement commit messages. This is especially important in grafted/shallow repositories where commit history may be incomplete.
@@ -61,6 +71,9 @@ Extract key insights:
 
 **C. Session history (if exists):**
 Read markdown files in `.smaqit/history/` directory. These contain documented session work with completed tasks and decisions.
+
+**D. `[Unreleased]` section in CHANGELOG.md:**
+Read the existing `## [Unreleased]` section in `CHANGELOG.md` (if present). These are entries that were proactively maintained. Treat them as authoritative descriptions but cross-check them against the git log — the `[Unreleased]` section may be incomplete.
 
 ### Step 3: Assess Change Severity
 
@@ -120,11 +133,13 @@ rationale: "New features added (release agent), no breaking changes detected"
 ```
 
 **Output fields:**
-- `changes`: List of changes with type, description, and optional reference
+- `changes`: Complete list of changes since the last tag, one entry per PR or meaningful commit. Use conventional changelog types: `Added`, `Changed`, `Fixed`, `Removed`, `Deprecated`, `Security`. Each entry must be a self-contained description suitable for pasting directly into `CHANGELOG.md`. Include a `reference` (PR number or commit SHA) for traceability.
 - `severity`: MAJOR, MINOR, or PATCH
 - `latest_tag`: Most recent git tag (or "none" if no tags exist)
 - `suggested_version`: Next version following semver rules
 - `rationale`: Brief explanation of the severity assessment
+
+**Important:** The `changes` list must be exhaustive — it represents the complete delta since the last release tag. It is used in the next step to reconcile the `[Unreleased]` section of `CHANGELOG.md` before promoting it to the new version.
 
 ## Notes
 
@@ -135,3 +150,4 @@ rationale: "New features added (release agent), no breaking changes detected"
 - Focus on user-facing changes; internal implementation details should not drive severity
 - When in doubt between severities, prefer conservative (e.g., MINOR over MAJOR)
 - The empty tree SHA `4b825dc5c39fd418cd129ae01eb94d5aa75a7d7f` is a Git constant for comparing against an empty state
+- **Completeness is mandatory:** every PR merge commit and every significant non-merge commit since the last tag must appear in the `changes` list; the `[Unreleased]` section in CHANGELOG.md is a convenience but must not be the sole source — always reconcile against git history

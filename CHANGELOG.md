@@ -7,12 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.0.4] - 2026-05-15
+## [1.1.0] - 2026-05-15
 
 ### Changed
-- **`smaqit.project-glossary` skill** — refactored to section-based markdown format; replaced category tables with `## Category` headings and plain term lists; removed per-term metadata columns; extracted `assets/GLOSSARY_TEMPLATE.md` for consistent scaffolding
-- **`smaqit.compendium` skill** — refactored to section-based markdown format; replaced Q&A table with `## Category` headings and plain entry lists; extracted `assets/COMPENDIUM_TEMPLATE.md`; simplified `references/COMPENDIUM_FORMAT.md`
-- Release version metadata updated to v1.0.4 in installer sources (`installer/main.go`, `installer/Makefile`)
+- **`smaqit.project-glossary` skill** — refactored to section-based markdown format; replaced category tables with `## Category` headings and plain term lists; removed per-term metadata columns; extracted `assets/GLOSSARY_TEMPLATE.md` for consistent scaffolding (#77)
+- **`smaqit.compendium` skill** — refactored to section-based markdown format; replaced Q&A table with `## Category` headings and plain entry lists; extracted `assets/COMPENDIUM_TEMPLATE.md`; simplified `references/COMPENDIUM_FORMAT.md` (#80)
+- Release version metadata updated to 1.1.0 in installer sources (`installer/main.go`, `installer/Makefile`)
+
+### Fixed
+- **Release agents** (`smaqit.release-analysis`, `smaqit.release-prepare-files`, `smaqit.release-git-pr`) — added `gh pr list` fallback and cross-check to recover changelog entries missed in shallow/grafted clones (#84)
+- **Post-merge release workflow** — repaired automation trigger condition and corrected incomplete changelog coverage for prior releases (#84)
 
 ## [1.0.1] - 2026-05-14
 
@@ -424,8 +428,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.0.4...HEAD
-[1.0.4]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.0.1...v1.0.4
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.10.0...v1.0.0
 [0.9.4]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.9.3...v0.9.4

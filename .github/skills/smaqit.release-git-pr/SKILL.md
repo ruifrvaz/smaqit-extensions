@@ -2,7 +2,7 @@
 name: smaqit.release-git-pr
 description: Execute git operations for PR-based releases (commit, push via report_progress)
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # Release Git PR
@@ -66,15 +66,30 @@ Use the `report_progress` tool to push changes to the PR branch:
 - Use `git push` directly (credentials not available in agent environment)
 - Create git tags at this stage (tags must be created after merge to main)
 
-### Step 4: Verify PR Title for Post-Merge Automation
+### Step 4: Verify and Enforce PR Title for Post-Merge Automation
 
-**CRITICAL:** Ensure the PR title matches the pattern required for post-merge automation.
+**CRITICAL:** This step is not optional. A wrong PR title causes the post-merge release workflow to skip all jobs silently.
 
-The PR title must follow one of these formats:
+Check the current PR title:
+```bash
+gh pr view --json title -q .title
+```
+
+The PR title **MUST** match one of these patterns:
 - `Prepare release vX.Y.Z`
 - `Release vX.Y.Z`
 
-(Both case-insensitive variants are supported)
+If the title does NOT match, **update it immediately**:
+```bash
+gh pr edit --title "Prepare release vX.Y.Z"
+```
+
+**Common failure patterns to watch for:**
+- "Prepare release metadata for v1.0.4" ❌ (extra words before version)
+- "fix: release prep v1.0.4" ❌ (wrong format)
+- "chore: prepare v1.0.4 release" ❌ (wrong format)
+- "Prepare release v1.0.4" ✅
+- "Release v1.0.4" ✅
 
 **Post-merge workflow automatically:**
 1. Creates and pushes git tag `vX.Y.Z`

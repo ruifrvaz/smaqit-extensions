@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-05-15
+
+### Fixed
+- **`smaqit init`/`smaqit update`** — fixed inflated skill count reported at the end of the install/update run; the counter now increments once per unique skill directory rather than once per file walked inside skills/; corrected static help text from "20 workflow skills" to "22 workflow skills" (#88)
+
 ## [1.1.0] - 2026-05-15
 
 ### Changed

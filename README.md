@@ -34,7 +34,7 @@ Enhance your agentic development with streamlined session management, task track
 - **smaqit.project-glossary** - Manage a per-project glossary (`list glossary`, `fetch from glossary`, `update glossary`, `remove from glossary`)
 - **smaqit.project-research** - Build and maintain a documentation topology map for the current project (`project.research`, `project.research [task-id]`)
 - **smaqit.project-recap** - Generate a live project dashboard from the current codebase state (`project.recap`, `project.recap --refresh`)
-- **smaqit.compendium** - Manage a live Q&A knowledge base (`list compendium`, `fetch from compendium`, `update compendium`, `remove from compendium`)
+- **smaqit.project-compendium** - Manage a live Q&A knowledge base (`list compendium`, `fetch from compendium`, `update compendium`, `remove from compendium`)
 
 #### Utilities
 - **smaqit.utils.read-pdf** - Extract text from a PDF file and continue with the caller's original goal

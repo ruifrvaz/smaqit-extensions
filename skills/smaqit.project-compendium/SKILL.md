@@ -1,8 +1,8 @@
 ---
-name: smaqit.compendium
+name: smaqit.project-compendium
 description: Manages a live Q&A knowledge manifest at `.smaqit/compendium.md`. Invoked when the user says `list compendium`, `fetch from compendium [query]`, `update compendium [question]`, or `remove from compendium [question]`. Lists all Q&A entries grouped by category, semantically searches for relevant entries, upserts a Q&A pair (add or update), or removes an entry after confirmation.
 metadata:
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # Project Compendium

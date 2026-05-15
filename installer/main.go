@@ -100,7 +100,7 @@ func printHelp() {
 	fmt.Println()
 	fmt.Println("What gets installed:")
 	fmt.Println("  .github/agents/     - 3 utility agents")
-	fmt.Println("  .github/skills/     - 20 workflow skills")
+	fmt.Println("  .github/skills/     - 22 workflow skills")
 	fmt.Println("  .smaqit/templates/  - 3 canonical templates")
 }
 
@@ -205,7 +205,7 @@ func cmdInstall(targetDir string) {
 	}
 
 	// Install skills
-	skillCount := 0
+	seenSkillDirs := make(map[string]bool)
 	if err := fs.WalkDir(skillFiles, "skills", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -229,6 +229,11 @@ func cmdInstall(targetDir string) {
 		// Remove "skills/" prefix to get skill-relative path
 		skillRelPath := strings.TrimPrefix(relPath, "skills/")
 
+		// Track unique top-level skill directories so the reported count
+		// reflects installed skills, not individual files within each skill.
+		skillName := strings.SplitN(skillRelPath, "/", 2)[0]
+		seenSkillDirs[skillName] = true
+
 		// Create target path
 		targetPath := filepath.Join(skillsDir, skillRelPath)
 		targetDir := filepath.Dir(targetPath)
@@ -241,13 +246,12 @@ func cmdInstall(targetDir string) {
 			return fmt.Errorf("writing %s: %w", targetPath, err)
 		}
 
-		skillCount++
-
 		return nil
 	}); err != nil {
 		fmt.Printf("Error installing skills: %v\n", err)
 		os.Exit(1)
 	}
+	skillCount := len(seenSkillDirs)
 
 	fmt.Printf("✓ Installed %d agents to %s\n", agentCount, agentsDir)
 	fmt.Printf("✓ Installed %d skills to %s\n", skillCount, skillsDir)

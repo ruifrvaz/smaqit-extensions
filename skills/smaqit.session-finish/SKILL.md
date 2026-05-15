@@ -2,7 +2,7 @@
 name: smaqit.session-finish
 description: End session by documenting the entire conversation. Use at session completion to create history entries.
 metadata:
-  version: "0.8.0"
+  version: "0.8.1"
 ---
 
 # Session Finish
@@ -65,7 +65,7 @@ End a session by documenting the **entire session** (not just recent activity).
 4. **Update this history file** as the session reference for next chat
 
 4. **Update the project compendium** (after history file is written):
-   - Read `references/COMPENDIUM_FORMAT.md` from the `smaqit.compendium` skill before writing any entries.
+   - Read `references/COMPENDIUM_FORMAT.md` from the `smaqit.project-compendium` skill before writing any entries.
    - Scan the session transcript for user questions — identify questions that are project-specific, non-trivial, and were answered substantively by the agent.
    - Filter out: purely navigational inputs ("what's next?", "continue", "proceed"), one-word commands, meta-session phrases ("new session", "session start", "can you recap?"), and questions whose answers are entirely generic (not project-specific).
    - For each candidate question: check `.smaqit/compendium.md` for semantically similar existing entries.

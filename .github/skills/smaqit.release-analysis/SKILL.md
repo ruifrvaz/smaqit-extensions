@@ -2,7 +2,7 @@
 name: smaqit.release-analysis
 description: Collect changes, assess severity, and suggest next version for a release
 metadata:
-  version: "0.4.0"
+  version: "0.5.0"
 ---
 
 # Release Analysis
@@ -20,40 +20,77 @@ Use this skill at the start of a release workflow to:
 
 ### Step 1: Find Latest Git Tag
 
-Run `git tag --sort=-v:refname` to list existing tags in descending version order.
+**IMPORTANT:** Agent environments are often shallow/grafted clones with no local tags. Always fetch tags first.
 
 ```bash
+# Step 1a: Fetch tags (recovers tags in shallow/grafted clones)
+git fetch --tags --quiet 2>/dev/null || true
+
+# Step 1b: Try to find the latest tag locally
 git tag --sort=-v:refname | head -1
 ```
 
-If no tags exist, the repository is at version 0.0.0 and the suggested version will be v0.1.0.
+**If `git tag` returns empty** (shallow clone with no tag history), use the GitHub CLI as fallback:
+
+```bash
+# GitHub CLI fallback — get the latest release tag
+gh release list --limit 1 --json tagName -q '.[0].tagName'
+```
+
+Store the result as `<last-tag>` (e.g., `v1.0.1`).
+
+If no tags exist anywhere (new repository), use `v0.0.0` as the baseline and suggest `v0.1.0`.
 
 ### Step 2: Collect Changes
 
-Collect changes from three sources:
+**IMPORTANT:** Collect changes from ALL available sources and cross-check them. In shallow/grafted clones, git log may be truncated — always use the GitHub CLI as a supplementary source.
 
-**A. Git commit history:**
+Collect changes from four sources:
+
+**A. Git commit history (primary source):**
 
 Run two queries to capture the full picture:
 
 ```bash
 # PR merge commits — high-level summaries (what shipped):
-git log <last-tag>..HEAD --merges --pretty=format:"%s"
+git log <last-tag>..HEAD --merges --pretty=format:"%h %s"
 
 # Individual commits — details within each PR:
 git log <last-tag>..HEAD --no-merges --pretty=format:"%h %s"
 ```
 
-If no tags exist:
+**If the git log output is empty or suspiciously short** (e.g., fewer commits than expected given the time since the last release), the clone is likely shallow. In that case:
+
 ```bash
-git log --merges --pretty=format:"%s"
-git log --no-merges --pretty=format:"%h %s"
+# Try to deepen the clone
+git fetch --unshallow 2>/dev/null || git fetch --depth=2147483647 2>/dev/null || true
+
+# Re-run the git log queries
+git log <last-tag>..HEAD --merges --pretty=format:"%h %s"
+git log <last-tag>..HEAD --no-merges --pretty=format:"%h %s"
 ```
 
-Use the merge-commit subjects as the primary change descriptions (e.g., "fix: re-initialize project assets on already-up-to-date update paths"). Use individual commits to fill in detail or catch changes that landed without a PR merge commit.
+**B. GitHub CLI — merged PRs (mandatory fallback and cross-check):**
 
-**B. File changes analysis:**
-Analyze actual file modifications to supplement commit messages. This is especially important in grafted/shallow repositories where commit history may be incomplete.
+Even if git log returns results, always cross-check with `gh pr list` to catch any PRs that git log may have missed:
+
+```bash
+# Get all merged PRs since the last release tag
+# Use the date of <last-tag> release as the lower bound
+gh release view <last-tag> --json publishedAt -q '.publishedAt'
+
+# Then list merged PRs after that date
+gh pr list --state merged --base main --limit 50 \
+  --json number,title,mergedAt \
+  --jq 'sort_by(.mergedAt) | .[] | "#\(.number) \(.title) (merged \(.mergedAt[:10]))"'
+```
+
+This output is the **authoritative list of user-facing changes** — every line must appear in the `changes` output. Compare it against the git log results and add any missing entries.
+
+If no `<last-tag>` exists, omit the date filter and list all merged PRs.
+
+**C. File changes analysis:**
+Analyze actual file modifications to supplement commit messages and verify coverage.
 
 ```bash
 # If tags exist:
@@ -69,11 +106,21 @@ Extract key insights:
 - Deleted functionality (potential breaking changes)
 - Number of files changed and scope of modifications
 
-**C. Session history (if exists):**
+**D. Session history (if exists):**
 Read markdown files in `.smaqit/history/` directory. These contain documented session work with completed tasks and decisions.
 
-**D. `[Unreleased]` section in CHANGELOG.md:**
+**E. `[Unreleased]` section in CHANGELOG.md:**
 Read the existing `## [Unreleased]` section in `CHANGELOG.md` (if present). These are entries that were proactively maintained. Treat them as authoritative descriptions but cross-check them against the git log — the `[Unreleased]` section may be incomplete.
+
+### Step 2 Verification: Cross-check completeness
+
+**After collecting from all sources, verify completeness:**
+
+1. Count the entries in `gh pr list` output → this is your **minimum expected entry count**
+2. Count the entries in your `changes` list → this must be **≥** the PR count
+3. If your changes list has fewer entries than merged PRs, find what's missing and add it
+
+**Do not proceed to Step 3 if the `changes` list is missing any merged PRs.** Each PR merge must have at least one corresponding entry in `changes`.
 
 ### Step 3: Assess Change Severity
 
@@ -145,9 +192,10 @@ rationale: "New features added (release agent), no breaking changes detected"
 
 - This skill only **analyzes and suggests** - it does not modify any files
 - The suggested version is a recommendation that must be approved before use
-- Session history files (`.smaqit/history/`) are optional - if they don't exist, rely solely on git log
-- **File-based analysis** is critical in grafted/shallow repositories where commit history may be incomplete
+- Session history files (`.smaqit/history/`) are optional - if they don't exist, rely on git log + gh CLI
+- **Shallow/grafted clones are the norm in agent environments** — always run `git fetch --tags` first; always cross-check with `gh pr list` regardless
+- **`gh pr list` is authoritative** — git log may be truncated, but `gh pr list --state merged --base main` always returns the complete history
 - Focus on user-facing changes; internal implementation details should not drive severity
 - When in doubt between severities, prefer conservative (e.g., MINOR over MAJOR)
 - The empty tree SHA `4b825dc5c39fd418cd129ae01eb94d5aa75a7d7f` is a Git constant for comparing against an empty state
-- **Completeness is mandatory:** every PR merge commit and every significant non-merge commit since the last tag must appear in the `changes` list; the `[Unreleased]` section in CHANGELOG.md is a convenience but must not be the sole source — always reconcile against git history
+- **Completeness is mandatory:** every merged PR since the last release must appear in the `changes` list; the `[Unreleased]` section in CHANGELOG.md is a convenience but must not be the sole source

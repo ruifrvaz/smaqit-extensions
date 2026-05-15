@@ -10,11 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.4] - 2026-05-15
 
 ### Changed
+- **`smaqit.project-glossary` skill** — refactored to section-based markdown format; replaced category tables with `## Category` headings and plain term lists; removed per-term metadata columns; extracted `assets/GLOSSARY_TEMPLATE.md` for consistent scaffolding
+- **`smaqit.compendium` skill** — refactored to section-based markdown format; replaced Q&A table with `## Category` headings and plain entry lists; extracted `assets/COMPENDIUM_TEMPLATE.md`; simplified `references/COMPENDIUM_FORMAT.md`
 - Release version metadata updated to v1.0.4 in installer sources (`installer/main.go`, `installer/Makefile`)
 
 ## [1.0.1] - 2026-05-14
 
 ### Changed
+- **`smaqit.project-recap` skill** — enhanced with Git-based Situation Report section and assessment-driven Next Steps; output format updated in `references/OUTPUT_FORMAT.md`
+- **`smaqit.release-prepare-files` skill** — added reconciliation step that queries `git log` since the last tag and ensures `[Unreleased]` is complete before promoting to a versioned section
 - Removed redundant `Purpose` and `Invocation` sections from `smaqit.compendium`, `smaqit.project-glossary`, `smaqit.project-recap`, and `smaqit.project-research` skill files; preserved all useful context
 
 ### Fixed

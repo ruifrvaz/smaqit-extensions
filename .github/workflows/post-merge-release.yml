@@ -17,8 +17,8 @@ jobs:
     if: |
       github.event_name == 'push' ||
       (github.event.pull_request.merged == true &&
-       (startsWith(github.event.pull_request.title, 'Prepare release v') ||
-        startsWith(github.event.pull_request.title, 'prepare release v') ||
+       (startsWith(github.event.pull_request.title, 'Prepare release') ||
+        startsWith(github.event.pull_request.title, 'prepare release') ||
         startsWith(github.event.pull_request.title, 'Release v') ||
         startsWith(github.event.pull_request.title, 'release v')))
     runs-on: ubuntu-latest
@@ -38,7 +38,7 @@ jobs:
           else
             # Triggered by PR merge (PR-based release)
             TITLE="${{ github.event.pull_request.title }}"
-            if [[ "$TITLE" =~ [Pp]repare[[:space:]]release[[:space:]]v([0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?) ]]; then
+            if [[ "$TITLE" =~ [Pp]repare[[:space:]]release[^v]*v([0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?) ]]; then
               VERSION="${BASH_REMATCH[1]}"
               echo "version=$VERSION" >> $GITHUB_OUTPUT
               echo "skip_tag=false" >> $GITHUB_OUTPUT

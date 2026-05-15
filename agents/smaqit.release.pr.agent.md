@@ -2,7 +2,7 @@
 name: smaqit.release.pr
 description: Orchestrate a release process via pull request (CI/CD, Coding Agent)
 metadata:
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # Release Agent (PR)
@@ -75,6 +75,26 @@ Executes PR operations:
 Outputs:
 - Commit SHA and PR update confirmation
 
+### 5. Verify PR title (CRITICAL — do not skip)
+
+After pushing, **verify the PR title** matches the post-merge workflow trigger pattern.
+
+Use the GitHub API or `gh` CLI to check the current PR title:
+```bash
+gh pr view --json title -q .title
+```
+
+The PR title **MUST** start with one of:
+- `Prepare release vX.Y.Z`
+- `Release vX.Y.Z`
+
+If the PR title does NOT match, update it immediately:
+```bash
+gh pr edit --title "Prepare release vX.Y.Z"
+```
+
+**WARNING:** A non-conforming PR title (e.g., "fix: release prep" or "Prepare release metadata for v1.0.4") will cause the post-merge workflow to skip all jobs and no GitHub Release will be created.
+
 ## Post-Merge Release Automation
 
 **CRITICAL:** This agent does NOT create tags or releases during PR workflow. All release actions happen automatically after PR merge.
@@ -100,7 +120,7 @@ Before declaring success, verify:
 - [ ] Version files synced (if applicable)
 - [ ] Commit created with "Prepare release vX.Y.Z" message
 - [ ] PR created/updated with changes via `report_progress`
-- [ ] PR title follows format for post-merge automation
+- [ ] **PR title verified** — must start with "Prepare release vX.Y.Z" or "Release vX.Y.Z"; if wrong, corrected via `gh pr edit --title`
 
 **After PR merge:** Post-merge workflow automatically creates tag, builds binaries, and publishes GitHub Release.
 

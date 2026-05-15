@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.4] - 2026-05-15
+
+### Changed
+- Release version metadata updated to v1.0.4 in installer sources (`installer/main.go`, `installer/Makefile`)
+
 ## [1.0.1] - 2026-05-14
 
 ### Changed
@@ -415,7 +420,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.0.4...HEAD
+[1.0.4]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.0.1...v1.0.4
 [1.0.1]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.10.0...v1.0.0
 [0.9.4]: https://github.com/ruifrvaz/smaqit-extensions/compare/v0.9.3...v0.9.4

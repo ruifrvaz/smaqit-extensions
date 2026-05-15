@@ -2,7 +2,7 @@
 name: smaqit.compendium
 description: Manages a live Q&A knowledge manifest at `.smaqit/compendium.md`. Invoked when the user says `list compendium`, `fetch from compendium [query]`, `update compendium [question]`, or `remove from compendium [question]`. Lists all Q&A entries grouped by category, semantically searches for relevant entries, upserts a Q&A pair (add or update), or removes an entry after confirmation.
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # Project Compendium
@@ -12,8 +12,7 @@ metadata:
 1. Unlike the glossary (which stores term definitions), the compendium stores full Q&A pairs — questions asked during sessions, answered by the agent, grouped by topic category, with semantic deduplication.
 2. **Before writing to the compendium**, read `references/COMPENDIUM_FORMAT.md` for the full entry format specification and deduplication rules.
 3. `.smaqit/compendium.md` may not exist on first run — always create it on first write; never error on absence.
-4. Markdown table cells with multi-line answers require `<br>` for line breaks within a cell — use `<br>` for formatted answers, not raw newlines.
-5. The session-finish scan must filter out meta-session questions ("new session", "what's next?", "can you recap?") — these are navigation commands, not knowledge.
+4. The session-finish scan must filter out meta-session questions ("new session", "what's next?", "can you recap?") — these are navigation commands, not knowledge.
 
 ---
 
@@ -23,7 +22,7 @@ metadata:
 
 **Path:** `.smaqit/compendium.md`
 
-Entries are stored as Markdown tables with four columns (`Question`, `Answer`, `Last Updated`, `Sessions`), grouped into sections by category. Each category is a `## Heading`. New categories are inferred from the nature of the question. See `references/COMPENDIUM_FORMAT.md` for the full specification.
+Entries are stored as section-based markdown: each category is a `## Heading`, questions are bolded (`**Question**`), and answers are normal markdown prose below each question, separated by `---`. There are no tables, no per-entry dates, and no session counters. See `assets/COMPENDIUM_TEMPLATE.md` for the placeholder structure and `references/COMPENDIUM_FORMAT.md` for the full specification.
 
 ---
 
@@ -32,7 +31,7 @@ Entries are stored as Markdown tables with four columns (`Question`, `Answer`, `
 1. Check if `.smaqit/compendium.md` exists.
    - Does not exist → respond: "No compendium found at `.smaqit/compendium.md`. Use `update compendium` to add the first entry." Stop.
 2. Read `.smaqit/compendium.md`.
-3. Present all entries grouped by category in formatted tables.
+3. Present all entries grouped by category.
    - File exists but contains no entries → respond: "Compendium exists but contains no entries yet."
 
 ---
@@ -41,8 +40,8 @@ Entries are stored as Markdown tables with four columns (`Question`, `Answer`, `
 
 1. Parse the query from the user's message. If absent, ask: "What would you like to look up in the compendium?"
 2. Check if `.smaqit/compendium.md` exists. If not, respond: "No compendium found. Use `update compendium` to create one."
-3. Read `.smaqit/compendium.md`. Evaluate the query semantically against all Question cells — find the most relevant match(es) by meaning, not just keyword overlap.
-4. If match(es) found: present the question(s), answer(s), category, and last-updated date, with a brief note on why each is relevant.
+3. Read `.smaqit/compendium.md`. Evaluate the query semantically against all question headings and answers — find the most relevant match(es) by meaning, not just keyword overlap.
+4. If match(es) found: present the question(s), answer(s), and category, with a brief note on why each is relevant.
 5. If no relevant match found: inform the user and suggest `update compendium [question]` to add it.
 
 ---
@@ -56,10 +55,10 @@ Read `references/COMPENDIUM_FORMAT.md` before writing.
 1. Parse the question from the user's message. If absent, ask: "What question would you like to add or update?"
 2. If no answer provided inline, ask for it.
 3. Infer the category from the question's topic. If `.smaqit/compendium.md` exists, list existing categories as suggestions. Default to `General` if unclear.
-4. If `.smaqit/compendium.md` does not exist: create it with the standard header and the new entry (Sessions = 1, Last Updated = today).
+4. If `.smaqit/compendium.md` does not exist: create it from the template (`assets/COMPENDIUM_TEMPLATE.md`) and add the new entry.
 5. If `.smaqit/compendium.md` exists:
-   - Check all existing Question cells for semantic equivalence with the new question.
-   - Semantically equivalent question found: update its Answer to the best combined version, increment Sessions, update Last Updated. Update the Question text to whichever phrasing is clearer.
+   - Check all existing question headings for semantic equivalence with the new question.
+   - Semantically equivalent question found: update its answer to the best combined version. Update the question text to whichever phrasing is clearer.
    - No equivalent found: append entry to the correct category section; create the section if absent.
 6. Write updated content to `.smaqit/compendium.md`.
 7. Confirm: state whether the entry was added or updated, and which category it was placed in.
@@ -70,10 +69,10 @@ Read `references/COMPENDIUM_FORMAT.md` before writing.
 
 1. Parse the question from the user's message. If absent, ask: "Which entry would you like to remove?"
 2. Check if `.smaqit/compendium.md` exists. If not, respond: "No compendium found. Nothing to remove."
-3. Read `.smaqit/compendium.md`. Search for the entry (semantic match against Question column).
+3. Read `.smaqit/compendium.md`. Search for the entry (semantic match against bolded question headings).
 4. Not found → inform the user the entry does not exist.
 5. Found → ask for confirmation: "Remove **[question]** ([category])? Reply `yes` to confirm."
-6. On confirmation: remove the row. If the category section becomes empty after removal, remove the entire section (heading + empty table).
+6. On confirmation: remove the entry (bolded question heading, answer, and `---` separator). If the category section becomes empty after removal, remove the entire section (heading and any trailing separator).
 7. Write updated content to `.smaqit/compendium.md`. Confirm removal.
 8. No confirmation → abort; do not modify the file.
 
@@ -86,8 +85,8 @@ When `smaqit.session-finish` runs, it executes the following compendium update s
 1. Scan the session transcript for user questions — identify questions that are project-specific, non-trivial, and were answered substantively by the agent.
 2. Filter out: purely navigational questions ("what's next?", "can you recap?", "new session"), one-word commands, and meta-session phrases.
 3. For each candidate question: check `.smaqit/compendium.md` for semantically similar existing entries.
-4. If similar entry found: merge or update — rewrite the answer to incorporate new information, increment Sessions, update Last Updated.
-5. If no similar entry found: create new entry, assign appropriate category, set Sessions to 1.
+4. If similar entry found: merge or update — rewrite the answer to incorporate new information.
+5. If no similar entry found: create new entry, assign appropriate category.
 6. Write the updated compendium atomically (overwrite the file).
 7. Report: "Compendium updated — N entries added, M entries updated."
 

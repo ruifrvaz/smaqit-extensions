@@ -9,27 +9,20 @@ This file defines the canonical entry format, file structure, and deduplication 
 ```markdown
 # Project Compendium
 
-Last updated: YYYY-MM-DD | Total entries: N
-
 ## [Category Name]
 
-| Question | Answer | Last Updated | Sessions |
-|----------|--------|--------------|----------|
-| How do I release a new version? | Run `smaqit.release.local` agent... | 2026-05-09 | 3 |
+**[Question text]**
+
+[Answer as normal markdown prose]
+
+---
 ```
+
+See `assets/COMPENDIUM_TEMPLATE.md` for the full placeholder structure.
 
 ### Header
 
-The file must start with:
-
-```
-# Project Compendium
-
-Last updated: YYYY-MM-DD | Total entries: N
-```
-
-- `Last updated` — date of the most recent write in `YYYY-MM-DD` format
-- `Total entries` — count of all Q&A rows across all categories
+The file must start with a single `# Project Compendium` heading. There are no file-level stats lines, no YAML frontmatter, and no per-entry metadata.
 
 ### Category Sections
 
@@ -44,30 +37,16 @@ Each category is a `## Heading`. Categories are inferred by the agent from the n
 
 New categories are created as needed. The agent may reorganize categories when merging entries if the existing categorization no longer fits. A `## General` catch-all section is used when no specific category fits.
 
-### Entry Columns
+### Entry Format
 
-| Column | Description |
-|--------|-------------|
-| `Question` | The canonical question text — synthesized clean phrasing, not raw session dialogue |
-| `Answer` | A self-contained, reusable answer — may include code snippets, file paths, and skill names; no external URLs |
-| `Last Updated` | `YYYY-MM-DD` of the last time this entry was written or merged |
-| `Sessions` | Integer count of sessions that have referenced or updated this entry |
+Each entry consists of:
 
----
+- A bolded question heading (`**Question text**`)
+- A blank line
+- The answer as normal markdown prose (may include multi-line text, code blocks, and bullet lists)
+- A `---` separator after the answer
 
-## Multi-Line Answers
-
-Markdown table cells do not support raw newlines. For answers that require formatting:
-
-- Use `<br>` for line breaks within a cell
-- Use inline backticks for code references (e.g., `` `make sync` ``)
-- Keep answers as concise as possible while remaining self-contained
-
-**Example:**
-
-```
-| How do I sync changes to .github/? | Edit source files in `agents/` or `skills/`, then run `make sync`.<br>Example: `make sync` copies files to `.github/` for Copilot to use. | 2026-05-09 | 2 |
-```
+There are no tables, no per-entry dates, and no session counters.
 
 ---
 
@@ -84,11 +63,9 @@ Merge two questions into one canonical entry when:
 - They would produce the same answer
 
 **Merge procedure:**
-1. Choose the clearer, more canonical phrasing as the Question text
-2. Write a combined Answer that incorporates the best information from both
-3. Set Last Updated to today
-4. Set Sessions to the sum of both entries' Sessions counts
-5. Place the merged entry in the most appropriate category
+1. Choose the clearer, more canonical phrasing as the question heading
+2. Write a combined answer that incorporates the best information from both
+3. Place the merged entry in the most appropriate category
 
 ### When to Cross-Reference
 
@@ -115,7 +92,6 @@ Create a new entry when:
 3. **Synthesize, don't copy** — rewrite Q&A pairs into clean, reusable knowledge; do not copy raw session dialogue verbatim
 4. **Err on inclusion for novel questions** — if uncertain whether a question is notable enough, include it
 5. **Err on merging for similar questions** — if uncertain whether two questions are the same, merge them
-6. **Update the header** after every write: recalculate `Last updated` and `Total entries`
 
 ---
 
@@ -143,5 +119,5 @@ When scanning a session transcript for compendium candidates:
 Before writing, compare each candidate against all existing entries:
 
 1. Is the question semantically equivalent to an existing entry? → Merge/update
-2. Is the question a refinement of an existing entry (new info added)? → Update answer, increment Sessions
+2. Is the question a refinement of an existing entry (new info added)? → Update answer
 3. Is the question distinct and not yet in the compendium? → Create new entry

@@ -2,7 +2,7 @@
 name: smaqit.user-testing
 description: End-to-end user testing agent that validates a project's test workflow and produces a standardized report
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
 tools: ['edit', 'search', 'runCommands', 'usages', 'problems', 'changes', 'testFailure', 'todos', 'runTests']
 ---
 
@@ -15,8 +15,7 @@ You are the e2e testing agent. Your goal is to validate the end-to-end testing e
 ## Input
 
 **Optional Test Task:**
-- A single test task file in `.smaqit/tasks/` (e.g. `.smaqit/tasks/059_*.md`) that defines the test scope, steps, and pass/fail criteria.
-- **Tip:** Users can create test tasks using the `smaqit.task-create` skill.
+- A single test file in `.smaqit/user-testing/tests/` (e.g. `.smaqit/user-testing/tests/059_*.md`) that defines the test scope, steps, and pass/fail criteria.
 
 **Project Test Entrypoints (auto-discovered):**
 - Common files that define how to run tests, such as `Makefile`, `package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`, `README.md`, `CONTRIBUTING.md`, `TESTING.md`.
@@ -58,10 +57,10 @@ You are the e2e testing agent. Your goal is to validate the end-to-end testing e
 
 ### Phase 2: Optional Test Task (If Provided)
 
-3. **Load a specific test task (optional)**
-   - If user provides a task number, read the complete task file: `.smaqit/tasks/{TASK_NUMBER}_*.md`.
+3. **Load a specific test file (optional)**
+   - If user provides a test number, read the complete test file: `.smaqit/user-testing/tests/{TEST_NUMBER}_*.md`.
    - Extract: objectives, evidence requirements, pass/fail criteria, and any required setup.
-   - If the task file doesn't exist, recommend using the `smaqit.task-create` skill or ask whether to proceed without it.
+   - If the test file doesn't exist, ask whether to create it under `.smaqit/user-testing/tests/` or proceed without it.
 
 ### Phase 3: Execute Tests
 
@@ -89,7 +88,7 @@ You are the e2e testing agent. Your goal is to validate the end-to-end testing e
 **Duration:** <start-end or minutes>
 
 ## Scope
-- Test task: <TASK_NUMBER or none>
+- Test file: <TEST_NUMBER or none>
 - Commands executed:
    - <command 1>
    - <command 2>
@@ -99,7 +98,7 @@ You are the e2e testing agent. Your goal is to validate the end-to-end testing e
 - [ ] Dependencies installed (if required)
 - [ ] Test suite executed
 - [ ] Results captured (pass/fail + key errors)
-- [ ] Evidence collected (per task, if provided)
+- [ ] Evidence collected (per test file, if provided)
 
 ## Execution Log (Timestamped)
 - HH:MM - <step>
@@ -195,10 +194,10 @@ Testing is complete when:
 
 ## Repeatable Test Runs
 
-If you want repeatable testing runs, define a test task in `.smaqit/tasks/NNN_*.md` that captures:
+If you want repeatable testing runs, define a test file in `.smaqit/user-testing/tests/NNN_*.md` that captures:
 - Setup prerequisites
 - Exact commands to run
 - Evidence to collect
 - Pass/fail criteria
 
-**Tip:** Users can create test tasks using the `smaqit.task-create` skill and load them with the `smaqit.test-start` skill.
+**Tip:** Load test files at the start of a session with the `smaqit.test-start` skill.

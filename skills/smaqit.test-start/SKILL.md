@@ -2,13 +2,13 @@
 name: smaqit.test-start
 description: Start testing session with focused context. Use when beginning test workflows with the user-testing agent.
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
 agent: smaqit.user-testing
 ---
 
 # Test Start
 
-Start a testing session with minimal, focused context. Loads project test entrypoints and (optionally) a specific test task only.
+Start a testing session with minimal, focused context. Loads project test entrypoints and (optionally) a specific test file only.
 
 ## Steps
 
@@ -27,14 +27,14 @@ Read the project files that define how tests are run (whichever exist):
 
 **Critical:** Read complete files without truncation.
 
-### 2. Load Specific Test Task
+### 2. Load Specific Test File
 
-**User must specify:** Test task number (e.g., "059")
+**User must specify:** Test number (e.g., "059")
 
-Read the complete test task file:
-- `.smaqit/tasks/{TASK_NUMBER}_*.md`
+Read the complete test file:
+- `.smaqit/user-testing/tests/{TEST_NUMBER}_*.md`
 
-If the task file does not exist, instruct the user to create it using `/smaqit.task.create` (or create it yourself) before proceeding.
+If the test file does not exist, ask whether to create it under `.smaqit/user-testing/tests/` before proceeding.
 
 This file contains:
 - Test objectives
@@ -45,7 +45,7 @@ This file contains:
 
 ### 3. Understand Test Context
 
-From the test task file, identify:
+From the test file, identify:
 - **Test type** (e2e, regression, integration, unit)
 - **Issues being validated** (list of specific issues with fix references)
 - **Critical checkpoints** (where failures are most likely)
@@ -55,7 +55,7 @@ From the test task file, identify:
 ### 4. Confirm Ready State
 
 Present a concise summary:
-- Test task loaded: {TASK_NUMBER}
+- Test file loaded: {TEST_NUMBER}
 - Test type: {TYPE}
 - Issues to validate: {COUNT} issues
 - Estimated duration: {DURATION}
@@ -67,27 +67,27 @@ Then state: **"Ready to begin test execution. Say 'start' to proceed."**
 
 **Explicitly excluded to keep context focused:**
 - ❌ History files (`.smaqit/history/*.md`) - Not needed for test execution
-- ❌ Task planning (`.smaqit/tasks/PLANNING.md`) - Not needed during test
-- ❌ Other task files - Only the specific test task is loaded
+- ❌ Task planning (`.smaqit/PLANNING.md`) - Not needed during test
+- ❌ Other test files - Only the specific test file is loaded
 - ❌ Previous test reports - Each test is independent
 
 ## What This DOES Load
 
 **Minimal focused context:**
 - ✅ Test entrypoints (project-specific) - How to run the test suite
-- ✅ Specific test task (optional) - If provided, follow its workflow and criteria
+- ✅ Specific test file (optional) - If provided, follow its workflow and criteria
 
 ## Critical Requirements
 
-**READ COMPLETE FILES:** Do NOT truncate test entrypoint files or the test task file.
+**READ COMPLETE FILES:** Do NOT truncate test entrypoint files or the test file.
 
-**MODE:** You are now in test execution mode. Follow the test task workflow and your agent directives for execution philosophy, coordination patterns, and report generation.
+**MODE:** You are now in test execution mode. Follow the test file workflow and your agent directives for execution philosophy, coordination patterns, and report generation.
 
 ## Success Criteria
 
 Test start is successful when:
 - [ ] Test entrypoint files read completely
-- [ ] Specific test task file read completely (if provided)
+- [ ] Specific test file read completely (if provided)
 - [ ] Test type and objectives understood
 - [ ] Issue list and validation points identified
 - [ ] Critical checkpoints mapped to workflow phases

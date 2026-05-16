@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.3] - 2026-05-16
+
+### Changed
+- **`smaqit.utils.triage-issues` skill** — replaced `gh` CLI dependency with `curl` against the GitHub REST API for repo resolution and issue search; improves compatibility in agent environments where `gh` may be unavailable (#97)
+- **`smaqit.user-testing` agent** — decoupled from `.smaqit/tasks`; removed task-file dependency so the agent can run standalone without a task management setup (#99)
+- **`smaqit.release-analysis` skill** — refactored change-collection to use `Prepare release vX.Y.Z` commits as the authoritative release boundary instead of git tags and `gh pr list`; eliminates missed entries caused by shallow clones and incorrectly-ordered PR timestamps
+- **`smaqit.release-prepare-files` skill** — aligned reconciliation step to use the same `Prepare release` commit boundary as `smaqit.release-analysis`
+- Release version metadata updated to 1.1.3 in installer sources (`installer/main.go`, `installer/Makefile`)
+
 ## [1.1.2] - 2026-05-15
 
 ### Changed
@@ -438,7 +447,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.2...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.3...HEAD
+[1.1.3]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.2...v1.1.3
 [1.1.2]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.0.1...v1.1.0

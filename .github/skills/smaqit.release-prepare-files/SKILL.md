@@ -2,7 +2,7 @@
 name: smaqit.release-prepare-files
 description: Validate git state and prepare all files (CHANGELOG.md, version files) for release
 metadata:
-  version: "0.4.0"
+  version: "0.5.0"
 ---
 
 # Release Prepare Files
@@ -42,54 +42,61 @@ grep "## \\[X.Y.Z\\]" CHANGELOG.md
 
 **A. Collect all changes since last release (reconciliation source):**
 
-**IMPORTANT:** Agent environments are often shallow/grafted clones with no local tags. Fetch tags first, then supplement with `gh pr list`.
+The release workflow always creates a commit named exactly `"Prepare release vX.Y.Z"`. Use this commit as the **authoritative boundary** — it is more reliable than git tags (absent in shallow clones) and more precise than PR merge timestamps (which can be incorrectly ordered).
 
+**Step 2A-1 — Deepen the clone so the boundary commit is reachable:**
 ```bash
-# Fetch tags to recover history in shallow/grafted clones
+git fetch --unshallow 2>/dev/null || git fetch --depth=2147483647 2>/dev/null || true
+```
+
+**Step 2A-2 — Find the boundary SHA:**
+```bash
+# List all "Prepare release" commits, most recent first
+git log --format="%H %s" | grep -iE "^[0-9a-f]+ Prepare release v[0-9]"
+```
+- **If HEAD is a "Prepare release" commit** (agent is on the release PR branch) — take the **second** entry.
+- **Otherwise** — take the **first** entry.
+
+Store as `<boundary-sha>`. Confirm:
+```bash
+git log -1 --oneline "<boundary-sha>"
+```
+
+**Step 2A-3 — Collect commits after the boundary:**
+```bash
+# PR merge commits (high-level summaries):
+git log "<boundary-sha>..HEAD" --merges --pretty=format:"%h %s"
+
+# Individual commits (feature details):
+git log "<boundary-sha>..HEAD" --no-merges --pretty=format:"%h %s"
+```
+
+**Filter out noise commits** from both lists before analysing:
+- Lines matching `Initial plan` — release workflow setup commits
+- Lines matching `Prepare release v` — release boundary markers themselves
+- Lines matching `Merge pull request .*/copilot/release-` — release PR merges
+
+The remaining commits are the real changelog delta.
+
+**Fallback (no "Prepare release" commits found):** use git tags:
+```bash
 git fetch --tags --quiet 2>/dev/null || true
-
-# Get the last release tag
 git tag --sort=-v:refname | head -1
+# Then: git log <last-tag>..HEAD --merges/--no-merges
 ```
-
-If `git tag` returns empty, use the GitHub CLI:
-```bash
-gh release list --limit 1 --json tagName -q '.[0].tagName'
-```
-
-Run git log queries with the resolved `<last-tag>`:
-```bash
-# PR merge commits — primary change descriptions:
-git log <last-tag>..HEAD --merges --pretty=format:"%h %s"
-
-# Individual commits — catch changes not associated with a PR merge:
-git log <last-tag>..HEAD --no-merges --pretty=format:"%h %s"
-```
-
-**If git log output is empty or suspiciously short**, cross-check using the GitHub CLI (authoritative source):
-```bash
-# Get all merged PRs since the last release
-gh release view <last-tag> --json publishedAt -q '.publishedAt'
-
-gh pr list --state merged --base main --limit 50 \
-  --json number,title,mergedAt \
-  --jq 'sort_by(.mergedAt) | .[] | "#\(.number) \(.title) (merged \(.mergedAt[:10]))"'
-```
-
-Every PR returned by `gh pr list` that was merged after the last release date is a candidate for a CHANGELOG entry. Use the PR title and body to derive a human-readable description.
 
 **B. Reconcile `[Unreleased]` section with collected changes:**
 
-Build the authoritative list of changes using both git log output (Step 2A) and the `smaqit.release-analysis` `changes` list. The `[Unreleased]` section is a starting point only — treat it as incomplete.
+Build the authoritative list of changes using the commit delta from Step 2A and the `smaqit.release-analysis` `changes` list. The `[Unreleased]` section is a starting point only — treat it as incomplete.
 
-For each PR / commit found in the git log or `gh pr list` output:
+For each non-noise commit found in the git log range:
 1. Check if it is already described in `[Unreleased]`
 2. If **not represented**, add an entry under the appropriate category (`Added`, `Changed`, `Fixed`, `Removed`, `Deprecated`, `Security`)
 
 **Minimum completeness check before moving on:**
-- Count entries from `gh pr list` (non-release, non-plan PRs): call this N
-- Your CHANGELOG section for this version must have **at least N entries** (some PRs may warrant multiple entries)
-- If your count is lower, look at each PR title/body and add the missing descriptions
+- Count non-noise merge commits in the range (each is a PR that shipped): call this N
+- Your CHANGELOG section for this version must have **at least N entries**
+- If your count is lower, look at each merge commit title and add the missing descriptions
 
 The result should document every meaningful change — not just the version number bump.
 
@@ -220,6 +227,6 @@ version_synced: true
 - Version files are optional - CHANGELOG.md is the only required file
 - Keep a Changelog format uses version WITHOUT 'v' prefix in headers (e.g., `## [0.3.0]`), but git tags use 'v' prefix (e.g., `v0.3.0`)
 - For PR-based releases, validation rules are slightly relaxed (feature branch OK)
-- **Shallow/grafted clones are the norm in agent environments** — always run `git fetch --tags` first; use `gh pr list` as the authoritative change source when git log is truncated
-- **Reconciliation is mandatory:** always cross-check `[Unreleased]` against git log + `gh pr list` before promoting; the `[Unreleased]` section is often incomplete or empty
+- **"Prepare release" commits are the canonical boundary** — always deepen the clone first; locate the previous "Prepare release" commit and use its SHA as the lower bound for `git log`
+- **Reconciliation is mandatory:** always cross-check `[Unreleased]` against the commit delta before promoting; the `[Unreleased]` section is often incomplete or empty
 - Uncommitted changes in working tree are acceptable - `release-git-local` handles commit grouping

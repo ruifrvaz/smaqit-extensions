@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.4] - 2026-05-24
+
+### Changed
+- **smaqit.project-init v0.3.0** — add directory scaffolding step: creates `docs/`, `assets/`, `assets/raw/` if they do not exist (idempotent); updated description to reflect new behaviour
+
 ## [1.1.3] - 2026-05-16
 
 ### Changed
@@ -87,8 +92,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Code review feedback on `update` command: improved error handling and HTTP status code usage
 - `http.StatusTooManyRequests` constant replaces literal `429`; `io.Copy` error now properly wrapped
 - Removed erroneous `Invocation` section from `smaqit.project-recap` SKILL.md
-
-## [0.10.0] - 2026-05-05
 
 ### Added
 - **smaqit.utils.triage-issues skill v1.1.0** — pre-implementation GitHub issue triage gate
@@ -447,7 +450,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.3...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.4...HEAD
+[1.1.4]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.3...v1.1.4
 [1.1.3]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.2...v1.1.3
 [1.1.2]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.0...v1.1.1

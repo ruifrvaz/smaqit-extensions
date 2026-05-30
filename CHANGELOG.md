@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.5] - 2026-05-30
+
+### Added
+- **`smaqit.task-refresh` skill v1.0.0** — new skill for retroactive task creation at session end; scans session commits and modified files, cross-references against `PLANNING.md` active tasks, and surfaces candidates for task creation to prevent committed work from going untracked (#103)
+
+### Fixed
+- **`smaqit update`** — fixed update command to correctly detect platform/arch and handle portable binary detection on non-Linux systems; resolves wrong-arch binary being downloaded on macOS and other platforms (#103)
+- Release version metadata updated to 1.1.5 in installer sources (`installer/main.go`, `installer/Makefile`)
+
 ## [1.1.4] - 2026-05-24
 
 ### Changed
@@ -450,7 +459,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.4...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.5...HEAD
+[1.1.5]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.4...v1.1.5
 [1.1.4]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.3...v1.1.4
 [1.1.3]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.2...v1.1.3
 [1.1.2]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.1...v1.1.2

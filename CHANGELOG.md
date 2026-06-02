@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **smaqit.parity-assess** — added a structured parity assessment skill with Mermaid diagram guide, assessment template, and sync registration in the installer Makefile
+
 ## [1.1.4] - 2026-05-24
 
 ### Changed

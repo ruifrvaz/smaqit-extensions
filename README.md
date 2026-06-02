@@ -36,6 +36,9 @@ Enhance your agentic development with streamlined session management, task track
 - **smaqit.project-recap** - Generate a live project dashboard from the current codebase state (`project.recap`, `project.recap --refresh`)
 - **smaqit.project-compendium** - Manage a live Q&A knowledge base (`list compendium`, `fetch from compendium`, `update compendium`, `remove from compendium`)
 
+#### Assessment
+- **smaqit.parity-assess** - Compare two systems and generate a structured parity assessment with Mermaid diagrams and an action roadmap (`parity.assess <name>`)
+
 #### Utilities
 - **smaqit.utils.read-pdf** - Extract text from a PDF file and continue with the caller's original goal
 - **smaqit.utils.triage-issues** - Search upstream GitHub repos for known issues before implementation begins (`task.triage [id]`)
@@ -63,7 +66,7 @@ curl -fsSL https://raw.githubusercontent.com/ruifrvaz/smaqit-extensions/main/ins
 
 The installer copies files to your project's `.github/` directory:
 - `agents/` - 3 utility agents (release local, release PR, user-testing)
-- `skills/` - 22 workflow skills (complete implementations)
+- `skills/` - 23 workflow skills (complete implementations)
 
 ## Usage
 

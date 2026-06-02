@@ -1,19 +1,32 @@
 ---
 name: smaqit.task-plan
-description: Plans a specific task [id] before implementation. Reads the task file, scores complexity, resolves design gaps via iterative Q&A, and produces an approved execution plan at `/memories/session/plan.md`. Invoke when a task has unresolved Design Decisions, empty or stale Implementation Steps, or more than 7 Acceptance Criteria.
+description: Plans work before implementation or task creation. Given a task ID or a free-form idea, assesses complexity, resolves design gaps via discovery and Q&A, and produces an approved execution plan. Offers context-appropriate next steps: create a new task, start an existing one, or update the task file with resolved decisions.
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Task Plan
 
+## Modes
+
+The skill infers the operating mode from the user's input:
+
+- **Mode A — Pre-create**: No task ID provided. User has an idea, feature, or problem to plan. Produces an execution plan, then presents pre-populated task fields for the user to confirm before invoking `task.create`.
+- **Mode B — Pre-start / Update**: A task ID is provided and the task file exists. Reads the task, fills design gaps, produces a plan, then offers three next steps: start the task, update the task file in place, or keep the plan for a future session.
+
 ## Steps
 
-### Phase 1 — Task Assessment (always runs)
+### Phase 0 — Mode Detection (always runs)
 
-1. Read `.smaqit/tasks/NNN_*.md` for the given task ID. Extract: Description, Acceptance Criteria, Implementation Steps, Design Decisions, Notes, dependencies, and any existing Findings. If the task file is not found, report the error and ask the user to verify the task ID. Do not proceed.
+1. Determine the operating mode:
+   - **Mode A**: No task ID in the user's input. If a description was not provided, elicit one before proceeding. Set the working context to the user-provided description.
+   - **Mode B**: A task ID is present. Proceed to Phase 1.
 
-2. Score complexity:
+### Phase 1 — Task Assessment (Mode B only)
+
+2. Read `.smaqit/tasks/NNN_*.md` for the given task ID. Extract: Description, Acceptance Criteria, Implementation Steps, Design Decisions, Notes, dependencies, and any existing Findings. If the task file is not found, report the error and ask the user to verify the task ID. Do not proceed.
+
+3. Score complexity:
 
    **Trivial** — ALL of the following must be true:
    - ≤3 Acceptance Criteria
@@ -30,32 +43,32 @@ metadata:
    - >7 Acceptance Criteria
    - ACs contain unconstrained language ("appropriate", "works", "reasonable") with no measurable threshold
 
-3. Build a gap list: label each identified gap and classify as **Blocking** (must resolve before plan) or **Advisory** (can proceed with assumption).
+4. Build a gap list: label each identified gap and classify as **Blocking** (must resolve before plan) or **Advisory** (can proceed with assumption).
 
-4. Present the complexity verdict and gap list to the user.
-   - **Trivial verdict:** Recommend `task.start [id]` directly. Offer to produce a full plan on request. Stop here unless the user requests a full plan.
+5. Present the complexity verdict and gap list to the user.
+   - **Trivial verdict:** Offer to produce a full plan if needed; otherwise recommend proceeding to `task.start [id]` directly. Stop here unless the user requests a full plan.
    - **Complex verdict:** Present the gap list and continue to Phase 2.
 
-### Phase 2 — Discovery (complex tasks only)
+### Phase 2 — Discovery
 
-5. Identify 1–3 concern areas from the gap list. Typical examples: existing patterns the task must follow, external service API behaviour the task depends on, or test infrastructure patterns the task must replicate.
+6. Identify 1–3 concern areas. For Mode A, derive from the user description. For Mode B, derive from the gap list. Typical concern areas: existing module implementations the task must follow, external service or API behaviour the task depends on, or test infrastructure patterns the task must replicate.
 
-6. Launch one Explore subagent per concern area (in parallel when independent). Each subagent prompt must specify:
+7. Launch one Explore subagent per concern area (in parallel when independent). Each subagent prompt must specify:
    - The exact concern area to investigate
    - Thoroughness level: `quick`, `medium`, or `thorough`
    - What to return: specific files, types, function names, patterns, or API endpoints — not general summaries
 
-7. Update the in-memory plan draft with findings from each subagent. Note any concerns that returned no useful context.
+8. Update the in-memory plan draft with findings from each subagent. Note any concerns that returned no useful context.
 
 ### Phase 3 — Alignment (if blocking gaps remain after Discovery)
 
-8. Use `vscode_askQuestions` iteratively to resolve blocking gaps. Present one logical cluster per invocation, each question paired with a recommended option and rationale. If user answers reveal scope changes, loop back to Phase 2 with updated subagent queries.
+9. Use `vscode_askQuestions` iteratively to resolve blocking gaps. Present one logical cluster per invocation, each question paired with a recommended option and rationale. If user answers reveal scope changes, loop back to Phase 2 with updated subagent queries.
 
-9. For advisory gaps the user declines to clarify, document an explicit assumption in the plan draft.
+10. For advisory gaps the user declines to clarify, document an explicit assumption in the plan draft.
 
 ### Phase 4 — Design
 
-10. Draft the execution plan using the following structure:
+11. Draft the execution plan using the following structure:
 
     ```
     ## Plan: {Title — 2–10 words}
@@ -81,79 +94,122 @@ metadata:
 
     Rules for the plan body: no code blocks — describe changes using symbol names and file links; every file in Relevant Files must be verified to exist via Discovery or prior codebase knowledge; Decisions must capture all choices made in Phase 3 Q&A.
 
-11. Save the plan to `/memories/session/plan.md` using the `memory` tool (create or overwrite).
+12. Save the plan to `/memories/session/plan.md` using the `memory` tool (create or overwrite).
 
-12. **Show the full plan to the user.** The memory file is for persistence only — do not substitute it for presenting the plan in chat.
+13. **Show the full plan to the user.** The memory file is for persistence only — do not substitute it for presenting the plan in chat.
 
-### Phase 5 — Refinement
+### Phase 5 — Refinement and Next Steps
 
-13. Await user feedback and iterate:
+14. Await user feedback and iterate:
     - **Changes requested** → revise plan, re-save to `/memories/session/plan.md`, re-show updated plan
     - **Questions asked** → clarify inline; use `vscode_askQuestions` if follow-up questions are needed
     - **Alternatives wanted** → loop back to Phase 2 with a new Explore subagent targeting the alternative
-    - **Explicit approval given** → instruct user to run `task.start [id]` to begin implementation
+    - **Explicit approval given** → present context-appropriate next steps (step 15)
+
+15. On approval, offer next steps based on mode:
+
+    **Mode A:**
+    Present pre-populated task fields derived from the plan:
+    ```
+    Title: {derived from plan title}
+    Description: {1–3 sentence summary from TL;DR}
+    Acceptance Criteria:
+      - {AC derived from plan}
+    Implementation Steps:
+      - {Step derived from plan}
+    Design Decisions:
+      - {resolved decision from Phase 3}
+    ```
+    Ask the user to confirm. On confirmation, invoke `task.create` with these fields.
+
+    **Mode B:**
+    Offer three options:
+    1. **Start now** — run `task.start [id]` to begin implementation
+    2. **Update task file** — apply resolved Implementation Steps, Design Decisions, and any corrected ACs back to the task file (step 16)
+    3. **Keep for later** — plan is saved in `/memories/session/plan.md`; nothing else to do
+
+16. **Task file update (Mode B, option 2):**
+    - Present a field-by-field summary of proposed changes: current value → new value for each field being updated
+    - Require explicit user confirmation before writing
+    - Write only the fields that have changed: Implementation Steps, Design Decisions, and ACs if the plan reveals they are incorrect or incomplete
+    - Never touch PLANNING.md or any other file
 
 ## Output
 
 - `/memories/session/plan.md` — approved execution plan; session-scoped, never committed to git
-- Complexity verdict and gap list — surfaced in chat, not persisted
-- Optional: suggestions for improving `## Implementation Steps` in the task file, presented as recommendations only; user decides whether to apply them before running `task.start`
+- Complexity verdict and gap list (Mode B) — surfaced in chat, not persisted
+- Mode A: pre-populated task fields confirmed before `task.create`
+- Mode B option 2: task file updated with confirmed field changes
 
 ## Scope
 
 **In scope:**
-- Reading and assessing any task file by ID
+- Reading and assessing any task file by ID (Mode B)
+- Accepting a free-form description to plan a potential new task (Mode A)
 - Launching Explore subagents to gather codebase context
 - Iterative Q&A to resolve design decisions and gaps
 - Writing and refining an execution plan
+- Updating Implementation Steps, Design Decisions, and ACs in the task file after explicit user confirmation (Mode B option 2)
 
 **Out of scope:**
 - Does not implement code or modify source files
-- Does not modify task files, PLANNING.md, or any project files
+- Does not modify PLANNING.md or any project file other than the specific task file (Mode B option 2 only)
 - Does not run tests, builds, or services
 - Precedes `task.start` — does not replace it
 - Does not validate acceptance criteria — that is `task.complete`'s responsibility
 
 ## Examples
 
-### Example 1 — Complex task
+### Example 1 — Mode A (pre-create from idea)
+
+**Input:** `task.plan` (no ID), user describes: "I want to add an email notification when a task is marked complete"
+
+- No task ID — Mode A
+- Phase 2: Explore subagents — (a) existing notification or event patterns in the codebase; (b) task completion workflow and trigger points
+- Phase 3: Q&A on delivery mechanism (SMTP vs webhook) and failure handling
+- Phase 4: Plan written and approved; pre-populated fields presented
+- User confirms → `task.create` invoked with Title, Description, ACs, Implementation Steps, and resolved Design Decisions
+
+### Example 2 — Mode B (pre-start, complex task)
 
 **Input:** `task.plan 007`
 
-- Task 007: all Design Decisions are TBD, task is a spike, key architectural choice unresolved
-- Verdict: Complex — 2 blocking gaps (deduplication strategy, session-boundary trigger)
-- Phase 2: 2 Explore subagents in parallel — (a) external service API dedup/reprocess endpoints; (b) existing path patterns and session lifecycle signals in the codebase
-- Phase 3: Q&A on dedup strategy (reprocess vs delete+reinsert) and trigger mechanism (disconnect event vs token budget)
-- Phase 4: Plan written covering new path design, TraverseRule, dedup flow, trigger wiring, test structure
-- Plan shown and approved → user runs `task.start 007`
+- Task 007: all Design Decisions are TBD, task is a spike, implementation approach unresolved
+- Verdict: Complex — 3 blocking gaps
+- Phase 2: 2 Explore subagents in parallel — (a) external service API the task depends on; (b) existing module patterns and lifecycle signals
+- Phase 3: Q&A on key design decisions
+- Phase 4: Plan written and approved
+- Next steps offered: user selects option 2 (update task file); proposed changes shown field-by-field; confirmed; task file updated
 
-### Example 2 — Trivial task
+### Example 3 — Mode B (trivial task)
 
 **Input:** `task.plan 012`
 
 - Task 012: 3 ACs, clear steps, no TBD, all dependencies resolved
 - Verdict: Trivial — all steps defined, no ambiguity
-- Output: "This task looks straightforward. You can go directly to `task.start 012`. Want a full plan anyway?"
-- User declines → skill ends
+- Output: "This task looks straightforward. Proceed to `task.start 012`, or request a full plan."
+- User declines full plan → skill ends
 
 ## Gotchas
 
-- **Never call file-editing tools.** The only write tool is `memory` for `/memories/session/plan.md`. Any other write is a violation of this skill's contract.
+- **Write targets are strictly bounded.** Mode A: `memory` for plan + `task.create` (after confirmation). Mode B: `memory` for plan + specific task file (after confirmation, option 2 only). Never write to PLANNING.md, source files, or any other file.
 - **Complexity verdict is a recommendation, not a gate.** The user can always override and request a full plan for a trivial task, or skip planning for a complex one.
 - **All-TBD Design Decisions require full Discovery + Alignment before drafting the plan.** Skipping this is the root cause of wasted implementation on spike tasks.
 - **Explore subagents must receive an explicit thoroughness level and exact concern area.** Vague prompts ("look at the codebase") return low-value context. Always specify what to find and what to return.
 - **Plan is session-scoped.** `/memories/session/plan.md` is cleared when the session ends. Warn the user if they are resuming a partially planned task in a new session.
 - **Show the plan in chat — do not just mention the file.** The memory file is for persistence and handoff, not a substitute for presenting the plan.
 - **Do not assume Implementation Steps in the task file are current.** Task files are written speculatively at creation time; Discovery may reveal stale steps that reference removed abstractions.
+- **Task file update requires field-by-field confirmation.** Never batch-replace the entire task file. Present exactly what will change and require explicit approval before writing.
 
 ## Completion
 
-- [ ] Task file read and complexity verdict delivered to user
+- [ ] Mode detected (A or B)
+- [ ] Task file read and complexity verdict delivered (Mode B) OR description elicited (Mode A)
 - [ ] All blocking gaps resolved via Q&A or documented as explicit assumptions
 - [ ] Execution plan written to `/memories/session/plan.md`
 - [ ] Full plan shown to user in chat
 - [ ] User has explicitly approved the plan
-- [ ] User instructed to run `task.start [id]`
+- [ ] Appropriate next steps offered and actioned per mode
 
 ## Failure Handling
 
@@ -163,9 +219,12 @@ metadata:
 | Gathered input is ambiguous | Flag the ambiguity and ask for clarification |
 | Subagent invocation fails | Report the failure with context; do not silently retry |
 | Output artifact already exists | Confirm with user before overwriting |
-| Task file not found | Report error; ask user to verify task ID; do not proceed |
+| Task file not found (Mode B) | Report error; ask user to verify task ID; do not proceed |
+| Task file not found (Mode A) | Expected — proceed with user-provided description |
 | Task has no ACs and no Implementation Steps | Flag as incomplete spec; use Q&A to elicit a minimum viable spec before planning; do not produce a plan against an empty task |
 | Explore subagent returns no useful context | Note the gap in the plan as an unresolved unknown; do not retry with the same query |
 | User declines all clarifying questions | Proceed with documented assumptions; mark each assumption explicitly in the Decisions section |
 | `/memories/session/` write fails | Warn user; present full plan in chat only |
 | User approves trivial task without requesting full plan | Confirm `task.start [id]` is the right next step; do not produce an unnecessary plan |
+| Mode A idea too vague to plan | Ask for more detail before launching Discovery; do not proceed with an underspecified description |
+| User confirms task file update | Write only changed fields; confirm completion; do not modify any other section |

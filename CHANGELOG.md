@@ -7,8 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-06-03
+
+### Added
+- **`smaqit.parity-assess` skill v1.0.0** — structured parity assessment skill with Mermaid diagram guide, assessment template, and installer/README sync updates (#107)
+- **`smaqit.task-plan` skill v1.0.0** — pre-implementation planning skill that scores task complexity, gathers codebase context in parallel, resolves gaps, and produces execution plans (#106)
+
 ### Changed
-- **smaqit.parity-assess** — added a structured parity assessment skill with Mermaid diagram guide, assessment template, and sync registration in the installer Makefile
+- **`smaqit.user-testing` agent** — now prohibits ad-hoc bugfixes during test runs, requires diagnosis plus concrete follow-up fixes, and adds a dedicated report section (#109)
+- Release version metadata updated to 1.2.0 in installer sources (`installer/main.go`, `installer/Makefile`)
 
 ## [1.1.5] - 2026-05-30
 
@@ -462,7 +469,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.5...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.5...v1.2.0
 [1.1.5]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.4...v1.1.5
 [1.1.4]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.3...v1.1.4
 [1.1.3]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.2...v1.1.3

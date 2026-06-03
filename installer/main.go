@@ -25,7 +25,7 @@ var skillFiles embed.FS
 var templateFiles embed.FS
 
 // Version is set via ldflags during build: -X main.Version=$(VERSION)
-var Version = "1.1.5"
+var Version = "1.2.0"
 
 const planningTemplate = `# Task Planning
 

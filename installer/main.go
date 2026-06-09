@@ -100,7 +100,7 @@ func printHelp() {
 	fmt.Println()
 	fmt.Println("What gets installed:")
 	fmt.Println("  .github/agents/     - 3 utility agents")
-	fmt.Println("  .github/skills/     - 22 workflow skills")
+	fmt.Println("  .github/skills/     - 25 workflow skills")
 	fmt.Println("  .smaqit/templates/  - 3 canonical templates")
 }
 

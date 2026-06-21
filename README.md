@@ -48,7 +48,7 @@ Enhance your agentic development with streamlined session management, task track
 ### Utility Agents
 - **@smaqit.release.local** - Automated release management (local development)
 - **@smaqit.release.pr** - Automated release management (PR-based, CI/CD)
-- **@smaqit.user-testing** - End-to-end testing workflorkflow
+- **@smaqit.user-testing** - End-to-end testing workflow
 
 ## Installation
 
@@ -68,7 +68,7 @@ curl -fsSL https://raw.githubusercontent.com/ruifrvaz/smaqit-extensions/main/ins
 
 The installer copies files to your project's `.github/` directory:
 - `agents/` - 3 utility agents (release local, release PR, user-testing)
-- `skills/` - 25 workflow skills (complete implementations)
+- `skills/` - 27 workflow skills (complete implementations)
 
 ## Usage
 

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-06-21
+
+### Added
+- **`smaqit.project-diagnose` skill v1.1.0** — scans project structure for gaps across testing, security, logging, monitoring, provisioning, and CI/CD domains; produces a prioritised finding report with domain checklists and optional task creation (`project.diagnose`)
+
+### Changed
+- **Makefile** — added `smaqit.project-diagnose` to sync list; changed assets copy to recursive (`cp -rfL`) to support nested asset directories
+- Release version metadata updated to 1.4.0 in installer sources (`installer/main.go`, `installer/Makefile`)
+
 ## [1.2.0] - 2026-06-03
 
 ### Added
@@ -469,7 +478,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.2.0...v1.4.0
 [1.2.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.5...v1.2.0
 [1.1.5]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.4...v1.1.5
 [1.1.4]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.3...v1.1.4

@@ -25,7 +25,7 @@ var skillFiles embed.FS
 var templateFiles embed.FS
 
 // Version is set via ldflags during build: -X main.Version=$(VERSION)
-var Version = "1.3.0"
+var Version = "1.4.0"
 
 const planningTemplate = `# Task Planning
 
@@ -100,7 +100,7 @@ func printHelp() {
 	fmt.Println()
 	fmt.Println("What gets installed:")
 	fmt.Println("  .github/agents/     - 3 utility agents")
-	fmt.Println("  .github/skills/     - 25 workflow skills")
+	fmt.Println("  .github/skills/     - 27 workflow skills")
 	fmt.Println("  .smaqit/templates/  - 3 canonical templates")
 }
 

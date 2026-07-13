@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Makefile** — added `smaqit.test-create`, `smaqit.test-complete`, `smaqit.task-plan`, `smaqit.task-refresh` to sync list; all 27 skills now synced to `.github/`
 - Release version metadata updated to 1.3.0 in installer sources (`installer/main.go`, `installer/Makefile`)
 
-## [1.4.0] - 2026-06-21
+## [1.4.0] - 2026-07-13
 
 ### Added
 - **`smaqit.project-diagnose` skill v1.1.0** — scans project structure for gaps across testing, security, logging, monitoring, provisioning, and CI/CD domains; produces a prioritised finding report with domain checklists and optional task creation (`project.diagnose`)

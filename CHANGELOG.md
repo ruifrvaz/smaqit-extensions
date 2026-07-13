@@ -5,7 +5,17 @@ All notable changes to smaqit-extensions will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.3.0] - 2026-06-21
+
+### Added
+- **`smaqit.test-create` skill v1.0.0** — creates structured E2E test playbooks from task files with build-gate, deploy-gate, and live-service E2E validation (#108)
+- **`smaqit.test-complete` skill v1.0.0** — finalizes testing sessions by verifying pass/fail criteria and generating standardized test reports (#108)
+
+### Changed
+- **`smaqit.test-start` skill** — refined to delegate report generation to `smaqit.test-complete`; updated directives and workflow phases (#108)
+- **`smaqit.user-testing` agent v0.5.0** — updated to hand off report generation to `smaqit.test-complete`; refined directives and tool specifications (#108)
+- **Makefile** — added `smaqit.test-create`, `smaqit.test-complete`, `smaqit.task-plan`, `smaqit.task-refresh` to sync list; all 27 skills now synced to `.github/`
+- Release version metadata updated to 1.3.0 in installer sources (`installer/main.go`, `installer/Makefile`)
 
 ## [1.4.0] - 2026-06-21
 
@@ -480,6 +490,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.4.0...HEAD
 [1.4.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.2.0...v1.4.0
+[1.3.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.5...v1.2.0
 [1.1.5]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.4...v1.1.5
 [1.1.4]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.3...v1.1.4

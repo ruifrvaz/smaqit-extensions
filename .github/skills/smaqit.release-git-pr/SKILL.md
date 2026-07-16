@@ -1,13 +1,13 @@
 ---
 name: smaqit.release-git-pr
-description: Execute git operations for PR-based releases (commit, push via report_progress)
+description: Execute git operations for PR-based releases (commit, push, and enforce the post-merge automation PR title)
 metadata:
   version: "0.3.0"
 ---
 
 # Release Git PR
 
-Execute git operations required for PR-based releases: stage changes, commit to PR branch, and push via report_progress tool.
+Execute git operations required for PR-based releases: stage changes, commit to PR branch, and push via `report_progress` tool (handles credentials internally).
 
 ## When to use this skill
 
@@ -148,7 +148,7 @@ post_merge_automation: true
 | **Branch** | main | Feature/PR branch |
 | **Commit message** | "Release vX.Y.Z" | "Prepare release vX.Y.Z" |
 | **Tag creation** | ✅ Yes, immediately | ❌ No, after merge to main |
-| **Push method** | `git push` directly | `report_progress` tool |
+| **Push method** | `git push` directly | `report_progress` tool (handles credentials internally) |
 | **Git credentials** | User's local credentials | Handled by report_progress |
 | **When to use** | Developer's local machine | CI/CD or agent workflow |
 
@@ -157,7 +157,7 @@ post_merge_automation: true
 - This skill is for **PR-based release workflows only**
 - Tags are intentionally NOT created on PR branches
 - Complete release automation happens via post-merge workflow after PR merge
-- `report_progress` tool handles authentication - no need for credential setup
+- Push authentication is handled by `report_progress` tool (handles credentials internally)
 - PR title must match pattern for post-merge automation to trigger
 - Release completes automatically after PR merge: tag, builds, GitHub Release
 - See `.github/workflows/post-merge-release.yml` for workflow details

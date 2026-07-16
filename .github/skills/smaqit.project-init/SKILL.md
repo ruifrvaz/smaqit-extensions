@@ -1,6 +1,6 @@
 ---
 name: smaqit.project-init
-description: Bootstrap a new smaqit project by generating a structured .github/copilot-instructions.md from a template and creating the base project directory structure (`docs/`, `assets/`, `assets/raw/`). Use when the user asks to start a new smaqit project, init this project with smaqit, or set up smaqit for this project.
+description: Bootstrap a new smaqit project by generating the platform's project-instructions file (`.github/copilot-instructions.md` for GitHub Copilot, `CLAUDE.md` for Claude Code) from a shared template, and creating the base project directory structure (`docs/`, `assets/`, `assets/raw/`). Use when the user asks to start a new smaqit project, init this project with smaqit, or set up smaqit for this project.
 metadata:
   version: "0.3.0"
 ---
@@ -50,7 +50,7 @@ Bootstrap a new smaqit project by generating `.github/copilot-instructions.md` f
 6. **Scaffold base project directories**
    - Create the following directories if they do not already exist: `docs/`, `assets/`, `assets/raw/`.
    - Report which were created and which were already present.
-   - Inform the user: "Place raw project assets in `assets/raw/` before running `smaqit.project-zero-to-prod`."
+   - Inform the user: "Place raw project assets in `assets/raw/` before continuing."
 
 ## Requirements
 

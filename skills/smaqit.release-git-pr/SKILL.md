@@ -1,19 +1,19 @@
 ---
 name: smaqit.release-git-pr
-description: Execute git operations for PR-based releases (commit, push via report_progress)
+description: Execute git operations for PR-based releases (commit, push, and enforce the post-merge automation PR title)
 metadata:
   version: "0.3.0"
 ---
 
 # Release Git PR
 
-Execute git operations required for PR-based releases: stage changes, commit to PR branch, and push via report_progress tool.
+Execute git operations required for PR-based releases: stage changes, commit to PR branch, and push via {{PUSH_METHOD_SUMMARY}}.
 
 ## When to use this skill
 
 Use this skill for **PR-based releases** (running in CI/CD or agent workflow) after all files have been prepared. This skill:
 - Commits release preparation changes to PR branch
-- Pushes changes using `report_progress` tool (handles credentials internally)
+- Pushes changes using {{PUSH_METHOD_SUMMARY}}
 - Documents post-merge tag creation instructions
 
 **Do NOT use this skill for local releases** - use `release-git-local` instead.
@@ -53,18 +53,7 @@ git commit -m "Prepare release vX.Y.Z"
 git --no-pager log -1 --oneline
 ```
 
-### Step 3: Push via report_progress
-
-Use the `report_progress` tool to push changes to the PR branch:
-
-**This tool:**
-- Handles git credentials internally (no manual credential configuration needed)
-- Automatically runs `git push`
-- Updates the PR description with progress
-
-**Do NOT:**
-- Use `git push` directly (credentials not available in agent environment)
-- Create git tags at this stage (tags must be created after merge to main)
+{{PUSH_STEP}}
 
 ### Step 4: Verify and Enforce PR Title for Post-Merge Automation
 
@@ -138,7 +127,7 @@ post_merge_automation: true
 | Error | Likely Cause | Suggested Action |
 |-------|--------------|------------------|
 | `nothing to commit` | Files unchanged or not staged | Verify changes were made and staged correctly |
-| `report_progress` fails | PR update failed | Check PR status and retry |
+| {{PUSH_FAILURE_ROW}} |
 | Already on main branch | Wrong workflow used | Use `release-git-local` skill for local releases |
 
 ## Critical Differences from release-git-local
@@ -148,8 +137,8 @@ post_merge_automation: true
 | **Branch** | main | Feature/PR branch |
 | **Commit message** | "Release vX.Y.Z" | "Prepare release vX.Y.Z" |
 | **Tag creation** | ✅ Yes, immediately | ❌ No, after merge to main |
-| **Push method** | `git push` directly | `report_progress` tool |
-| **Git credentials** | User's local credentials | Handled by report_progress |
+| **Push method** | `git push` directly | {{PUSH_METHOD_SUMMARY}} |
+| **Git credentials** | User's local credentials | {{PUSH_CREDENTIAL_SOURCE}} |
 | **When to use** | Developer's local machine | CI/CD or agent workflow |
 
 ## Notes
@@ -157,7 +146,7 @@ post_merge_automation: true
 - This skill is for **PR-based release workflows only**
 - Tags are intentionally NOT created on PR branches
 - Complete release automation happens via post-merge workflow after PR merge
-- `report_progress` tool handles authentication - no need for credential setup
+- Push authentication is handled by {{PUSH_METHOD_SUMMARY}}
 - PR title must match pattern for post-merge automation to trigger
 - Release completes automatically after PR merge: tag, builds, GitHub Release
 - See `.github/workflows/post-merge-release.yml` for workflow details

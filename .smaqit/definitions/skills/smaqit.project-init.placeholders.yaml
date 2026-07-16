@@ -1,0 +1,5 @@
+# {{PLACEHOLDER}} values for skills/smaqit.project-init/SKILL.md
+# Consumed by scripts/generate-targets.py — resolved per platform at compile time.
+INSTRUCTIONS_FILE:
+  copilot: .github/copilot-instructions.md
+  claude: CLAUDE.md

@@ -36,7 +36,7 @@ Before building or reusing the existing map, determine whether a rebuild is need
 Read the following sources to build a flat, deduplicated list of third-party tools and technologies:
 
 1. **Project manifests** — scan the project root for any of: `package.json`, `requirements.txt`, `go.mod`, `pyproject.toml`, `*.csproj`, `pom.xml`, `Cargo.toml`, `Gemfile`, `composer.json`, `build.gradle`. Read whichever exist. Extract named dependencies plus the runtime and framework (e.g., Node.js, Python, .NET, Go).
-2. **Copilot instructions** — read `.github/copilot-instructions.md` if present. Extract any tools, services, or platforms described as part of the project's infrastructure or stack.
+2. **Project instructions** — read `.github/copilot-instructions.md` (GitHub Copilot) or `CLAUDE.md`/`AGENTS.md` (Claude Code) if present. Extract any tools, services, or platforms described as part of the project's infrastructure or stack.
 3. **Session context** — extract tools, platforms, or services mentioned in the current conversation.
 
 Exclude internal project names and the smaqit framework itself. Produce a deduplicated, flat tool list. This is the **project layer** — it is always complete regardless of whether a task is active.

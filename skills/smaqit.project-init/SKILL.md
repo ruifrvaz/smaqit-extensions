@@ -1,20 +1,20 @@
 ---
 name: smaqit.project-init
-description: Bootstrap a new smaqit project by generating a structured .github/copilot-instructions.md from a template and creating the base project directory structure (`docs/`, `assets/`, `assets/raw/`). Use when the user asks to start a new smaqit project, init this project with smaqit, or set up smaqit for this project.
+description: Bootstrap a new smaqit project by generating the platform's project-instructions file (`.github/copilot-instructions.md` for GitHub Copilot, `CLAUDE.md` for Claude Code) from a shared template, and creating the base project directory structure (`docs/`, `assets/`, `assets/raw/`). Use when the user asks to start a new smaqit project, init this project with smaqit, or set up smaqit for this project.
 metadata:
   version: "0.3.0"
 ---
 
 # Project Init
 
-Bootstrap a new smaqit project by generating `.github/copilot-instructions.md` from the smaqit template.
+Bootstrap a new smaqit project by generating `{{INSTRUCTIONS_FILE}}` from the smaqit template.
 
 ## Steps
 
 1. **Check for existing file**
-   - Check whether `.github/copilot-instructions.md` already exists.
+   - Check whether `{{INSTRUCTIONS_FILE}}` already exists.
    - If it **does exist**, stop immediately and inform the user:
-     > `.github/copilot-instructions.md` already exists. Aborting to avoid overwriting your project instructions. Delete or rename the existing file and run this skill again if you want to reinitialise.
+     > `{{INSTRUCTIONS_FILE}}` already exists. Aborting to avoid overwriting your project instructions. Delete or rename the existing file and run this skill again if you want to reinitialise.
    - Do **not** proceed past this step if the file exists.
 
 2. **Read the template**
@@ -43,20 +43,20 @@ Bootstrap a new smaqit project by generating `.github/copilot-instructions.md` f
    - Keep the `# Scaffolding` section exactly as it appears in the template — do **not** modify it.
 
 5. **Write the output file**
-   - Write the populated content to `.github/copilot-instructions.md`.
+   - Write the populated content to `{{INSTRUCTIONS_FILE}}`.
    - Confirm success to the user and list which fields were filled in and which were left as placeholders:
-     > ✓ `.github/copilot-instructions.md` created successfully. Review and commit the file to include it in your project.
+     > ✓ `{{INSTRUCTIONS_FILE}}` created successfully. Review and commit the file to include it in your project.
 
 6. **Scaffold base project directories**
    - Create the following directories if they do not already exist: `docs/`, `assets/`, `assets/raw/`.
    - Report which were created and which were already present.
-   - Inform the user: "Place raw project assets in `assets/raw/` before running `smaqit.project-zero-to-prod`."
+   - Inform the user: "Place raw project assets in `assets/raw/` before continuing."
 
 ## Requirements
 
-- **Never overwrite** an existing `.github/copilot-instructions.md` (Step 1 is a hard guard).
+- **Never overwrite** an existing `{{INSTRUCTIONS_FILE}}` (Step 1 is a hard guard).
 - The `# Scaffolding` section must be copied verbatim from the template — it is static and must not be altered.
 - **Never assume or invent** values for placeholder fields — only fill in what can be directly inferred from existing repo files.
 - Placeholders must remain for any field that cannot be confidently inferred.
-- Do **not** create any additional files beyond `.github/copilot-instructions.md`.
+- Do **not** create any additional files beyond `{{INSTRUCTIONS_FILE}}`.
 - Directory scaffold (Step 6) is idempotent — never delete or modify existing directory contents.

@@ -1,0 +1,45 @@
+# {{PLACEHOLDER}} values for skills/smaqit.release-git-pr/SKILL.md
+# Consumed by scripts/generate-targets.py — resolved per platform at compile time.
+#
+# Copilot's push mechanism (report_progress, a GitHub Copilot Coding Agent
+# primitive) has no Claude Code equivalent — Claude gets direct git/gh access
+# via Bash instead, matching smaqit-release-local.
+
+PUSH_STEP:
+  copilot: |-
+    ### Step 3: Push via report_progress
+
+    Use the `report_progress` tool to push changes to the PR branch:
+
+    **This tool:**
+    - Handles git credentials internally (no manual credential configuration needed)
+    - Automatically runs `git push`
+    - Updates the PR description with progress
+
+    **Do NOT:**
+    - Use `git push` directly (credentials not available in agent environment)
+    - Create git tags at this stage (tags must be created after merge to main)
+  claude: |-
+    ### Step 3: Push via git
+
+    Push the commit directly to the PR branch:
+
+    ```bash
+    git push origin <branch-name>
+    ```
+
+    **Do NOT:**
+    - Create git tags at this stage (tags must be created after merge to main)
+    - Push to `main` directly — this workflow is PR-based
+
+PUSH_METHOD_SUMMARY:
+  copilot: "`report_progress` tool (handles credentials internally)"
+  claude: "`git push` directly (using the current environment's git/gh credentials)"
+
+PUSH_CREDENTIAL_SOURCE:
+  copilot: Handled by report_progress
+  claude: User's local/agent git credentials
+
+PUSH_FAILURE_ROW:
+  copilot: "`report_progress` fails | PR update failed | Check PR status and retry"
+  claude: "`git push` fails | Network issue, auth failure, or diverged branch | Check `git status`/`gh auth status`, resolve, and retry"

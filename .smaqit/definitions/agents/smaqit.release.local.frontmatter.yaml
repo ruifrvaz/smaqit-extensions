@@ -1,0 +1,14 @@
+# Per-platform frontmatter for agents/smaqit.release.local.agent.md
+# Consumed by scripts/generate-targets.py — the agent body is shared and
+# reused verbatim for both platforms; only frontmatter differs here.
+copilot:
+  name: smaqit.release.local
+  description: Orchestrate a release process with direct git access (local development)
+  metadata:
+    version: "0.4.0"
+  tools: [execute/getTerminalOutput, execute/runInTerminal, read/readFile, read/terminalSelection, read/terminalLastCommand, edit, search, todo]
+
+claude:
+  name: smaqit-release-local
+  description: Orchestrate a release process with direct git access (local development)
+  tools: Bash, Read, Edit, Grep, Glob, TodoWrite

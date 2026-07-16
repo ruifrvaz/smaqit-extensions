@@ -3,7 +3,7 @@ name: smaqit.user-testing
 description: End-to-end user testing agent that validates a project's test workflow and produces a standardized report
 metadata:
   version: "0.5.0"
-tools: ['edit', 'search', 'execute/getTerminalOutput', 'execute/runInTerminal', 'read/terminalLastCommand', 'read/terminalSelection', 'search/usages', 'read/problems', 'execute/testFailure', 'todo', 'execute/runTests']
+tools: [edit, search, execute/getTerminalOutput, execute/runInTerminal, read/terminalLastCommand, read/terminalSelection, search/usages, read/problems, execute/testFailure, todo, execute/runTests]
 ---
 
 # Testing Agent

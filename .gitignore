@@ -17,9 +17,12 @@ go.work.sum
 installer/smaqit-extensions
 
 # Installer temp directories (populated by make prepare)
-installer/agents/
 installer/skills/
 installer/prompts/
+installer/agents-copilot/
+installer/agents-claude/
+installer/commands-claude/
+installer/skills-claude/
 
 # IDEs
 .vscode/

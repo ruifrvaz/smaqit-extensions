@@ -2,6 +2,16 @@
 
 Enhance your agentic development with streamlined session management, task tracking, release and test automation. Designed to work out of the box in any repository with a simple one-time install.
 
+## Compatibility
+
+| Platform | Status |
+|----------|--------|
+| GitHub Copilot (VS Code) | ✅ Supported |
+| Claude Code | ✅ Supported |
+| Other AI assistants | Planned |
+
+A single `smaqit-extensions init` installs both — GitHub Copilot support is unaffected; Claude Code support is additive.
+
 ## What's Included
 
 ### Skills
@@ -48,9 +58,9 @@ Enhance your agentic development with streamlined session management, task track
 - **smaqit.utils.triage-issues** - Search upstream GitHub repos for known issues before implementation begins (`task.triage [id]`)
 
 ### Utility Agents
-- **@smaqit.release.local** - Automated release management (local development)
-- **@smaqit.release.pr** - Automated release management (PR-based, CI/CD)
-- **@smaqit.user-testing** - End-to-end testing workflow
+- **@smaqit.release.local** (Copilot) / **/smaqit.release.local** (Claude Code) - Automated release management (local development)
+- **@smaqit.release.pr** (Copilot) / **/smaqit.release.pr** (Claude Code) - Automated release management (PR-based, CI/CD)
+- **@smaqit.user-testing** (Copilot) / **/smaqit.user-testing** (Claude Code) - End-to-end testing workflow
 
 ## Installation
 
@@ -68,13 +78,16 @@ curl -fsSL https://raw.githubusercontent.com/ruifrvaz/smaqit-extensions/main/ins
 
 ### What Gets Installed
 
-The installer copies files to your project's `.github/` directory:
-- `agents/` - 3 utility agents (release local, release PR, user-testing)
-- `skills/` - 28 workflow skills (complete implementations)
+The installer copies files to both `.github/` (GitHub Copilot) and `.claude/` (Claude Code) — a single install supports both:
+- `.github/agents/` - 3 utility agents (release local, release PR, user-testing)
+- `.github/skills/` - 28 workflow skills (complete implementations)
+- `.claude/agents/` - 3 utility subagents (same 3, Claude Code format)
+- `.claude/commands/` - 3 slash commands, one per subagent
+- `.claude/skills/` - 28 workflow skills (same content as `.github/skills/`)
 
 ## Usage
 
-Skills are the primary instruction component and can be invoked directly in GitHub Copilot by referencing the skill name in your request:
+Skills are the primary instruction component and can be invoked directly in GitHub Copilot or Claude Code by referencing the skill name in your request:
 
 ```
 User: smaqit.session-start
@@ -123,12 +136,19 @@ Agents are available in GitHub Custom Agents:
 @smaqit.user-testing    # End-to-end testing
 ```
 
+On Claude Code, the same 3 agents are available as slash commands, which delegate to the matching subagent via `Task`:
+```
+/smaqit.release.local   # Local release (interactive or auto-confirm)
+/smaqit.release.pr      # PR-based release (CI/CD, auto-confirm only)
+/smaqit.user-testing    # End-to-end testing
+```
+
 ## Requirements
 
-- GitHub Copilot with agent and skill support
+- GitHub Copilot with agent and skill support, or Claude Code
 - A git repository
 
-The installer writes files under `.github/agents/` and `.github/skills/` and will create the `.github/` folder if it doesn't exist.
+The installer writes files under `.github/{agents,skills}/` and `.claude/{agents,commands,skills}/`, creating either folder if it doesn't exist.
 
 The installer also scaffolds the `.smaqit/` directory structure used by agents and skills:
 - `.smaqit/tasks/PLANNING.md` - Central task tracking file
@@ -163,7 +183,15 @@ These are copied to `.github/{agents,skills}/` for use by GitHub Copilot.
 make sync
 ```
 
-This copies updated files to `.github/` so they're available for use. The sync verification workflow in CI will fail if `.github/` is out of sync with source files.
+This copies updated files to `.github/` so they're available for use. The sync verification workflow in CI will fail if `.github/` is out of sync with source files. (This dogfooding sync covers GitHub Copilot only — this repository does not currently maintain its own `.claude/` copy for self-use, separate from what `smaqit-extensions init` ships to consumers.)
+
+### Claude Code Build Pipeline
+
+The `.claude/` output shipped by `smaqit-extensions init` is generated, not hand-maintained. Additional source locations feed it:
+- `commands/` - Claude Code slash-command wrappers, one per agent
+- `.smaqit/definitions/agents/*.claude.yaml` - per-agent Claude-side `name`/`description`/`tools` overrides (agent bodies are reused verbatim from `agents/`; skills need no override — their frontmatter is identical on both platforms)
+
+Running `make -C installer prepare` (or `python3 scripts/generate-targets.py` directly) compiles these, plus `agents/` and `skills/`, into gitignored `installer/{agents-claude,commands-claude,skills-claude}/` trees that the Go binary embeds. Re-run it after editing any agent, skill, or command source before building.
 
 ## Releases
 

@@ -15,14 +15,23 @@ import (
 	"strings"
 )
 
-//go:embed agents/*.md
-var agentFiles embed.FS
+//go:embed agents-copilot/*.md
+var copilotAgentFiles embed.FS
 
 //go:embed skills/*
 var skillFiles embed.FS
 
 //go:embed templates/*
 var templateFiles embed.FS
+
+//go:embed agents-claude/*.md
+var claudeAgentFiles embed.FS
+
+//go:embed commands-claude/*.md
+var claudeCommandFiles embed.FS
+
+//go:embed skills-claude
+var skillFilesClaude embed.FS
 
 // Version is set via ldflags during build: -X main.Version=$(VERSION)
 var Version = "1.4.0"
@@ -54,6 +63,114 @@ func writeFileIfMissing(path string, content []byte, perm fs.FileMode) error {
 		return err
 	}
 	return os.WriteFile(path, content, perm)
+}
+
+// installFlatFiles copies every file directly under srcRoot in fsys to destDir
+// (non-recursive — used for agent and command files, which are flat).
+func installFlatFiles(fsys fs.FS, srcRoot, destDir string) (int, error) {
+	count := 0
+	err := fs.WalkDir(fsys, srcRoot, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			return nil
+		}
+
+		content, err := fs.ReadFile(fsys, path)
+		if err != nil {
+			return fmt.Errorf("reading %s: %w", path, err)
+		}
+
+		targetPath := filepath.Join(destDir, filepath.Base(path))
+		if err := os.WriteFile(targetPath, content, 0644); err != nil {
+			return fmt.Errorf("writing %s: %w", targetPath, err)
+		}
+
+		count++
+		return nil
+	})
+	return count, err
+}
+
+// removeFlatFiles removes, from destDir, the file named after each file found
+// directly under srcRoot in fsys (used for agent and command files).
+func removeFlatFiles(fsys fs.FS, srcRoot, destDir string) (int, error) {
+	count := 0
+	err := fs.WalkDir(fsys, srcRoot, func(path string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return err
+		}
+		targetPath := filepath.Join(destDir, filepath.Base(path))
+		if removeErr := os.Remove(targetPath); removeErr == nil {
+			count++
+		}
+		return nil
+	})
+	return count, err
+}
+
+// removeSkillTree removes, from destDir, each top-level skill directory found
+// directly under srcRoot in fsys.
+func removeSkillTree(fsys fs.FS, srcRoot, destDir string) (int, error) {
+	entries, err := fs.ReadDir(fsys, srcRoot)
+	if err != nil {
+		return 0, err
+	}
+	count := 0
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		skillPath := filepath.Join(destDir, entry.Name())
+		if _, statErr := os.Stat(skillPath); statErr == nil {
+			if removeErr := os.RemoveAll(skillPath); removeErr == nil {
+				count++
+			}
+		}
+	}
+	return count, nil
+}
+
+// installSkillTree copies every file under srcRoot (srcRoot/<skill-name>/**) in
+// fsys to destDir, preserving the nested structure, and returns the number of
+// unique top-level skill directories installed.
+func installSkillTree(fsys fs.FS, srcRoot, destDir string) (int, error) {
+	seen := make(map[string]bool)
+	prefix := srcRoot + "/"
+	err := fs.WalkDir(fsys, srcRoot, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			return nil
+		}
+
+		content, err := fs.ReadFile(fsys, path)
+		if err != nil {
+			return fmt.Errorf("reading %s: %w", path, err)
+		}
+
+		relPath := filepath.ToSlash(path)
+		if !strings.HasPrefix(relPath, prefix) {
+			return nil
+		}
+		skillRelPath := strings.TrimPrefix(relPath, prefix)
+		skillName := strings.SplitN(skillRelPath, "/", 2)[0]
+		seen[skillName] = true
+
+		targetPath := filepath.Join(destDir, skillRelPath)
+		targetDir := filepath.Dir(targetPath)
+		if err := os.MkdirAll(targetDir, 0755); err != nil {
+			return fmt.Errorf("creating directory %s: %w", targetDir, err)
+		}
+		if err := os.WriteFile(targetPath, content, 0644); err != nil {
+			return fmt.Errorf("writing %s: %w", targetPath, err)
+		}
+
+		return nil
+	})
+	return len(seen), err
 }
 
 func main() {
@@ -99,8 +216,11 @@ func printHelp() {
 	fmt.Println("  smaqit-extensions --help         Show this help message")
 	fmt.Println()
 	fmt.Println("What gets installed:")
-	fmt.Println("  .github/agents/     - 3 utility agents")
-	fmt.Println("  .github/skills/     - 27 workflow skills")
+	fmt.Println("  .github/agents/     - 3 utility agents (GitHub Copilot)")
+	fmt.Println("  .github/skills/     - 28 workflow skills (GitHub Copilot)")
+	fmt.Println("  .claude/agents/     - 3 utility agents (Claude Code)")
+	fmt.Println("  .claude/commands/   - 3 slash commands (Claude Code)")
+	fmt.Println("  .claude/skills/     - 28 workflow skills (Claude Code)")
 	fmt.Println("  .smaqit/templates/  - 3 canonical templates")
 }
 
@@ -108,6 +228,9 @@ func cmdInstall(targetDir string) {
 	// Create target directories
 	agentsDir := filepath.Join(targetDir, ".github", "agents")
 	skillsDir := filepath.Join(targetDir, ".github", "skills")
+	claudeAgentsDir := filepath.Join(targetDir, ".claude", "agents")
+	claudeCommandsDir := filepath.Join(targetDir, ".claude", "commands")
+	claudeSkillsDir := filepath.Join(targetDir, ".claude", "skills")
 	smaqitDir := filepath.Join(targetDir, ".smaqit")
 	tasksDir := filepath.Join(smaqitDir, "tasks")
 	historyDir := filepath.Join(smaqitDir, "history")
@@ -121,6 +244,21 @@ func cmdInstall(targetDir string) {
 
 	if err := os.MkdirAll(skillsDir, 0755); err != nil {
 		fmt.Printf("Error creating skills directory: %v\n", err)
+		os.Exit(1)
+	}
+
+	if err := os.MkdirAll(claudeAgentsDir, 0755); err != nil {
+		fmt.Printf("Error creating Claude agents directory: %v\n", err)
+		os.Exit(1)
+	}
+
+	if err := os.MkdirAll(claudeCommandsDir, 0755); err != nil {
+		fmt.Printf("Error creating Claude commands directory: %v\n", err)
+		os.Exit(1)
+	}
+
+	if err := os.MkdirAll(claudeSkillsDir, 0755); err != nil {
+		fmt.Printf("Error creating Claude skills directory: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -176,30 +314,8 @@ func cmdInstall(targetDir string) {
 	}
 
 	// Install agents
-	agentCount := 0
-	if err := fs.WalkDir(agentFiles, "agents", func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if d.IsDir() {
-			return nil
-		}
-
-		content, err := fs.ReadFile(agentFiles, path)
-		if err != nil {
-			return fmt.Errorf("reading %s: %w", path, err)
-		}
-
-		filename := filepath.Base(path)
-		targetPath := filepath.Join(agentsDir, filename)
-
-		if err := os.WriteFile(targetPath, content, 0644); err != nil {
-			return fmt.Errorf("writing %s: %w", targetPath, err)
-		}
-
-		agentCount++
-		return nil
-	}); err != nil {
+	agentCount, err := installFlatFiles(copilotAgentFiles, "agents-copilot", agentsDir)
+	if err != nil {
 		fmt.Printf("Error installing agents: %v\n", err)
 		os.Exit(1)
 	}
@@ -253,37 +369,57 @@ func cmdInstall(targetDir string) {
 	}
 	skillCount := len(seenSkillDirs)
 
+	// Install Claude Code agents, commands, and skills alongside the GitHub Copilot output.
+	claudeAgentCount, err := installFlatFiles(claudeAgentFiles, "agents-claude", claudeAgentsDir)
+	if err != nil {
+		fmt.Printf("Error installing Claude agents: %v\n", err)
+		os.Exit(1)
+	}
+
+	claudeCommandCount, err := installFlatFiles(claudeCommandFiles, "commands-claude", claudeCommandsDir)
+	if err != nil {
+		fmt.Printf("Error installing Claude commands: %v\n", err)
+		os.Exit(1)
+	}
+
+	claudeSkillCount, err := installSkillTree(skillFilesClaude, "skills-claude", claudeSkillsDir)
+	if err != nil {
+		fmt.Printf("Error installing Claude skills: %v\n", err)
+		os.Exit(1)
+	}
+
 	fmt.Printf("✓ Installed %d agents to %s\n", agentCount, agentsDir)
 	fmt.Printf("✓ Installed %d skills to %s\n", skillCount, skillsDir)
+	fmt.Printf("✓ Installed %d agents to %s\n", claudeAgentCount, claudeAgentsDir)
+	fmt.Printf("✓ Installed %d commands to %s\n", claudeCommandCount, claudeCommandsDir)
+	fmt.Printf("✓ Installed %d skills to %s\n", claudeSkillCount, claudeSkillsDir)
 	fmt.Println()
 	fmt.Println("Extensions installed successfully!")
 	fmt.Println()
 	fmt.Println("Get started:")
-	fmt.Println("  Use agents: @smaqit.release.local, @smaqit.release.pr, @smaqit.user-testing")
-	fmt.Println("  Use skills: Skills are available via direct invocation in GitHub Copilot")
+	fmt.Println("  GitHub Copilot — agents: @smaqit.release.local, @smaqit.release.pr, @smaqit.user-testing")
+	fmt.Println("  GitHub Copilot — skills: available via direct invocation")
+	fmt.Println("  Claude Code — agents: /smaqit.release.local, /smaqit.release.pr, /smaqit.user-testing")
+	fmt.Println("  Claude Code — skills: available via direct invocation")
 }
 
 func cmdUninstall() {
 	targetDir := "."
 	agentsDir := filepath.Join(targetDir, ".github", "agents")
 	skillsDir := filepath.Join(targetDir, ".github", "skills")
+	claudeAgentsDir := filepath.Join(targetDir, ".claude", "agents")
+	claudeCommandsDir := filepath.Join(targetDir, ".claude", "commands")
+	claudeSkillsDir := filepath.Join(targetDir, ".claude", "skills")
 
 	removedCount := 0
 
 	// Remove agents: discover from embedded FS
-	if err := fs.WalkDir(agentFiles, "agents", func(path string, d fs.DirEntry, err error) error {
-		if err != nil || d.IsDir() {
-			return err
-		}
-		targetPath := filepath.Join(agentsDir, filepath.Base(path))
-		if removeErr := os.Remove(targetPath); removeErr == nil {
-			removedCount++
-		}
-		return nil
-	}); err != nil {
+	agentRemoved, err := removeFlatFiles(copilotAgentFiles, "agents-copilot", agentsDir)
+	if err != nil {
 		fmt.Printf("Error enumerating agents: %v\n", err)
 		os.Exit(1)
 	}
+	removedCount += agentRemoved
 
 	// Remove skills: discover top-level skill directories from embedded FS
 	entries, err := skillFiles.ReadDir("skills")
@@ -302,6 +438,28 @@ func cmdUninstall() {
 			}
 		}
 	}
+
+	// Remove Claude Code agents, commands, and skills alongside the GitHub Copilot output.
+	claudeAgentRemoved, err := removeFlatFiles(claudeAgentFiles, "agents-claude", claudeAgentsDir)
+	if err != nil {
+		fmt.Printf("Error enumerating Claude agents: %v\n", err)
+		os.Exit(1)
+	}
+	removedCount += claudeAgentRemoved
+
+	claudeCommandRemoved, err := removeFlatFiles(claudeCommandFiles, "commands-claude", claudeCommandsDir)
+	if err != nil {
+		fmt.Printf("Error enumerating Claude commands: %v\n", err)
+		os.Exit(1)
+	}
+	removedCount += claudeCommandRemoved
+
+	claudeSkillRemoved, err := removeSkillTree(skillFilesClaude, "skills-claude", claudeSkillsDir)
+	if err != nil {
+		fmt.Printf("Error enumerating Claude skills: %v\n", err)
+		os.Exit(1)
+	}
+	removedCount += claudeSkillRemoved
 
 	if removedCount > 0 {
 		fmt.Printf("✓ Removed %d extension files\n", removedCount)
@@ -579,5 +737,5 @@ func checkAndReInit(dir string) {
 
 	fmt.Println("Detected .smaqit/ — re-initializing project assets...")
 	cmdInstall(dir)
-	fmt.Println("Re-initialized .github/ with updated assets")
+	fmt.Println("Re-initialized .github/ and .claude/ with updated assets")
 }

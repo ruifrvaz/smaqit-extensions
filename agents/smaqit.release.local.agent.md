@@ -1,11 +1,3 @@
----
-name: smaqit.release.local
-description: Orchestrate a release process with direct git access (local development)
-metadata:
-  version: "0.4.0"
-tools: [execute/getTerminalOutput, execute/runInTerminal, read/readFile, read/terminalSelection, read/terminalLastCommand, edit, search, todo]
----
-
 # Release Agent (Local)
 
 ## Role

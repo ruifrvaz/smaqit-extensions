@@ -5,10 +5,9 @@ VERSION ?= 1.4.0
 prepare:
 	@echo "Preparing build environment..."
 	@mkdir -p dist
-	@mkdir -p agents skills templates
-	@cp -r ../agents/*.md agents/ 2>/dev/null || true
-	@cp -rL ../skills/* skills/ 2>/dev/null || true
+	@mkdir -p templates
 	@cp -r ../.smaqit/templates/* templates/ 2>/dev/null || true
+	@python3 ../scripts/generate-targets.py
 
 build: prepare
 	@echo "Building smaqit-extensions..."
@@ -17,7 +16,7 @@ build: prepare
 clean:
 	@echo "Cleaning build artifacts..."
 	rm -rf dist/
-	rm -rf agents/ skills/
+	rm -rf skills/ agents-copilot/ agents-claude/ commands-claude/ skills-claude/
 
 test: build
 	@echo "Testing installer..."

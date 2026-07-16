@@ -25,7 +25,7 @@ var skillFiles embed.FS
 var templateFiles embed.FS
 
 // Version is set via ldflags during build: -X main.Version=$(VERSION)
-var Version = "1.1.3"
+var Version = "1.4.0"
 
 const planningTemplate = `# Task Planning
 
@@ -93,14 +93,14 @@ func printHelp() {
 	fmt.Println("Commands:")
 	fmt.Println("  smaqit-extensions init           Install extensions in current directory")
 	fmt.Println("  smaqit-extensions init <dir>     Install extensions in specified directory")
-	fmt.Println("  smaqit-extensions update         Update to the latest release (Linux only)")
+	fmt.Println("  smaqit-extensions update         Update to the latest release")
 	fmt.Println("  smaqit-extensions uninstall      Remove extensions from current directory")
 	fmt.Println("  smaqit-extensions version        Show version")
 	fmt.Println("  smaqit-extensions --help         Show this help message")
 	fmt.Println()
 	fmt.Println("What gets installed:")
 	fmt.Println("  .github/agents/     - 3 utility agents")
-	fmt.Println("  .github/skills/     - 22 workflow skills")
+	fmt.Println("  .github/skills/     - 27 workflow skills")
 	fmt.Println("  .smaqit/templates/  - 3 canonical templates")
 }
 
@@ -323,14 +323,7 @@ type githubAsset struct {
 }
 
 // runUpdate self-updates the binary to the latest GitHub release.
-// Currently Linux-only.
 func runUpdate() {
-	if runtime.GOOS != "linux" {
-		// TODO: add macOS/Windows support
-		fmt.Fprintln(os.Stderr, "smaqit-extensions update is currently supported on Linux only")
-		os.Exit(1)
-	}
-
 	localVersion := Version
 
 	release, err := fetchLatestRelease()
@@ -358,8 +351,11 @@ func runUpdate() {
 		return
 	}
 
-	// Find the linux-amd64 asset
-	assetName := "smaqit-extensions_linux_amd64"
+	// Build the asset name for the current platform and architecture.
+	assetName := fmt.Sprintf("smaqit-extensions_%s_%s", runtime.GOOS, runtime.GOARCH)
+	if runtime.GOOS == "windows" {
+		assetName += ".exe"
+	}
 	var downloadURL string
 	for _, asset := range release.Assets {
 		if asset.Name == assetName {
@@ -372,7 +368,7 @@ func runUpdate() {
 		os.Exit(1)
 	}
 
-	tmpFile := "/tmp/smaqit-extensions.new"
+	tmpFile := filepath.Join(os.TempDir(), "smaqit-extensions.new")
 	if err := downloadBinary(downloadURL, tmpFile); err != nil {
 		_ = os.Remove(tmpFile)
 		fmt.Fprintf(os.Stderr, "Error downloading binary: %v\n", err)
@@ -385,8 +381,8 @@ func runUpdate() {
 		os.Exit(1)
 	}
 
-	// Resolve current binary path
-	currentBin, err := os.Readlink("/proc/self/exe")
+	// Resolve current binary path using os.Executable (cross-platform).
+	currentBin, err := os.Executable()
 	if err != nil {
 		_ = os.Remove(tmpFile)
 		fmt.Fprintf(os.Stderr, "Error detecting binary path: %v\n", err)

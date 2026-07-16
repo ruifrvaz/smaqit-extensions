@@ -2,7 +2,7 @@
 name: smaqit.test-start
 description: Start testing session with focused context. Use when beginning test workflows with the user-testing agent.
 metadata:
-  version: "0.3.0"
+  version: "0.3.1"
 agent: smaqit.user-testing
 ---
 
@@ -34,7 +34,7 @@ Read the project files that define how tests are run (whichever exist):
 Read the complete test file:
 - `.smaqit/user-testing/tests/{TEST_NUMBER}_*.md`
 
-If the test file does not exist, ask whether to create it under `.smaqit/user-testing/tests/` before proceeding.
+If the test file does not exist, ask whether to create it by invoking `smaqit.test-create` before proceeding.
 
 This file contains:
 - Test objectives

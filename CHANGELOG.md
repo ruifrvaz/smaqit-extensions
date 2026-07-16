@@ -5,7 +5,45 @@ All notable changes to smaqit-extensions will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.3.0] - 2026-06-21
+
+### Added
+- **`smaqit.test-create` skill v1.0.0** — creates structured E2E test playbooks from task files with build-gate, deploy-gate, and live-service E2E validation (#108)
+- **`smaqit.test-complete` skill v1.0.0** — finalizes testing sessions by verifying pass/fail criteria and generating standardized test reports (#108)
+
+### Changed
+- **`smaqit.test-start` skill** — refined to delegate report generation to `smaqit.test-complete`; updated directives and workflow phases (#108)
+- **`smaqit.user-testing` agent v0.5.0** — updated to hand off report generation to `smaqit.test-complete`; refined directives and tool specifications (#108)
+- **Makefile** — added `smaqit.test-create`, `smaqit.test-complete`, `smaqit.task-plan`, `smaqit.task-refresh` to sync list; all 27 skills now synced to `.github/`
+- Release version metadata updated to 1.3.0 in installer sources (`installer/main.go`, `installer/Makefile`)
+
+## [1.4.0] - 2026-07-13
+
+### Added
+- **`smaqit.project-diagnose` skill v1.1.0** — scans project structure for gaps across testing, security, logging, monitoring, provisioning, and CI/CD domains; produces a prioritised finding report with domain checklists and optional task creation (`project.diagnose`)
+
+### Changed
+- **Makefile** — added `smaqit.project-diagnose` to sync list; changed assets copy to recursive (`cp -rfL`) to support nested asset directories
+- Release version metadata updated to 1.4.0 in installer sources (`installer/main.go`, `installer/Makefile`)
+
+## [1.2.0] - 2026-06-03
+
+### Added
+- **`smaqit.parity-assess` skill v1.0.0** — structured parity assessment skill with Mermaid diagram guide, assessment template, and installer/README sync updates (#107)
+- **`smaqit.task-plan` skill v1.0.0** — pre-implementation planning skill that scores task complexity, gathers codebase context in parallel, resolves gaps, and produces execution plans (#106)
+
+### Changed
+- **`smaqit.user-testing` agent** — now prohibits ad-hoc bugfixes during test runs, requires diagnosis plus concrete follow-up fixes, and adds a dedicated report section (#109)
+- Release version metadata updated to 1.2.0 in installer sources (`installer/main.go`, `installer/Makefile`)
+
+## [1.1.5] - 2026-05-30
+
+### Added
+- **`smaqit.task-refresh` skill v1.0.0** — new skill for retroactive task creation at session end; scans session commits and modified files, cross-references against `PLANNING.md` active tasks, and surfaces candidates for task creation to prevent committed work from going untracked (#103)
+
+### Fixed
+- **`smaqit update`** — fixed update command to correctly detect platform/arch and handle portable binary detection on non-Linux systems; resolves wrong-arch binary being downloaded on macOS and other platforms (#103)
+- Release version metadata updated to 1.1.5 in installer sources (`installer/main.go`, `installer/Makefile`)
 
 ## [1.1.4] - 2026-05-24
 
@@ -450,7 +488,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.4...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.2.0...v1.4.0
+[1.3.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.5...v1.2.0
+[1.1.5]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.4...v1.1.5
 [1.1.4]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.3...v1.1.4
 [1.1.3]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.2...v1.1.3
 [1.1.2]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.1...v1.1.2

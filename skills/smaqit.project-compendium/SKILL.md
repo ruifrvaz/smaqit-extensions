@@ -13,6 +13,7 @@ metadata:
 2. **Before writing to the compendium**, read `references/COMPENDIUM_FORMAT.md` for the full entry format specification and deduplication rules.
 3. `.smaqit/compendium.md` may not exist on first run — always create it on first write; never error on absence.
 4. The session-finish scan must filter out meta-session questions ("new session", "what's next?", "can you recap?") — these are navigation commands, not knowledge.
+5. **The compendium is as-is state, not a changelog or incident log.** Never phrase an entry as a narrative of what happened in a session ("On [date], X broke and was fixed by Y", "Following the incident..."). Write the resulting current fact or convention instead, as if it had always been true. Session narratives belong in `.smaqit/history/`; incident analysis belongs in `.smaqit/reports/`. See `references/COMPENDIUM_FORMAT.md` Writing Rule 6 before every session-finish scan.
 
 ---
 
@@ -83,10 +84,10 @@ Read `references/COMPENDIUM_FORMAT.md` before writing.
 When `smaqit.session-finish` runs, it executes the following compendium update step after the history file is written:
 
 1. Scan the session transcript for user questions — identify questions that are project-specific, non-trivial, and were answered substantively by the agent.
-2. Filter out: purely navigational questions ("what's next?", "can you recap?", "new session"), one-word commands, and meta-session phrases.
-3. For each candidate question: check `.smaqit/compendium.md` for semantically similar existing entries.
-4. If similar entry found: merge or update — rewrite the answer to incorporate new information.
-5. If no similar entry found: create new entry, assign appropriate category.
+2. Filter out: purely navigational questions ("what's next?", "can you recap?", "new session"), one-word commands, meta-session phrases, and questions whose only substantive answer is a session narrative rather than a lasting fact (route those to session history/incident reports instead).
+3. For each remaining candidate question: check `.smaqit/compendium.md` for semantically similar existing entries.
+4. If similar entry found: merge or update — rewrite the answer to incorporate new information, stated as current as-is fact.
+5. If no similar entry found: create new entry, assign appropriate category, stated as current as-is fact — not a timeline of the session that surfaced it.
 6. Write the updated compendium atomically (overwrite the file).
 7. Report: "Compendium updated — N entries added, M entries updated."
 

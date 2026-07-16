@@ -92,6 +92,12 @@ Create a new entry when:
 3. **Synthesize, don't copy** — rewrite Q&A pairs into clean, reusable knowledge; do not copy raw session dialogue verbatim
 4. **Err on inclusion for novel questions** — if uncertain whether a question is notable enough, include it
 5. **Err on merging for similar questions** — if uncertain whether two questions are the same, merge them
+6. **State current, as-is facts — never historic narrative.** The compendium describes how the project *works today*: architecture, conventions, credentials, workflows, gotchas. It is not a changelog, incident log, or session diary.
+   - Do not write entries as a timeline of what happened ("On 2026-07-16, X was destroyed...", "Following the incident...", "This was fixed by...").
+   - Do not include dates unless the date itself is the answer to the question (e.g., "When does the license renew?").
+   - Do not reference incident reports, session history files, or task IDs as the *reason* a fact is true — state the fact itself. A file reference is acceptable only as a pointer for further reading (per rule 2), not as narrative support ("see task 008 for why this changed").
+   - If a session surfaces a noteworthy incident, decision, or timeline, that belongs in `.smaqit/history/` (session history) or `.smaqit/reports/` (incident/analysis reports) — not the compendium. The compendium may gain a *new or updated* entry describing the resulting current-state fact or convention, written as if it had always been true.
+   - Test before writing: would this sentence still be accurate and sensible if read a year from now, with no memory of the session that produced it? If it depends on knowing "what happened," rewrite it as a standing fact or drop it.
 
 ---
 
@@ -113,6 +119,7 @@ When scanning a session transcript for compendium candidates:
 - One-word or one-phrase inputs with no question structure
 - Questions whose answers are entirely generic (not project-specific)
 - Questions already fully covered by an existing compendium entry with no new information
+- Questions whose only substantive answer is a narrative of a specific session's events (an incident, a debugging sequence, a one-off fix) with no lasting as-is fact to extract — route these to session history or an incident report instead
 
 ### Novelty Assessment
 

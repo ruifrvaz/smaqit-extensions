@@ -24,7 +24,7 @@ Read the following files (whichever exist):
 - `pyproject.toml` or `requirements.txt` — top-level dependencies
 - `Cargo.toml` — package name, version, dependencies
 - `Makefile` — tool references and build targets
-- `.github/copilot-instructions.md` — stack hints, infrastructure context
+- `.github/copilot-instructions.md` (GitHub Copilot) or `CLAUDE.md`/`AGENTS.md` (Claude Code) — stack hints, infrastructure context
 
 Extract:
 - **Project name** (prefer README heading or manifest `name` field)
@@ -45,7 +45,7 @@ The script path resolves relative to the directory containing this SKILL.md file
 
 Capture stdout (newline-delimited JSON). Each line is one component entry with fields: `type`, `name`, `version`, `description`, `path`.
 
-**Fallback (if `uv` is unavailable):** Read each `agents/*.agent.md` and `skills/*/SKILL.md` file sequentially. Extract the YAML frontmatter block (between `---` delimiters) to obtain `name`, `description`, and `metadata.version` for each file. Construct equivalent component entries manually.
+**Fallback (if `uv` is unavailable):** For each `skills/*/SKILL.md` file, extract the YAML frontmatter block (between `---` delimiters) to obtain `name`, `description`, and `metadata.version` directly. For each `agents/*.agent.md` file, the body itself carries no frontmatter — instead read the matching `.smaqit/definitions/agents/<stem>.frontmatter.yaml` (where `<stem>` is the filename without the `.agent.md` suffix) and extract `name`, `description`, and `metadata.version` from its `copilot:` section. Construct equivalent component entries manually.
 
 **Gotcha:** `skills/` and `agents/` directories may not exist in all projects. If neither is found, skip this step and omit the Active Skills/Agents section rather than erroring.
 

@@ -13,8 +13,12 @@ Usage:
 Arguments:
     workspace-root   Absolute or relative path to the project root directory.
                      The script searches for:
-                       - agents/*.agent.md   (type: "agent")
-                       - skills/*/SKILL.md   (type: "skill")
+                       - agents/*.agent.md   (type: "agent") — body-only; the
+                         frontmatter is read from the matching
+                         .smaqit/definitions/agents/<stem>.frontmatter.yaml
+                         (`copilot:` section) instead of the file itself
+                       - skills/*/SKILL.md   (type: "skill") — frontmatter is
+                         identical across platforms and lives in the file itself
 
 Output (stdout):
     Newline-delimited JSON. Each line is one object with fields:
@@ -78,6 +82,29 @@ def extract_frontmatter(path: str) -> dict | None:
         return None
 
 
+def load_agent_frontmatter(root: str, agent_stem: str, platform: str = "copilot") -> dict | None:
+    """Return the parsed platform frontmatter for an agent from its definitions yaml.
+
+    Agent source files under agents/ are body-only; frontmatter lives in
+    .smaqit/definitions/agents/<agent_stem>.frontmatter.yaml instead.
+    """
+    fm_path = os.path.join(root, ".smaqit", "definitions", "agents", f"{agent_stem}.frontmatter.yaml")
+    try:
+        with open(fm_path, encoding="utf-8") as fh:
+            raw = fh.read()
+    except OSError as exc:
+        print(f"[WARN] Cannot read {fm_path}: {exc}", file=sys.stderr)
+        return None
+
+    try:
+        manifest = yaml.safe_load(raw) or {}
+    except yaml.YAMLError as exc:
+        print(f"[WARN] YAML parse error in {fm_path}: {exc}", file=sys.stderr)
+        return None
+
+    return manifest.get(platform)
+
+
 def resolve_version(fm: dict) -> str:
     """Extract version from frontmatter — handles nested metadata.version."""
     metadata = fm.get("metadata") or {}
@@ -99,7 +126,8 @@ def scan(root: str) -> list[dict]:
     if os.path.isdir(agents_dir):
         for path in sorted(glob.glob(os.path.join(agents_dir, "*.agent.md"))):
             print(f"[FOUND] {path}", file=sys.stderr)
-            fm = extract_frontmatter(path)
+            stem = os.path.basename(path)[: -len(".agent.md")]
+            fm = load_agent_frontmatter(root, stem)
             if fm is None:
                 continue
             results.append({

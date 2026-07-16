@@ -18,6 +18,7 @@ Enhance your agentic development with streamlined session management, task track
 - **smaqit.task-start** - Start working on a task with workflow mode
 - **smaqit.task-list** - Show current active tasks
 - **smaqit.task-complete** - Mark tasks as completed with verification
+- **smaqit.task-refresh** - Identify session work with no corresponding task and surface retroactive task candidates
 
 #### Testing
 - **smaqit.test-start** - Initialize testing workflows
@@ -63,7 +64,7 @@ curl -fsSL https://raw.githubusercontent.com/ruifrvaz/smaqit-extensions/main/ins
 
 The installer copies files to your project's `.github/` directory:
 - `agents/` - 3 utility agents (release local, release PR, user-testing)
-- `skills/` - 22 workflow skills (complete implementations)
+- `skills/` - 23 workflow skills (complete implementations)
 
 ## Usage
 

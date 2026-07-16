@@ -31,7 +31,7 @@ Mark a task as done with the format: `task.complete [id]`
 8. Move task from Active table to appropriate destination in `.smaqit/tasks/PLANNING.md`:
    - **Completed** if successfully finished
    - **Abandoned** if superseded, no longer relevant, or incorrect approach (include reason)
-9. **Store task state in memory** using the `store_memory` tool:
+9. **If a persistent, cross-session memory/notes capability is available in this environment**, use it to record task state (best-effort — `PLANNING.md` and the task file remain the source of truth regardless):
    - `subject`: `"task state"`
    - `fact`: `"[NNN] [Title] — [Completed|Abandoned] (YYYY-MM-DD)"` (≤ 200 chars)
    - `citations`: path to the task file (e.g., `.smaqit/tasks/NNN_task_title.md`)

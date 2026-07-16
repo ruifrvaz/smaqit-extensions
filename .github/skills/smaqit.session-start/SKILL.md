@@ -14,18 +14,18 @@ Start a new chat with full project context. Execute these steps IN ORDER:
 1. **Read core project files from start to finish** (in parallel, if they exist):
    - `README.md`
    - `CONTRIBUTING.md`
-   - `.github/copilot-instructions.md`
+   - `.github/copilot-instructions.md` (GitHub Copilot) or `CLAUDE.md`/`AGENTS.md` (Claude Code)
    - Project documentation directories (e.g., `docs/`, `documentation/`) — scan for index files like `README.md`, `index.md`, `architecture.md`, or ADRs in `adr/` subdirectories
    - Build/test entrypoints (whichever exist): `Makefile`, `package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`
 
-2. **Load recent session context** (use both sources; memory takes priority for cross-branch continuity):
-   - **From memory (primary):** Use the `memory` tool with `type: workspace` to retrieve stored entries with subjects `"session history"` and `"next steps"`. These are written by `session-finish` and are available across all branches, making them the most reliable source when working in parallel or on a new branch.
-   - **From files (fallback/supplement):** Read the most recent history entry from `.smaqit/history/` for full detail. If no entries exist yet, continue without file history.
-   - If both sources exist, memory provides the freshest cross-branch context; the history file provides the full narrative.
+2. **Load recent session context** (use both sources if available; memory takes priority for cross-branch continuity):
+   - **From memory (primary, if available):** If a persistent memory/notes capability is available in this environment, check it for stored entries with subjects `"session history"` and `"next steps"`. These are written by `session-finish` and are available across all branches, making them the most reliable source when working in parallel or on a new branch.
+   - **From files (fallback/supplement, always available):** Read the most recent history entry from `.smaqit/history/` for full detail. If no entries exist yet, continue without file history.
+   - If both sources exist, memory provides the freshest cross-branch context; the history file provides the full narrative. If no memory capability is available, the history file is the sole source.
 
 3. **Load task planning**:
    - Read `.smaqit/tasks/PLANNING.md` (NOT individual task files).
-   - Supplement with any stored memory entries with subject `"task state"` using the `memory` tool with `type: workspace` — these are written by task skills (`task-create`, `task-start`, `task-complete`) and reflect the most recent state across all branches.
+   - If a persistent memory/notes capability is available, supplement with any stored entries with subject `"task state"` — these are written by task skills (`task-create`, `task-start`, `task-complete`) and reflect the most recent state across all branches. `PLANNING.md` remains sufficient on its own when memory is unavailable.
    - Note: Task workflow rules (autonomous vs assisted modes) are loaded via `task-list` skill when working on tasks.
 
 4. **Load project glossary** (conditional — only if `.smaqit/glossary.md` exists):

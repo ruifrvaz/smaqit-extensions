@@ -104,7 +104,7 @@ Display to the user:
 - **Evidence must come from the execution session, not inferred.** If a command output was not captured, mark that step as "unverified" — do not guess.
 - **Pain points are observations, not root cause analysis.** Report what happened: "`dotnet test` exited with code 1" not "The test failed because the service wasn't running."
 - **Report filename uniqueness:** if today's report already exists, disambiguate with `_2`, `_3`, etc.
-- **The report template lives in `references/report-template.md`** — read it with `read_file` before writing; never inline it.
+- **The report template lives in `references/report-template.md`** — read it before writing; never inline it.
 
 ## Completion
 

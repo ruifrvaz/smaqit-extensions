@@ -5,6 +5,21 @@ All notable changes to smaqit-extensions will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Claude Code support (dual-target install)** — `smaqit-extensions init` now deploys `.claude/{agents,commands,skills}/` alongside the existing `.github/{agents,skills}/` output, unconditionally (no flag needed; GitHub Copilot support is unaffected). Agent bodies (`agents/*.agent.md`, body-only) and skill content (`skills/`) are shared source; per-platform frontmatter lives in `.smaqit/definitions/agents/*.frontmatter.yaml` (`copilot:`/`claude:` sections), and platform-divergent skill *content* (not just frontmatter) is isolated via `{{PLACEHOLDER}}` tokens resolved from `.smaqit/definitions/skills/*.placeholders.yaml`. New `scripts/generate-targets.py` compiles all of this into gitignored `installer/{agents-copilot,agents-claude,commands-claude,skills,skills-claude}/` trees consumed by `//go:embed`, run via `make -C installer prepare` (and by the root `Makefile`'s dogfooding `sync` target, which now compiles rather than raw-copies).
+- **`smaqit.project-init` is platform-aware** — generates `.github/copilot-instructions.md` under GitHub Copilot and `CLAUDE.md` under Claude Code from the same shared template, via the new `{{INSTRUCTIONS_FILE}}` placeholder. The shared template's Scaffolding ignore-list now covers both `.github/` and `.claude/` paths.
+- **`smaqit.release-git-pr` is platform-aware** — its push step, comparison table, and error-handling entry now correctly describe direct `git push`/`gh` (via Bash) under Claude Code instead of the GitHub Copilot Coding Agent-only `report_progress` tool, which has no Claude Code equivalent.
+
+### Fixed
+- **`smaqit.project-diagnose` skill** — replaced hardcoded `.github/skills/...` install-path references (in `SKILL.md` and `scripts/diagnose-inventory.sh`) with the `[SMAQIT_SKILLS_DIR]` placeholder, resolved per platform at build time
+- **`smaqit.project-recap`'s `scan-metadata.py`** — updated to read agent frontmatter from `.smaqit/definitions/agents/*.frontmatter.yaml` instead of the agent source file itself, which is now body-only; previously this would have silently reported zero agents
+- **`smaqit.project-diagnose`, `smaqit.project-recap`, `smaqit.project-research`, `smaqit.session-start`** — now mention `CLAUDE.md`/`AGENTS.md` alongside `.github/copilot-instructions.md` as a project-context source
+- **`skills/smaqit.project-init/SKILL.md`** — removed a dangling reference to a nonexistent `smaqit.project-zero-to-prod` skill
+- **Removed hardcoded, inconsistent, Copilot-only tool names from 9 skills** — `smaqit.session-finish`, `smaqit.session-start`, `smaqit.session-recap`, `smaqit.session-title`, `smaqit.task-create`, `smaqit.task-start`, `smaqit.task-complete`, and `smaqit.task-plan` referenced a `memory` tool (three different, mutually inconsistent conventions: `memory` with `type: workspace`, `store_memory`, and a bare `memory` with a `/memories/session/plan.md` path) and, in `smaqit.task-plan`, the literal VS Code tool ID `vscode_askQuestions` — none of which are real Claude Code tools. All are now conditional, capability-based language ("if a memory capability is available, use it — otherwise the file-based record remains authoritative"), correct on both platforms without any build-time branching. `smaqit.session-finish`/`session-recap`/`session-title` also gained a native-context-first branch for reading session history, falling back to the existing VS Code transcript-log path only when needed.
+- **`smaqit.utils.read-pdf`** — its `allowed-tools:` frontmatter (Claude Code-only syntax) named nonexistent tools (`run_in_terminal read_file`) instead of the real `Bash Read`, which would have blocked the skill from using `Read` under Claude Code; also fixed a self-reference to a nonexistent `smaqit.read-pdf` skill directory (should be `smaqit.utils.read-pdf`) and added the missing `[SMAQIT_SKILLS_DIR]` placeholder to its example command
+
 ## [1.3.0] - 2026-06-21
 
 ### Added

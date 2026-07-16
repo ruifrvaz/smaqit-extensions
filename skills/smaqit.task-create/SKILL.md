@@ -21,7 +21,7 @@ Create a new task with the format: `task.create [title]` or `task.create [title]
    - Keep `## Known Issues Triage` placeholder note (for `smaqit.task-start` to overwrite)
    - Keep `## Findings` placeholder categories with `TBD` bullets (for `smaqit.task-complete` to overwrite)
 6. **Add entry to `.smaqit/tasks/PLANNING.md`** with status "Not Started"
-7. **Store task state in memory** using the `store_memory` tool:
+7. **If a persistent, cross-session memory/notes capability is available in this environment**, use it to record task state (best-effort — `PLANNING.md` and the task file remain the source of truth regardless):
    - `subject`: `"task state"`
    - `fact`: `"[NNN] [Title] — Not Started (created YYYY-MM-DD)"` (≤ 200 chars)
    - `citations`: path to the task file just created (e.g., `.smaqit/tasks/NNN_task_title.md`)

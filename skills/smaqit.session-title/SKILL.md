@@ -11,11 +11,13 @@ Generate a concise, descriptive title for the current session based on the work 
 
 ## Steps
 
-0. **Read the full session from the transcript**
-   - Derive the transcript path: take `{{VSCODE_TARGET_SESSION_LOG}}`, replace `debug-logs` with `transcripts`, and append `.jsonl`
-   - Run `wc -l <path>` in the terminal to check size
-   - If **< 500 lines**: read the file directly using the `read_file` tool
-   - If **≥ 500 lines**: run `python3 <skill-dir>/scripts/recap.py <transcript-path>` via terminal, where `<skill-dir>` is the directory containing this SKILL.md (derivable from the skill listing path). Use the script output as the session arc source instead of the raw file.
+0. **Establish the full session arc**
+   - If the full conversation is already available in your current context (the common case), use it directly as the session arc source — no separate transcript read is needed.
+   - Otherwise, if running in an environment where session history must be read from an external transcript log:
+     - Derive the transcript path: take `{{VSCODE_TARGET_SESSION_LOG}}`, replace `debug-logs` with `transcripts`, and append `.jsonl`
+     - Run `wc -l <path>` in the terminal to check size
+     - If **< 500 lines**: read the file directly
+     - If **≥ 500 lines**: run `python3 <skill-dir>/scripts/recap.py <transcript-path>` via terminal, where `<skill-dir>` is the directory containing this SKILL.md (derivable from the skill listing path). Use the script output as the session arc source instead of the raw file.
    - The session begins at the first user message — this is always the `session.start` invocation and is the guaranteed anchor
    - Build the complete session arc from that anchor to the current turn before generating the title
 

@@ -34,7 +34,7 @@ Fetch in priority order — stop when the five targets below are known:
 4. `docs/` directory listing → read architecture/design/overview docs (skip missing)
 5. Source directory listing for core packages → read the top 1–3 most architecturally significant files (≤20 KB each)
 
-> **Note:** `mcp_github_mcp_se_get_file_contents` may write large results to a file path. Read that path with `read_file` before using the content.
+> **Note:** `mcp_github_mcp_se_get_file_contents` may write large results to a file path. Read that path before using the content.
 
 Record the same five targets as Phase 0:
 - **Domain** — the problem Project B solves
@@ -135,7 +135,7 @@ Return to user:
 | Output directory already exists | Confirm with user before overwriting |
 | Mermaid validation fails | Fix in memory; re-validate before writing to disk |
 | System has no state model | Omit diagram 3; note it in the assessment |
-| Large file response written to path | Read that path with `read_file` before using content |
+| Large file response written to path | Read that path before using content |
 
 ---
 

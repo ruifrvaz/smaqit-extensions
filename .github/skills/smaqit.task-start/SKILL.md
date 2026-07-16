@@ -71,7 +71,7 @@ task.start [id] --assisted         # Explicit assisted mode
    **Mode:** Autonomous | Assisted
    ```
 6. **Update PLANNING.md** to reflect "In Progress" status
-7. **Store task state in memory** using the `store_memory` tool:
+7. **If a persistent, cross-session memory/notes capability is available in this environment**, use it to record task state (best-effort — `PLANNING.md` and the task file remain the source of truth regardless):
    - `subject`: `"task state"`
    - `fact`: `"[NNN] [Title] — In Progress ([Assisted|Autonomous], started YYYY-MM-DD)"` (≤ 200 chars)
    - `citations`: path to the task file (e.g., `.smaqit/tasks/NNN_task_title.md`)

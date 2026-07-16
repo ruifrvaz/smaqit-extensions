@@ -2,7 +2,7 @@
 name: smaqit.utils.read-pdf
 description: Extracts text from a PDF file, writes a sidecar .extracted.txt file, reads it, and continues with the caller's original goal. Use when the user references a .pdf file path and requests any content-based action: review, summarize, analyze, benchmark extraction, or similar.
 compatibility: Requires poppler-utils (pdftotext). Install with: sudo apt install poppler-utils
-allowed-tools: Bash run_in_terminal read_file
+allowed-tools: Bash Read
 metadata:
   version: "0.1.0"
 ---
@@ -21,7 +21,7 @@ metadata:
 Run `scripts/extract.sh <pdf-path>` via terminal:
 
 ```bash
-bash skills/smaqit.read-pdf/scripts/extract.sh "<pdf-path>"
+bash .github/skills/smaqit.utils.read-pdf/scripts/extract.sh "<pdf-path>"
 ```
 
 - If `pdftotext` is not installed, the script prints `sudo apt install poppler-utils` and exits 1. Surface this instruction to the user and stop.
@@ -35,7 +35,7 @@ Read the last line of stdout from Step 1. That line is the absolute or relative 
 
 ### Step 3: Read the sidecar file
 
-Use `read_file` on the path captured in Step 2. Read the full file without truncation.
+Read the file at the path captured in Step 2 in full, without truncation.
 
 ### Step 4: Continue with the caller's original goal
 

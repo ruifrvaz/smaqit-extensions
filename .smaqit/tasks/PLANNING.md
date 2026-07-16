@@ -22,6 +22,9 @@ Central task tracking and planning for smaqit-extensions.
 | 008 | Refine smaqit.project-research Skill | Completed | 2026-05-09 | 2026-05-09 |
 | 009 | Add smaqit-extensions update Self-Update Command | Completed | 2026-05-09 | 2026-05-09 |
 | 011 | Add Findings Section to Task Workflow | Completed | 2026-05-09 | 2026-05-09 |
+| 012 | Add Claude Code Support (Dual-Target Install) | Completed | 2026-07-16 | 2026-07-16 |
+| 013 | Platform-Aware Agent Frontmatter and Skill Content | Completed | 2026-07-16 | 2026-07-16 |
+| 014 | Generic Tool Language for Memory, Transcript, and Question-Asking Steps | Completed | 2026-07-16 | 2026-07-16 |
 
 ## Notes
 

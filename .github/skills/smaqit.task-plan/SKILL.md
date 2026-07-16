@@ -62,7 +62,7 @@ The skill infers the operating mode from the user's input:
 
 ### Phase 3 — Alignment (if blocking gaps remain after Discovery)
 
-9. Use `vscode_askQuestions` iteratively to resolve blocking gaps. Present one logical cluster per invocation, each question paired with a recommended option and rationale. If user answers reveal scope changes, loop back to Phase 2 with updated subagent queries.
+9. Ask the user clarifying questions iteratively to resolve blocking gaps. Present one logical cluster per interaction, each question paired with a recommended option and rationale. If user answers reveal scope changes, loop back to Phase 2 with updated subagent queries.
 
 10. For advisory gaps the user declines to clarify, document an explicit assumption in the plan draft.
 
@@ -94,15 +94,15 @@ The skill infers the operating mode from the user's input:
 
     Rules for the plan body: no code blocks — describe changes using symbol names and file links; every file in Relevant Files must be verified to exist via Discovery or prior codebase knowledge; Decisions must capture all choices made in Phase 3 Q&A.
 
-12. Save the plan to `/memories/session/plan.md` using the `memory` tool (create or overwrite).
+12. If a session-scoped memory/scratch-storage capability is available in this environment, save the plan to `/memories/session/plan.md` there (create or overwrite) as a durability backup. This step is optional — skip it silently if no such capability exists.
 
-13. **Show the full plan to the user.** The memory file is for persistence only — do not substitute it for presenting the plan in chat.
+13. **Show the full plan to the user.** This is the authoritative record regardless of whether Step 12 was available or succeeded — do not substitute the memory file for presenting the plan in chat.
 
 ### Phase 5 — Refinement and Next Steps
 
 14. Await user feedback and iterate:
-    - **Changes requested** → revise plan, re-save to `/memories/session/plan.md`, re-show updated plan
-    - **Questions asked** → clarify inline; use `vscode_askQuestions` if follow-up questions are needed
+    - **Changes requested** → revise plan, re-save to `/memories/session/plan.md` if that capability is available, re-show updated plan
+    - **Questions asked** → clarify inline; ask the user follow-up questions if needed
     - **Alternatives wanted** → loop back to Phase 2 with a new Explore subagent targeting the alternative
     - **Explicit approval given** → present context-appropriate next steps (step 15)
 
@@ -126,7 +126,7 @@ The skill infers the operating mode from the user's input:
     Offer three options:
     1. **Start now** — run `task.start [id]` to begin implementation
     2. **Update task file** — apply resolved Implementation Steps, Design Decisions, and any corrected ACs back to the task file (step 16)
-    3. **Keep for later** — plan is saved in `/memories/session/plan.md`; nothing else to do
+    3. **Keep for later** — plan remains shown in this session's chat, and in `/memories/session/plan.md` if that capability was available; nothing else to do
 
 16. **Task file update (Mode B, option 2):**
     - Present a field-by-field summary of proposed changes: current value → new value for each field being updated
@@ -136,7 +136,7 @@ The skill infers the operating mode from the user's input:
 
 ## Output
 
-- `/memories/session/plan.md` — approved execution plan; session-scoped, never committed to git
+- `/memories/session/plan.md` — approved execution plan, if a session-scoped memory capability is available; session-scoped, never committed to git. The plan shown in chat (always produced) is authoritative regardless.
 - Complexity verdict and gap list (Mode B) — surfaced in chat, not persisted
 - Mode A: pre-populated task fields confirmed before `task.create`
 - Mode B option 2: task file updated with confirmed field changes
@@ -192,12 +192,12 @@ The skill infers the operating mode from the user's input:
 
 ## Gotchas
 
-- **Write targets are strictly bounded.** Mode A: `memory` for plan + `task.create` (after confirmation). Mode B: `memory` for plan + specific task file (after confirmation, option 2 only). Never write to PLANNING.md, source files, or any other file.
+- **Write targets are strictly bounded.** Mode A: optional memory capability for plan + `task.create` (after confirmation). Mode B: optional memory capability for plan + specific task file (after confirmation, option 2 only). Never write to PLANNING.md, source files, or any other file.
 - **Complexity verdict is a recommendation, not a gate.** The user can always override and request a full plan for a trivial task, or skip planning for a complex one.
 - **All-TBD Design Decisions require full Discovery + Alignment before drafting the plan.** Skipping this is the root cause of wasted implementation on spike tasks.
 - **Explore subagents must receive an explicit thoroughness level and exact concern area.** Vague prompts ("look at the codebase") return low-value context. Always specify what to find and what to return.
-- **Plan is session-scoped.** `/memories/session/plan.md` is cleared when the session ends. Warn the user if they are resuming a partially planned task in a new session.
-- **Show the plan in chat — do not just mention the file.** The memory file is for persistence and handoff, not a substitute for presenting the plan.
+- **Plan is session-scoped.** If saved, `/memories/session/plan.md` is cleared when the session ends. Warn the user if they are resuming a partially planned task in a new session.
+- **Show the plan in chat — do not just mention the file.** The memory file, when available, is for persistence and handoff, not a substitute for presenting the plan.
 - **Do not assume Implementation Steps in the task file are current.** Task files are written speculatively at creation time; Discovery may reveal stale steps that reference removed abstractions.
 - **Task file update requires field-by-field confirmation.** Never batch-replace the entire task file. Present exactly what will change and require explicit approval before writing.
 
@@ -206,7 +206,7 @@ The skill infers the operating mode from the user's input:
 - [ ] Mode detected (A or B)
 - [ ] Task file read and complexity verdict delivered (Mode B) OR description elicited (Mode A)
 - [ ] All blocking gaps resolved via Q&A or documented as explicit assumptions
-- [ ] Execution plan written to `/memories/session/plan.md`
+- [ ] Execution plan written to `/memories/session/plan.md`, if a memory capability is available
 - [ ] Full plan shown to user in chat
 - [ ] User has explicitly approved the plan
 - [ ] Appropriate next steps offered and actioned per mode
@@ -224,7 +224,7 @@ The skill infers the operating mode from the user's input:
 | Task has no ACs and no Implementation Steps | Flag as incomplete spec; use Q&A to elicit a minimum viable spec before planning; do not produce a plan against an empty task |
 | Explore subagent returns no useful context | Note the gap in the plan as an unresolved unknown; do not retry with the same query |
 | User declines all clarifying questions | Proceed with documented assumptions; mark each assumption explicitly in the Decisions section |
-| `/memories/session/` write fails | Warn user; present full plan in chat only |
+| Memory capability unavailable, or `/memories/session/` write fails | Skip silently (unavailable) or warn (write failure); present full plan in chat only either way |
 | User approves trivial task without requesting full plan | Confirm `task.start [id]` is the right next step; do not produce an unnecessary plan |
 | Mode A idea too vague to plan | Ask for more detail before launching Discovery; do not proceed with an underspecified description |
 | User confirms task file update | Write only changed fields; confirm completion; do not modify any other section |

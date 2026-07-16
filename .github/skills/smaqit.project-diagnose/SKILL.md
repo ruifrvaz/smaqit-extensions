@@ -19,7 +19,7 @@ Read these files if they exist, in order:
 3. `.smaqit/compendium.md` — prior findings (deduplication source)
 4. `.smaqit/tasks/PLANNING.md` — existing tasks (deduplication source)
 5. `specs/business/`, `specs/functional/`, `specs/stack/` — declared intent vs. live reality
-6. `.github/copilot-instructions.md` — project conventions and deployment path
+6. `.github/copilot-instructions.md` (GitHub Copilot) or `CLAUDE.md`/`AGENTS.md` (Claude Code) — project conventions and deployment path
 
 Extract: **Stack** (languages, runtimes, frameworks), **Infrastructure** (container runtime, web server, database), **Existing task titles**, **Known compendium findings**.
 
@@ -181,7 +181,7 @@ Report: "Compendium updated — N entries added."
 - **Exclude vendor directories from test file discovery** — use StackProfile `vendor_excludes` to suppress false positives (e.g. Python `.venv`, Node `node_modules`, Go `vendor`, Java `target`)
 - **Security analysis requires reading the request schema layer, not just route decorators** — privilege escalation vulnerabilities live in the model/DTO/schema definitions (e.g. Pydantic model fields, Zod schemas, class-validator DTOs), which are invisible from route signatures alone
 - **Container healthchecks and application `/health` endpoints are independent gaps** — a service can have a container-level healthcheck without a real HTTP health route, and vice versa; both must be checked separately
-- **Backup script path correctness requires cross-referencing** — compare any hardcoded deployment path in the backup script against the actual path declared in project documentation (`project-recap.md`, `copilot-instructions.md`, or equivalent)
+- **Backup script path correctness requires cross-referencing** — compare any hardcoded deployment path in the backup script against the actual path declared in project documentation (`project-recap.md`, `copilot-instructions.md`, `CLAUDE.md`, `AGENTS.md`, or equivalent)
 - **Log persistence requires both**: a rotating log handler in the application AND a volume/mount mapping log output outside the container; either alone is insufficient
 - **CI/CD gap check**: the CI dir may contain smaqit framework workflows — exclude files whose name or top-level comment contains `smaqit`; report only application-specific build/test/scan workflows
 - **Cookie/session security flags are production-context findings** — a hardcoded insecure default that is overridable by env var is the gap; look for the fallback pattern (`os.environ.get("VAR", insecure_default)`), not just the current runtime value

@@ -1,6 +1,6 @@
 .PHONY: build clean test prepare
 
-VERSION ?= 1.4.0
+VERSION ?= 1.5.0
 
 prepare:
 	@echo "Preparing build environment..."

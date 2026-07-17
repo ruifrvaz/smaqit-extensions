@@ -7,12 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-07-17
+
 ### Added
 - **Claude Code support (dual-target install)** — `smaqit-extensions init` now deploys `.claude/{agents,commands,skills}/` alongside the existing `.github/{agents,skills}/` output, unconditionally (no flag needed; GitHub Copilot support is unaffected). Agent bodies (`agents/*.agent.md`, body-only) and skill content (`skills/`) are shared source; per-platform frontmatter lives in `.smaqit/definitions/agents/*.frontmatter.yaml` (`copilot:`/`claude:` sections), and platform-divergent skill *content* (not just frontmatter) is isolated via `{{PLACEHOLDER}}` tokens resolved from `.smaqit/definitions/skills/*.placeholders.yaml`. New `scripts/generate-targets.py` compiles all of this into gitignored `installer/{agents-copilot,agents-claude,commands-claude,skills,skills-claude}/` trees consumed by `//go:embed`, run via `make -C installer prepare` (and by the root `Makefile`'s dogfooding `sync` target, which now compiles rather than raw-copies).
 - **`smaqit.project-init` is platform-aware** — generates `.github/copilot-instructions.md` under GitHub Copilot and `CLAUDE.md` under Claude Code from the same shared template, via the new `{{INSTRUCTIONS_FILE}}` placeholder. The shared template's Scaffolding ignore-list now covers both `.github/` and `.claude/` paths.
 - **`smaqit.release-git-pr` is platform-aware** — its push step, comparison table, and error-handling entry now correctly describe direct `git push`/`gh` (via Bash) under Claude Code instead of the GitHub Copilot Coding Agent-only `report_progress` tool, which has no Claude Code equivalent.
 
+### Changed
+- **`smaqit.project-compendium`** — clarified that entries must state current, as-is facts and conventions, never a historical/incident narrative ("On [date], X broke and was fixed by Y"); session narratives belong in `.smaqit/history/`, incident analysis in `.smaqit/reports/`. Updated the session-finish scan filter and `references/COMPENDIUM_FORMAT.md`'s writing rules accordingly.
+
 ### Fixed
+- **`smaqit.task-refresh`** — the skill existed only in `.github/skills/` (added directly, bypassing the source-of-truth discipline) with no corresponding `skills/` source and no entry in the root `Makefile`'s dogfooding sync list. Added the missing source file, registered it in `Makefile`, and updated `README.md`'s skill count and Task Tracking list.
 - **`smaqit.project-diagnose` skill** — replaced hardcoded `.github/skills/...` install-path references (in `SKILL.md` and `scripts/diagnose-inventory.sh`) with the `[SMAQIT_SKILLS_DIR]` placeholder, resolved per platform at build time
 - **`smaqit.project-recap`'s `scan-metadata.py`** — updated to read agent frontmatter from `.smaqit/definitions/agents/*.frontmatter.yaml` instead of the agent source file itself, which is now body-only; previously this would have silently reported zero agents
 - **`smaqit.project-diagnose`, `smaqit.project-recap`, `smaqit.project-research`, `smaqit.session-start`** — now mention `CLAUDE.md`/`AGENTS.md` alongside `.github/copilot-instructions.md` as a project-context source
@@ -503,7 +509,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.2.0...v1.4.0
 [1.3.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.1.5...v1.2.0

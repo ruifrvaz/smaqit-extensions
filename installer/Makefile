@@ -1,4 +1,4 @@
-.PHONY: build clean test prepare
+.PHONY: build clean test smoke-test prepare
 
 VERSION ?= 1.5.0
 
@@ -16,9 +16,13 @@ build: prepare
 clean:
 	@echo "Cleaning build artifacts..."
 	rm -rf dist/
-	rm -rf skills/ agents-copilot/ agents-claude/ commands-claude/ skills-claude/
+	rm -rf skills/ agents-copilot/ agents-claude/ agents-codex/ commands-claude/ skills-claude/ skills-codex/
 
 test: build
 	@echo "Testing installer..."
 	./dist/smaqit-extensions --version
 	./dist/smaqit-extensions --help
+
+smoke-test: build
+	@echo "Running installer end-to-end smoke test..."
+	@bash ../scripts/smoke-test-installer.sh ./dist/smaqit-extensions

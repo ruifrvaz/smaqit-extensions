@@ -7,9 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-07-21
+
 ### Added
-- **Codex support (third install target)** — `smaqit-extensions init` now compiles and installs repository skills to `.agents/skills/` and project custom agents to `.codex/agents/*.toml`, while `make sync` maintains equivalent Codex dogfooding mirrors in this source repository. Canonical content remains in root `agents/` and `skills/`; generated `installer/{agents-codex,skills-codex}/` trees are ephemeral build inputs only.
-- **Local installer smoke test** — `make smoke-test` builds the current development installer, provisions an isolated temporary project, verifies all Copilot, Claude Code, Codex, template, and `.smaqit` outputs against the generated embed staging trees, validates Codex TOML and platform substitutions, runs uninstall, and confirms cleanup. `KEEP_SMOKE_DIR=1` retains the fixture for inspection.
+- **Codex support (third install target)** — `smaqit-extensions init` now compiles and installs repository skills to `.agents/skills/` and project custom agents to `.codex/agents/*.toml`, with platform-aware substitutions for Codex project conventions. Canonical content remains in root `agents/` and `skills/`; generated `installer/{agents-codex,skills-codex}/` trees are ephemeral build inputs only. (71a90d2)
+- **Local installer smoke test** — `make smoke-test` builds the current development installer, provisions an isolated temporary project, verifies all Copilot, Claude Code, Codex, template, and `.smaqit` outputs against the generated embed staging trees, validates Codex TOML and platform substitutions, runs uninstall, and confirms cleanup. `KEEP_SMOKE_DIR=1` retains the fixture for inspection. (ff302a0)
+
+### Changed
+- **Codex dogfooding mirrors** — `make sync` now maintains `.agents/skills/` and `.codex/agents/` mirrors in this repository, and integration checks validate them alongside the existing Copilot and Claude Code targets. (45fe15c)
+- **Compatibility documentation** — README and project guidance now describe the three-target Copilot, Claude Code, and Codex installation model. (b0abcb5)
 
 ## [1.5.0] - 2026-07-17
 
@@ -513,7 +519,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.2.0...v1.4.0
 [1.3.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.2.0...v1.3.0

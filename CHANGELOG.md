@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-07-21
+
+### Changed
+- **Release documentation** — recorded the v1.6.0 Codex installer release context in the project compendium and session history. (e3c56af)
+
+### Fixed
+- **Self-update asset refresh** — after replacing the installer binary, `smaqit-extensions update` now launches the newly installed executable to re-initialize project assets, preventing stale compile-time embedded content from the old process from being written back to the project. Added regression tests and made the smoke-test gate run the Go test suite. (9c36d1d)
+
 ## [1.6.0] - 2026-07-21
 
 ### Added
@@ -519,7 +527,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.6.1...HEAD
+[1.6.1]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.2.0...v1.4.0

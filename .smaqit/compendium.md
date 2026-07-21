@@ -2,20 +2,20 @@
 
 ## Architecture
 
-**How does smaqit-extensions handle content that differs between GitHub Copilot and Claude Code?**
+**How does smaqit-extensions handle content that differs between GitHub Copilot, Claude Code, and Codex?**
 
-Agent bodies (`agents/*.agent.md`) and skill bodies (`skills/*/SKILL.md`) are shared source, reused verbatim on both platforms wherever possible. Two mechanisms handle platform variance without duplicating whole files:
+Agent bodies (`agents/*.agent.md`) and skill bodies (`skills/*/SKILL.md`) are shared source, reused across all platforms wherever possible. Two mechanisms handle platform variance without duplicating whole files:
 
-- **Per-platform frontmatter**: each agent's `.smaqit/definitions/agents/<name>.frontmatter.yaml` holds `copilot:` and `claude:` sections (name, description, tools, and Copilot's `metadata.version`). `scripts/generate-targets.py` merges each platform's frontmatter with the shared body to produce `installer/agents-copilot/` and `installer/agents-claude/`.
+- **Per-platform agent metadata**: each agent's `.smaqit/definitions/agents/<name>.frontmatter.yaml` holds `copilot:`, `claude:`, and `codex:` sections. `scripts/generate-targets.py` combines each section with the shared body to produce YAML-frontmatter agents for Copilot and Claude Code plus standalone TOML custom agents for Codex.
 - **`{{PLACEHOLDER}}` tokens for genuinely divergent content**: for the small number of skills whose *content* (not just frontmatter) differs by platform — e.g. `smaqit.project-init` writes to `.github/copilot-instructions.md` vs `CLAUDE.md`, `smaqit.release-git-pr`'s push step uses Copilot's `report_progress` tool vs Claude's direct `git push` — the shared `SKILL.md` contains named `{{TOKEN}}` placeholders resolved from `.smaqit/definitions/skills/<name>.placeholders.yaml`. This isolates only the actual inflection points; everything else in the file stays identical across platforms.
 
-Both mechanisms are resolved once, at build time, by `scripts/generate-targets.py`; the installed output for each platform contains no unresolved tokens. Adding a third platform (e.g. Codex) means adding a new key to the same YAML files, not restructuring anything.
+Both mechanisms are resolved once, at build time, by `scripts/generate-targets.py`; installed output contains no unresolved build-time tokens. Generated trees under `installer/` are ephemeral embed inputs. Root `.github/` and `.codex/` plus `.agents/` are workspace dogfooding mirrors, never installer sources.
 
 ---
 
 **How does the installer's `[SMAQIT_SKILLS_DIR]` placeholder work?**
 
-A handful of skills reference their own install path in usage comments or example commands (e.g. `smaqit.project-diagnose`, `smaqit.utils.read-pdf`). Since a skill's install root differs by platform (`.github/skills` for Copilot, `.claude/skills` for Claude Code), any such self-reference is written in source using the literal placeholder `[SMAQIT_SKILLS_DIR]`. `scripts/generate-targets.py` resolves it to the correct path per platform when compiling `installer/skills/` and `installer/skills-claude/`. The root `Makefile`'s dogfooding `sync` target also resolves it (by copying from the already-compiled `installer/` output rather than raw-copying `skills/`), so this repo's own `.github/skills/` never ships the literal placeholder text either.
+A handful of skills reference their own install path in usage comments or example commands (e.g. `smaqit.project-diagnose`, `smaqit.utils.read-pdf`). Since a skill's install root differs by platform (`.github/skills` for Copilot, `.claude/skills` for Claude Code, `.agents/skills` for Codex), any such self-reference is written in source using the literal placeholder `[SMAQIT_SKILLS_DIR]`. `scripts/generate-targets.py` resolves it when compiling each platform's ephemeral installer tree. The root `Makefile` copies from those compiled outputs, so dogfooding mirrors never contain the literal placeholder either.
 
 ---
 

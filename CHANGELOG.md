@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Codex support (third install target)** — `smaqit-extensions init` now compiles and installs repository skills to `.agents/skills/` and project custom agents to `.codex/agents/*.toml`, while `make sync` maintains equivalent Codex dogfooding mirrors in this source repository. Canonical content remains in root `agents/` and `skills/`; generated `installer/{agents-codex,skills-codex}/` trees are ephemeral build inputs only.
+- **Local installer smoke test** — `make smoke-test` builds the current development installer, provisions an isolated temporary project, verifies all Copilot, Claude Code, Codex, template, and `.smaqit` outputs against the generated embed staging trees, validates Codex TOML and platform substitutions, runs uninstall, and confirms cleanup. `KEEP_SMOKE_DIR=1` retains the fixture for inspection.
+
 ## [1.5.0] - 2026-07-17
 
 ### Added

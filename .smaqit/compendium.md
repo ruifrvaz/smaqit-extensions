@@ -19,6 +19,14 @@ A handful of skills reference their own install path in usage comments or exampl
 
 ---
 
+## Testing
+
+**How can the local installer be tested end to end?**
+
+Run `make smoke-test` from the repository root or `make -C installer smoke-test`. The test builds the current development installer, provisions a unique temporary project, installs every Copilot, Claude Code, Codex, template, and `.smaqit` artifact, compares installed content with the generated embed staging trees, parses Codex agent TOML, checks platform substitutions, runs uninstall, and verifies cleanup. The temporary project is removed automatically; set `KEEP_SMOKE_DIR=1` to retain it for inspection.
+
+---
+
 ## Memory and Session Persistence
 
 **Why don't smaqit skills call a specific "memory" tool anymore?**

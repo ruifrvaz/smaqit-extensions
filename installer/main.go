@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -615,7 +616,10 @@ func runUpdate() {
 
 	fmt.Printf("Updated from %s to %s\n", localVersion, release.TagName)
 
-	checkAndReInit(".")
+	if err := checkAndReInitWithBinary(".", currentBin); err != nil {
+		fmt.Fprintf(os.Stderr, "Error re-initializing project assets: %v\n", err)
+		os.Exit(1)
+	}
 }
 
 // fetchLatestRelease queries the GitHub API and returns release metadata.
@@ -792,4 +796,28 @@ func checkAndReInit(dir string) {
 	fmt.Println("Detected .smaqit/ — re-initializing project assets...")
 	cmdInstall(dir)
 	fmt.Println("Re-initialized .github/, .claude/, .codex/, and .agents/ with updated assets")
+}
+
+// checkAndReInitWithBinary re-initializes project assets in a fresh process.
+// It is used after self-update because replacing the executable on disk does
+// not replace the currently running process or its compile-time embedded data.
+func checkAndReInitWithBinary(dir, binaryPath string) error {
+	smaqitPath := filepath.Join(dir, ".smaqit")
+	if _, err := os.Stat(smaqitPath); err != nil {
+		// .smaqit/ not present — skip auto-init
+		fmt.Println("Run `smaqit-extensions init` to update your project assets")
+		return nil
+	}
+
+	fmt.Println("Detected .smaqit/ — re-initializing project assets with updated binary...")
+	cmd := exec.Command(binaryPath, "init", dir)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("running %s init: %w", binaryPath, err)
+	}
+
+	fmt.Println("Re-initialized .github/, .claude/, .codex/, and .agents/ with updated assets")
+	return nil
 }

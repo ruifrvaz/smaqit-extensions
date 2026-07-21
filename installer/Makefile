@@ -20,9 +20,10 @@ clean:
 
 test: build
 	@echo "Testing installer..."
+	go test ./...
 	./dist/smaqit-extensions --version
 	./dist/smaqit-extensions --help
 
-smoke-test: build
+smoke-test: test
 	@echo "Running installer end-to-end smoke test..."
 	@bash ../scripts/smoke-test-installer.sh ./dist/smaqit-extensions

@@ -9,14 +9,16 @@ the repo root.
 
 Agents — split across two committed locations:
   agents/<name>.agent.md                             - canonical body (no frontmatter)
-  .smaqit/definitions/agents/<name>.frontmatter.yaml  - per-platform frontmatter
-                                                        (name/description/tools/...)
+  .smaqit/definitions/agents/<name>.frontmatter.yaml  - per-platform metadata
+                                                        (frontmatter for Copilot/
+                                                        Claude, TOML fields for Codex)
                                                         and any {{PLACEHOLDER}} values
   -> installer/agents-copilot/<name>.agent.md   (GitHub Copilot custom agent)
   -> installer/agents-claude/<name>.md          (Claude Code subagent; dotted filename
                                                   — Claude requires the frontmatter
                                                   `name:` value itself to be hyphenated,
                                                   not the path)
+  -> installer/agents-codex/<name>.toml         (Codex project custom agent)
 
 Commands — Claude Code-only (Copilot invokes an agent by its own `name:`
 directly, so it needs no separate command file). Copied verbatim:
@@ -32,16 +34,18 @@ applied after copying:
   - {{PLACEHOLDER}} tokens — for the handful of skills whose CONTENT (not just
     paths) genuinely differs per platform (e.g. smaqit.project-init writes to
     a different instructions file per platform; smaqit.release-git-pr's push
-    step has no Claude equivalent of Copilot's report_progress tool). Resolved
+    step uses direct git outside Copilot). Resolved
     only for skills with a matching .smaqit/definitions/skills/<name>.placeholders.yaml.
   skills/<name>/**
   -> installer/skills/<name>/**         ([SMAQIT_SKILLS_DIR] -> .github/skills; existing embed path, unchanged)
   -> installer/skills-claude/<name>/**  ([SMAQIT_SKILLS_DIR] -> .claude/skills)
+  -> installer/skills-codex/<name>/**   ([SMAQIT_SKILLS_DIR] -> .agents/skills)
 
 Run via `make -C installer prepare`, or directly after editing agents/,
 commands/, skills/, or .smaqit/definitions/:
   python3 scripts/generate-targets.py
 """
+import json
 import re
 import shutil
 import sys
@@ -51,15 +55,20 @@ import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 
-PLATFORMS = ("copilot", "claude")
+PLATFORMS = ("copilot", "claude", "codex")
 
 AGENTS_SRC_DIR = ROOT / "agents"
 AGENTS_DEFS_DIR = ROOT / ".smaqit" / "definitions" / "agents"
 AGENTS_OUT_DIR_BY_PLATFORM = {
     "copilot": ROOT / "installer" / "agents-copilot",
     "claude": ROOT / "installer" / "agents-claude",
+    "codex": ROOT / "installer" / "agents-codex",
 }
-AGENT_OUT_SUFFIX_BY_PLATFORM = {"copilot": ".agent.md", "claude": ".md"}
+AGENT_OUT_SUFFIX_BY_PLATFORM = {
+    "copilot": ".agent.md",
+    "claude": ".md",
+    "codex": ".toml",
+}
 
 COMMANDS_SRC_DIR = ROOT / "commands"
 COMMANDS_OUT_DIR = ROOT / "installer" / "commands-claude"
@@ -69,8 +78,13 @@ SKILLS_DEFS_DIR = ROOT / ".smaqit" / "definitions" / "skills"
 SKILLS_OUT_DIR_BY_PLATFORM = {
     "copilot": ROOT / "installer" / "skills",  # existing embed path, unchanged
     "claude": ROOT / "installer" / "skills-claude",
+    "codex": ROOT / "installer" / "skills-codex",
 }
-SKILLS_DIR_BY_PLATFORM = {"copilot": ".github/skills", "claude": ".claude/skills"}
+SKILLS_DIR_BY_PLATFORM = {
+    "copilot": ".github/skills",
+    "claude": ".claude/skills",
+    "codex": ".agents/skills",
+}
 
 AGENT_SUFFIX = ".agent.md"
 PLACEHOLDER_RE = re.compile(r"\{\{([A-Z0-9_]+)\}\}")
@@ -123,6 +137,27 @@ def resolve_placeholders(text: str, values: dict, source_name: str, platform: st
     return PLACEHOLDER_RE.sub(replace, text)
 
 
+def render_codex_agent(metadata: dict, body: str, source_name: str) -> str:
+    """Render a Codex project custom agent as standalone TOML."""
+    required = ("name", "description")
+    missing = [key for key in required if not metadata.get(key)]
+    if missing:
+        raise ValueError(f"{source_name}: Codex metadata missing: {', '.join(missing)}")
+    if "'''" in body:
+        raise ValueError(
+            f"{source_name}: agent body contains triple single quotes and cannot be "
+            "rendered as a TOML literal string"
+        )
+
+    return (
+        f"name = {json.dumps(metadata['name'], ensure_ascii=False)}\n"
+        f"description = {json.dumps(metadata['description'], ensure_ascii=False)}\n"
+        "developer_instructions = '''\n\n"
+        f"{body.rstrip()}\n"
+        "'''\n"
+    )
+
+
 def generate_agents() -> None:
     if not AGENTS_SRC_DIR.exists():
         print(f"no source directory at {AGENTS_SRC_DIR}", file=sys.stderr)
@@ -146,6 +181,8 @@ def generate_agents() -> None:
         sys.exit(1)
 
     for out_dir in AGENTS_OUT_DIR_BY_PLATFORM.values():
+        if out_dir.exists():
+            shutil.rmtree(out_dir)
         out_dir.mkdir(parents=True, exist_ok=True)
 
     for src in sources:
@@ -157,13 +194,16 @@ def generate_agents() -> None:
         for platform in PLATFORMS:
             if platform not in manifest:
                 continue
-            frontmatter = manifest[platform]
+            metadata = manifest[platform]
             values = {key: platform_values[platform] for key, platform_values in placeholders.items()}
             resolved_body = resolve_placeholders(body, values, stem, platform)
 
             out_suffix = AGENT_OUT_SUFFIX_BY_PLATFORM[platform]
             out_path = AGENTS_OUT_DIR_BY_PLATFORM[platform] / f"{stem}{out_suffix}"
-            content = "---\n" f"{dump_frontmatter(frontmatter)}\n" "---\n\n" f"{resolved_body}"
+            if platform == "codex":
+                content = render_codex_agent(metadata, resolved_body, stem)
+            else:
+                content = "---\n" f"{dump_frontmatter(metadata)}\n" "---\n\n" f"{resolved_body}"
             out_path.write_text(content)
             print(f"wrote {out_path.relative_to(ROOT)}")
 

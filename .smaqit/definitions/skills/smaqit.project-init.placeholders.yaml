@@ -3,3 +3,4 @@
 INSTRUCTIONS_FILE:
   copilot: .github/copilot-instructions.md
   claude: CLAUDE.md
+  codex: AGENTS.md

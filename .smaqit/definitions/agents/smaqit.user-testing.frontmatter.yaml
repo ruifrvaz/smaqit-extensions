@@ -1,6 +1,5 @@
-# Per-platform frontmatter for agents/smaqit.user-testing.agent.md
-# Consumed by scripts/generate-targets.py — the agent body is shared and
-# reused verbatim for both platforms; only frontmatter differs here.
+# Per-platform metadata for agents/smaqit.user-testing.agent.md.
+# Copilot and Claude render YAML frontmatter; Codex renders standalone TOML.
 copilot:
   name: smaqit.user-testing
   description: End-to-end user testing agent that validates a project's test workflow and produces a standardized report
@@ -12,3 +11,7 @@ claude:
   name: smaqit-user-testing
   description: End-to-end user testing agent that validates a project's test workflow and produces a standardized report
   tools: Bash, Edit, Grep, Glob, TodoWrite
+
+codex:
+  name: smaqit.user-testing
+  description: End-to-end user testing agent that validates a project's test workflow and produces a standardized report

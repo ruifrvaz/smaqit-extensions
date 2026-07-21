@@ -2,7 +2,7 @@
 name: smaqit.session-start
 description: Start a new chat with full project context. Use when beginning a session to load README, recent history, and task planning.
 metadata:
-  version: "0.8.0"
+  version: "0.8.1"
 ---
 
 # Session Start
@@ -14,7 +14,7 @@ Start a new chat with full project context. Execute these steps IN ORDER:
 1. **Read core project files from start to finish** (in parallel, if they exist):
    - `README.md`
    - `CONTRIBUTING.md`
-   - `.github/copilot-instructions.md` (GitHub Copilot) or `CLAUDE.md`/`AGENTS.md` (Claude Code)
+   - `.github/copilot-instructions.md` (GitHub Copilot), `CLAUDE.md` (Claude Code), or `AGENTS.md` (Codex)
    - Project documentation directories (e.g., `docs/`, `documentation/`) — scan for index files like `README.md`, `index.md`, `architecture.md`, or ADRs in `adr/` subdirectories
    - Build/test entrypoints (whichever exist): `Makefile`, `package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`
 

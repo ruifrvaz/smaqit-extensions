@@ -21,8 +21,10 @@ installer/skills/
 installer/prompts/
 installer/agents-copilot/
 installer/agents-claude/
+installer/agents-codex/
 installer/commands-claude/
 installer/skills-claude/
+installer/skills-codex/
 
 # IDEs
 .vscode/

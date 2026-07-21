@@ -1,6 +1,5 @@
-# Per-platform frontmatter for agents/smaqit.release.pr.agent.md
-# Consumed by scripts/generate-targets.py — the agent body is shared and
-# reused verbatim for both platforms; only frontmatter differs here.
+# Per-platform metadata for agents/smaqit.release.pr.agent.md.
+# Copilot and Claude render YAML frontmatter; Codex renders standalone TOML.
 #
 # Note: the Copilot side declares no `tools:` at all — it relies on the
 # GitHub Copilot Coding Agent's implicit `report_progress` primitive for
@@ -11,9 +10,23 @@ copilot:
   name: smaqit.release.pr
   description: Orchestrate a release process via pull request (CI/CD, Coding Agent)
   metadata:
-    version: "0.4.0"
+    version: "0.5.0"
 
 claude:
   name: smaqit-release-pr
   description: Orchestrate a release process via pull request (CI/CD) — uses direct git and gh CLI access via Bash, since Claude Code has no equivalent of Copilot's report_progress commit API
   tools: Bash, Read, Edit, Grep, Glob, TodoWrite
+
+codex:
+  name: smaqit.release.pr
+  description: Orchestrate a release process via pull request using direct git and gh CLI access
+
+placeholders:
+  PR_EXECUTION_CONTEXT:
+    copilot: GitHub Copilot Coding Agent triggered by an issue
+    claude: Claude Code operating on a pull-request branch
+    codex: Codex operating on a pull-request branch
+  PR_PUSH_METHOD:
+    copilot: the `report_progress` tool
+    claude: direct `git push` using the current environment's git/gh credentials
+    codex: direct `git push` using the current environment's git/gh credentials

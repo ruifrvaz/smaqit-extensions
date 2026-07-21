@@ -1,6 +1,5 @@
-# Per-platform frontmatter for agents/smaqit.release.local.agent.md
-# Consumed by scripts/generate-targets.py — the agent body is shared and
-# reused verbatim for both platforms; only frontmatter differs here.
+# Per-platform metadata for agents/smaqit.release.local.agent.md.
+# Copilot and Claude render YAML frontmatter; Codex renders standalone TOML.
 copilot:
   name: smaqit.release.local
   description: Orchestrate a release process with direct git access (local development)
@@ -12,3 +11,7 @@ claude:
   name: smaqit-release-local
   description: Orchestrate a release process with direct git access (local development)
   tools: Bash, Read, Edit, Grep, Glob, TodoWrite
+
+codex:
+  name: smaqit.release.local
+  description: Orchestrate a release process with direct git access (local development)

@@ -2,7 +2,7 @@
 name: smaqit.project-diagnose
 description: Use this skill when the user asks to run a diagnostic or scan the project for gaps or requests a check on security posture, test coverage, logging setup, monitoring coverage, provisioning, or CI/CD pipelines. Scans six domains (Testing, Security, Logging, Monitoring, Provisioning, CI/CD) using a deterministic filesystem inventory and domain checklists, then produces a prioritised finding report at `.smaqit/reports/diagnose-YYYY-MM-DD.md`. Supports `--tasks` to generate smaqit tasks for new gaps, domain scoping (e.g. `project.diagnose security,logging`), and `--refresh` to overwrite an existing same-day report.
 metadata:
-  version: "1.1.0"
+  version: "1.1.1"
 compatibility: "bash, python3; Linux; no network access required"
 ---
 
@@ -19,7 +19,7 @@ Read these files if they exist, in order:
 3. `.smaqit/compendium.md` — prior findings (deduplication source)
 4. `.smaqit/tasks/PLANNING.md` — existing tasks (deduplication source)
 5. `specs/business/`, `specs/functional/`, `specs/stack/` — declared intent vs. live reality
-6. `.github/copilot-instructions.md` (GitHub Copilot) or `CLAUDE.md`/`AGENTS.md` (Claude Code) — project conventions and deployment path
+6. `.github/copilot-instructions.md` (GitHub Copilot), `CLAUDE.md` (Claude Code), or `AGENTS.md` (Codex) — project conventions and deployment path
 
 Extract: **Stack** (languages, runtimes, frameworks), **Infrastructure** (container runtime, web server, database), **Existing task titles**, **Known compendium findings**.
 

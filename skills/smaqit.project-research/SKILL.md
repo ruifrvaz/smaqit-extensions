@@ -2,7 +2,7 @@
 name: smaqit.project-research
 description: Builds and maintains a documentation topology map for the current project, identifying the full tech stack and discovering section-level documentation URLs across multiple platforms (GitHub, official docs, ReadTheDocs, pkg.go.dev, npm, PyPI, and more). Writes a persistent map to `.smaqit/references/project-research.md`; adds task-specific annotation when a task is active. Invoke when the user asks to research project dependencies, build or refresh the documentation map, or find documentation for project tools and libraries.
 metadata:
-  version: "1.3.0"
+  version: "1.3.1"
 ---
 
 # smaqit.project-research
@@ -36,7 +36,7 @@ Before building or reusing the existing map, determine whether a rebuild is need
 Read the following sources to build a flat, deduplicated list of third-party tools and technologies:
 
 1. **Project manifests** — scan the project root for any of: `package.json`, `requirements.txt`, `go.mod`, `pyproject.toml`, `*.csproj`, `pom.xml`, `Cargo.toml`, `Gemfile`, `composer.json`, `build.gradle`. Read whichever exist. Extract named dependencies plus the runtime and framework (e.g., Node.js, Python, .NET, Go).
-2. **Project instructions** — read `.github/copilot-instructions.md` (GitHub Copilot) or `CLAUDE.md`/`AGENTS.md` (Claude Code) if present. Extract any tools, services, or platforms described as part of the project's infrastructure or stack.
+2. **Project instructions** — read `.github/copilot-instructions.md` (GitHub Copilot), `CLAUDE.md` (Claude Code), or `AGENTS.md` (Codex) if present. Extract any tools, services, or platforms described as part of the project's infrastructure or stack.
 3. **Session context** — extract tools, platforms, or services mentioned in the current conversation.
 
 Exclude internal project names and the smaqit framework itself. Produce a deduplicated, flat tool list. This is the **project layer** — it is always complete regardless of whether a task is active.

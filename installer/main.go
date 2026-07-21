@@ -33,6 +33,12 @@ var claudeCommandFiles embed.FS
 //go:embed skills-claude
 var skillFilesClaude embed.FS
 
+//go:embed agents-codex/*.toml
+var codexAgentFiles embed.FS
+
+//go:embed skills-codex
+var skillFilesCodex embed.FS
+
 // Version is set via ldflags during build: -X main.Version=$(VERSION)
 var Version = "1.5.0"
 
@@ -221,6 +227,8 @@ func printHelp() {
 	fmt.Println("  .claude/agents/     - 3 utility agents (Claude Code)")
 	fmt.Println("  .claude/commands/   - 3 slash commands (Claude Code)")
 	fmt.Println("  .claude/skills/     - 28 workflow skills (Claude Code)")
+	fmt.Println("  .codex/agents/      - 3 utility agents (Codex)")
+	fmt.Println("  .agents/skills/     - 28 workflow skills (Codex)")
 	fmt.Println("  .smaqit/templates/  - 3 canonical templates")
 }
 
@@ -231,6 +239,8 @@ func cmdInstall(targetDir string) {
 	claudeAgentsDir := filepath.Join(targetDir, ".claude", "agents")
 	claudeCommandsDir := filepath.Join(targetDir, ".claude", "commands")
 	claudeSkillsDir := filepath.Join(targetDir, ".claude", "skills")
+	codexAgentsDir := filepath.Join(targetDir, ".codex", "agents")
+	codexSkillsDir := filepath.Join(targetDir, ".agents", "skills")
 	smaqitDir := filepath.Join(targetDir, ".smaqit")
 	tasksDir := filepath.Join(smaqitDir, "tasks")
 	historyDir := filepath.Join(smaqitDir, "history")
@@ -259,6 +269,16 @@ func cmdInstall(targetDir string) {
 
 	if err := os.MkdirAll(claudeSkillsDir, 0755); err != nil {
 		fmt.Printf("Error creating Claude skills directory: %v\n", err)
+		os.Exit(1)
+	}
+
+	if err := os.MkdirAll(codexAgentsDir, 0755); err != nil {
+		fmt.Printf("Error creating Codex agents directory: %v\n", err)
+		os.Exit(1)
+	}
+
+	if err := os.MkdirAll(codexSkillsDir, 0755); err != nil {
+		fmt.Printf("Error creating Codex skills directory: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -388,11 +408,26 @@ func cmdInstall(targetDir string) {
 		os.Exit(1)
 	}
 
+	// Install Codex agents and skills from generated, platform-resolved artifacts.
+	codexAgentCount, err := installFlatFiles(codexAgentFiles, "agents-codex", codexAgentsDir)
+	if err != nil {
+		fmt.Printf("Error installing Codex agents: %v\n", err)
+		os.Exit(1)
+	}
+
+	codexSkillCount, err := installSkillTree(skillFilesCodex, "skills-codex", codexSkillsDir)
+	if err != nil {
+		fmt.Printf("Error installing Codex skills: %v\n", err)
+		os.Exit(1)
+	}
+
 	fmt.Printf("✓ Installed %d agents to %s\n", agentCount, agentsDir)
 	fmt.Printf("✓ Installed %d skills to %s\n", skillCount, skillsDir)
 	fmt.Printf("✓ Installed %d agents to %s\n", claudeAgentCount, claudeAgentsDir)
 	fmt.Printf("✓ Installed %d commands to %s\n", claudeCommandCount, claudeCommandsDir)
 	fmt.Printf("✓ Installed %d skills to %s\n", claudeSkillCount, claudeSkillsDir)
+	fmt.Printf("✓ Installed %d agents to %s\n", codexAgentCount, codexAgentsDir)
+	fmt.Printf("✓ Installed %d skills to %s\n", codexSkillCount, codexSkillsDir)
 	fmt.Println()
 	fmt.Println("Extensions installed successfully!")
 	fmt.Println()
@@ -401,6 +436,8 @@ func cmdInstall(targetDir string) {
 	fmt.Println("  GitHub Copilot — skills: available via direct invocation")
 	fmt.Println("  Claude Code — agents: /smaqit.release.local, /smaqit.release.pr, /smaqit.user-testing")
 	fmt.Println("  Claude Code — skills: available via direct invocation")
+	fmt.Println("  Codex — agents: ask Codex to spawn smaqit.release.local, smaqit.release.pr, or smaqit.user-testing")
+	fmt.Println("  Codex — skills: invoke with $, or select with /skills")
 }
 
 func cmdUninstall() {
@@ -410,6 +447,8 @@ func cmdUninstall() {
 	claudeAgentsDir := filepath.Join(targetDir, ".claude", "agents")
 	claudeCommandsDir := filepath.Join(targetDir, ".claude", "commands")
 	claudeSkillsDir := filepath.Join(targetDir, ".claude", "skills")
+	codexAgentsDir := filepath.Join(targetDir, ".codex", "agents")
+	codexSkillsDir := filepath.Join(targetDir, ".agents", "skills")
 
 	removedCount := 0
 
@@ -460,6 +499,21 @@ func cmdUninstall() {
 		os.Exit(1)
 	}
 	removedCount += claudeSkillRemoved
+
+	// Remove only the Codex artifacts represented in the embedded filesystem.
+	codexAgentRemoved, err := removeFlatFiles(codexAgentFiles, "agents-codex", codexAgentsDir)
+	if err != nil {
+		fmt.Printf("Error enumerating Codex agents: %v\n", err)
+		os.Exit(1)
+	}
+	removedCount += codexAgentRemoved
+
+	codexSkillRemoved, err := removeSkillTree(skillFilesCodex, "skills-codex", codexSkillsDir)
+	if err != nil {
+		fmt.Printf("Error enumerating Codex skills: %v\n", err)
+		os.Exit(1)
+	}
+	removedCount += codexSkillRemoved
 
 	if removedCount > 0 {
 		fmt.Printf("✓ Removed %d extension files\n", removedCount)
@@ -737,5 +791,5 @@ func checkAndReInit(dir string) {
 
 	fmt.Println("Detected .smaqit/ — re-initializing project assets...")
 	cmdInstall(dir)
-	fmt.Println("Re-initialized .github/ and .claude/ with updated assets")
+	fmt.Println("Re-initialized .github/, .claude/, .codex/, and .agents/ with updated assets")
 }

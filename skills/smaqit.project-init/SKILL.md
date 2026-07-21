@@ -1,8 +1,8 @@
 ---
 name: smaqit.project-init
-description: Bootstrap a new smaqit project by generating the platform's project-instructions file (`.github/copilot-instructions.md` for GitHub Copilot, `CLAUDE.md` for Claude Code) from a shared template, and creating the base project directory structure (`docs/`, `assets/`, `assets/raw/`). Use when the user asks to start a new smaqit project, init this project with smaqit, or set up smaqit for this project.
+description: Bootstrap a new smaqit project by generating the platform's project-instructions file (`.github/copilot-instructions.md` for GitHub Copilot, `CLAUDE.md` for Claude Code, or `AGENTS.md` for Codex) from a shared template, and creating the base project directory structure (`docs/`, `assets/`, `assets/raw/`). Use when the user asks to start a new smaqit project, init this project with smaqit, or set up smaqit for this project.
 metadata:
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # Project Init

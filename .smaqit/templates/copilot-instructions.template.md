@@ -11,6 +11,8 @@ When reasoning about business context, architecture, domain logic, or project co
 - `.claude/agents/` — smaqit utility agents, for Claude Code
 - `.claude/skills/` — smaqit workflow skills, for Claude Code
 - `.claude/commands/` — smaqit slash commands, for Claude Code
+- `.codex/agents/` — smaqit utility agents, for Codex
+- `.agents/skills/` — smaqit workflow skills, for Codex
 - `installer/` — smaqit installer source code
 - `agents/` — smaqit agent source files (if present at repo root)
 - `skills/` — smaqit skill source files (if present at repo root)

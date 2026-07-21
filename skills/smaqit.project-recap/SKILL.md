@@ -3,7 +3,7 @@ name: smaqit.project-recap
 description: Generates a live project dashboard from the current codebase state and writes it to `.smaqit/project-recap.md`. Invoke with `project.recap` to generate the dashboard, or `project.recap --refresh` to force re-scan even if the output file already exists.
 compatibility: Script-based scanning requires `uv` (https://github.com/astral-sh/uv). If `uv` is unavailable, the agent reads frontmatter files sequentially as a fallback.
 metadata:
-  version: "0.3.0"
+  version: "0.3.1"
 ---
 
 # smaqit.project-recap
@@ -24,7 +24,7 @@ Read the following files (whichever exist):
 - `pyproject.toml` or `requirements.txt` — top-level dependencies
 - `Cargo.toml` — package name, version, dependencies
 - `Makefile` — tool references and build targets
-- `.github/copilot-instructions.md` (GitHub Copilot) or `CLAUDE.md`/`AGENTS.md` (Claude Code) — stack hints, infrastructure context
+- `.github/copilot-instructions.md` (GitHub Copilot), `CLAUDE.md` (Claude Code), or `AGENTS.md` (Codex) — stack hints, infrastructure context
 
 Extract:
 - **Project name** (prefer README heading or manifest `name` field)

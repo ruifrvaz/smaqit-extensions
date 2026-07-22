@@ -43,7 +43,7 @@ A single `smaqit-extensions init` installs all three targets. Each platform rece
 - **smaqit.release-git-pr** - Execute git operations for PR-based releases using the platform's authenticated push mechanism
 
 #### Project Management
-- **smaqit.project-init** - Bootstrap project instructions for the active platform (`.github/copilot-instructions.md`, `CLAUDE.md`, or `AGENTS.md`)
+- **smaqit.project-init** - Inferentially merge existing project guidance into canonical `AGENTS.md`, synchronize Claude through `CLAUDE.md` → `@AGENTS.md`, and link `.github/copilot-instructions.md` to the canonical file
 - **smaqit.project-glossary** - Manage a per-project glossary (`list glossary`, `fetch from glossary`, `update glossary`, `remove from glossary`)
 - **smaqit.project-diagnose** - Scan project structure for gaps across testing, security, logging, monitoring, provisioning, and CI/CD domains (`project.diagnose`, `project.diagnose security --tasks`)
 - **smaqit.project-research** - Build and maintain a documentation topology map for the current project (`project.research`, `project.research [task-id]`)

@@ -9,6 +9,7 @@ Central task tracking and planning for smaqit-extensions.
 | 002 | Fix Changelog Extraction for Cumulative Releases | Not Started | 2026-02-13 |
 | 007 | Create smaqit MCP Server (PoC) | Not Started | 2026-05-09 |
 | 010 | Publish smaqit-extensions as Copilot Marketplace Plugin | Not Started | 2026-05-09 |
+| 015 | Synchronize Project Instructions in Project Init | In Progress | 2026-07-22 |
 
 ## Completed Tasks
 

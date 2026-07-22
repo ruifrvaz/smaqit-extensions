@@ -1,9 +1,10 @@
 # Synchronize Project Instructions in Project Init
 
-**Status:** In Progress
+**Status:** Completed
 **Mode:** Assisted
 **Created:** 2026-07-22
 **Started:** 2026-07-22
+**Completed:** 2026-07-23
 
 ## Description
 
@@ -59,34 +60,38 @@ The synchronized topology uses root `AGENTS.md` as the canonical merged document
 
 ## Acceptance Criteria
 
-- [ ] Existing `AGENTS.md`, `CLAUDE.md`, or `.github/copilot-instructions.md` never causes initialization to stop merely because the file exists.
-- [ ] The skill reads all existing instruction sources and repository evidence before writing, and no deterministic script implements semantic merging.
-- [ ] Unique explicit project rules from every existing instruction source remain materially intact in the synchronized result.
-- [ ] Root `AGENTS.md` is the coherent canonical document with current smaqit scaffolding and only evidence-grounded project facts.
-- [ ] Root `CLAUDE.md` starts with `@AGENTS.md` and contains no duplicated shared guidance, while preserving genuinely Claude-specific directives.
-- [ ] `.github/copilot-instructions.md` is a relative symlink to `../AGENTS.md`, created only after its prior unique content is safely represented in `AGENTS.md`.
-- [ ] Irreconcilable explicit conflicts cause a focused user decision request before any instruction file is rewritten.
-- [ ] A second initialization with unchanged inputs preserves the symlink and produces no duplicate content or meaningful semantic churn.
-- [ ] All generated and installed platform variants contain the same synchronization contract, with no old abort behavior or unresolved `{{INSTRUCTIONS_FILE}}` placeholder.
-- [ ] Model-mediated temporary-project fixtures cover fresh creation, populated-file migration, symlink migration, conflict handling, and idempotency without losing sentinel rules.
-- [ ] README and CHANGELOG describe the new behavior and topology.
-- [ ] Target generation, installer unit tests, full smoke tests, `go vet`, shell checks, and `git diff --check` pass.
+- [x] Existing `AGENTS.md`, `CLAUDE.md`, or `.github/copilot-instructions.md` never causes initialization to stop merely because the file exists.
+- [x] The skill reads all existing instruction sources and repository evidence before writing, and no deterministic script implements semantic merging.
+- [x] Unique explicit project rules from every existing instruction source remain materially intact in the synchronized result.
+- [x] Root `AGENTS.md` is the coherent canonical document with current smaqit scaffolding and only evidence-grounded project facts.
+- [x] Root `CLAUDE.md` starts with `@AGENTS.md` and contains no duplicated shared guidance, while preserving genuinely Claude-specific directives.
+- [x] `.github/copilot-instructions.md` is a relative symlink to `../AGENTS.md`, created only after its prior unique content is safely represented in `AGENTS.md`.
+- [x] Irreconcilable explicit conflicts cause a focused user decision request before any instruction file is rewritten.
+- [x] A second initialization with unchanged inputs preserves the symlink and produces no duplicate content or meaningful semantic churn.
+- [x] All generated and installed platform variants contain the same synchronization contract, with no old abort behavior or unresolved `{{INSTRUCTIONS_FILE}}` placeholder.
+- [x] Model-mediated temporary-project fixtures cover fresh creation, populated-file migration, symlink migration, conflict handling, and idempotency without losing sentinel rules.
+- [x] README and CHANGELOG describe the new behavior and topology.
+- [x] Target generation, installer unit tests, full smoke tests, `go vet`, shell checks, and `git diff --check` pass.
 
 ## Findings
 
-[Populated by smaqit.task-complete. Do not fill in manually before task is complete.]
-
 **Implementation approach:**
-- TBD
+- Replaced the single-platform existing-file abort with an inference-driven workflow that reads all instruction sources before writing a canonical result.
+- Retired the active-platform filename placeholder, regenerated identical platform variants, and added installer smoke assertions for the shared contract.
+- Verified fresh creation, populated-file migration, conflict safety, and idempotency through isolated model-mediated fixtures in addition to deterministic build gates.
 
 **Decisions made:**
-- TBD
+- Made root `AGENTS.md` canonical, kept Claude-specific guidance behind an `@AGENTS.md` importer, and made the Copilot path a relative symlink.
+- Gave explicit project rules precedence over inference and required unresolved contradictions to stop before mutation.
+- Retained the existing installed template path for backward compatibility.
 
 **Blockers encountered:**
-- TBD
+- Claude Code has upstream ancestor-import bugs that may affect sessions launched from repository subdirectories; the user explicitly accepted this limitation.
+- GitHub Actions runner degradation delayed the v1.7.0 release workflow, but did not affect implementation validation or publication.
 
 **Follow-up identified:**
-- TBD
+- Monitor Claude Code ancestor-import fixes and revisit the root-launch warning when upstream behavior is reliable.
+- Template migration for already-installed projects remains a separate concern if the shared template later requires versioned upgrades.
 
 ## Files to Create / Modify
 

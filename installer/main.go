@@ -190,13 +190,13 @@ func main() {
 			printHelp()
 			return
 		case "uninstall":
-			cmdUninstall()
+			cmdUninstall(resolveDefaultProjectDir("."))
 			return
 		case "update":
 			runUpdate()
 			return
 		case "init":
-			targetDir := "."
+			targetDir := resolveDefaultProjectDir(".")
 			if len(os.Args) > 2 {
 				targetDir = os.Args[2]
 			}
@@ -215,10 +215,10 @@ func printHelp() {
 	fmt.Println("Usage: smaqit-extensions <command> [args]")
 	fmt.Println()
 	fmt.Println("Commands:")
-	fmt.Println("  smaqit-extensions init           Install extensions in current directory")
+	fmt.Println("  smaqit-extensions init           Install extensions in detected project root")
 	fmt.Println("  smaqit-extensions init <dir>     Install extensions in specified directory")
-	fmt.Println("  smaqit-extensions update         Update to the latest release")
-	fmt.Println("  smaqit-extensions uninstall      Remove extensions from current directory")
+	fmt.Println("  smaqit-extensions update         Update binary and detected project root")
+	fmt.Println("  smaqit-extensions uninstall      Remove extensions from detected project root")
 	fmt.Println("  smaqit-extensions version        Show version")
 	fmt.Println("  smaqit-extensions --help         Show this help message")
 	fmt.Println()
@@ -441,8 +441,7 @@ func cmdInstall(targetDir string) {
 	fmt.Println("  Codex — skills: invoke with $, or select with /skills")
 }
 
-func cmdUninstall() {
-	targetDir := "."
+func cmdUninstall(targetDir string) {
 	agentsDir := filepath.Join(targetDir, ".github", "agents")
 	skillsDir := filepath.Join(targetDir, ".github", "skills")
 	claudeAgentsDir := filepath.Join(targetDir, ".claude", "agents")
@@ -538,6 +537,7 @@ type githubAsset struct {
 // runUpdate self-updates the binary to the latest GitHub release.
 func runUpdate() {
 	localVersion := Version
+	projectDir := resolveDefaultProjectDir(".")
 
 	release, err := fetchLatestRelease()
 	if err != nil {
@@ -555,12 +555,12 @@ func runUpdate() {
 	}
 	if cmp == 0 {
 		fmt.Printf("Already up to date (%s)\n", localVersion)
-		checkAndReInit(".")
+		checkAndReInit(projectDir)
 		return
 	}
 	if cmp > 0 {
 		fmt.Printf("Local version (%s) is newer than latest release (%s). Nothing to do.\n", localVersion, release.TagName)
-		checkAndReInit(".")
+		checkAndReInit(projectDir)
 		return
 	}
 
@@ -616,9 +616,44 @@ func runUpdate() {
 
 	fmt.Printf("Updated from %s to %s\n", localVersion, release.TagName)
 
-	if err := checkAndReInitWithBinary(".", currentBin); err != nil {
+	if err := checkAndReInitWithBinary(projectDir, currentBin); err != nil {
 		fmt.Fprintf(os.Stderr, "Error re-initializing project assets: %v\n", err)
 		os.Exit(1)
+	}
+}
+
+// resolveDefaultProjectDir finds the project root for commands invoked without
+// an explicit target. A Git worktree root takes precedence over a nested
+// .smaqit directory so an accidental init from scripts/ cannot trap subsequent
+// commands there. Outside Git, the nearest ancestor containing .smaqit is used;
+// a new non-Git project falls back to the starting directory.
+func resolveDefaultProjectDir(startDir string) string {
+	absStart, err := filepath.Abs(startDir)
+	if err != nil {
+		return startDir
+	}
+
+	if gitRoot, ok := findAncestorWithEntry(absStart, ".git"); ok {
+		return gitRoot
+	}
+	if smaqitRoot, ok := findAncestorWithEntry(absStart, ".smaqit"); ok {
+		return smaqitRoot
+	}
+	return absStart
+}
+
+func findAncestorWithEntry(startDir, entryName string) (string, bool) {
+	currentDir := startDir
+	for {
+		if _, err := os.Stat(filepath.Join(currentDir, entryName)); err == nil {
+			return currentDir, true
+		}
+
+		parentDir := filepath.Dir(currentDir)
+		if parentDir == currentDir {
+			return "", false
+		}
+		currentDir = parentDir
 	}
 }
 

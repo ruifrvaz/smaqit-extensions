@@ -104,11 +104,14 @@ User: smaqit.session-finish
 The `smaqit-extensions` binary also accepts CLI commands:
 
 ```bash
-smaqit-extensions init           # Install extensions in current directory
-smaqit-extensions update         # Update binary to the latest release (Linux only)
-smaqit-extensions uninstall      # Remove extensions from current directory
+smaqit-extensions init           # Install extensions in the detected project root
+smaqit-extensions init <dir>     # Install extensions in exactly the specified directory
+smaqit-extensions update         # Update binary and refresh the detected project root
+smaqit-extensions uninstall      # Remove extensions from the detected project root
 smaqit-extensions version        # Show version
 ```
+
+For commands without an explicit directory, the CLI detects the enclosing Git worktree root. Outside Git, it uses the nearest ancestor containing `.smaqit`, then falls back to the current directory for a new standalone project. This makes invocation from nested directories such as `scripts/` safe.
 
 ### Self-Update
 
@@ -116,7 +119,7 @@ smaqit-extensions version        # Show version
 smaqit-extensions update
 ```
 
-Fetches the latest release from GitHub, downloads the new binary, and replaces the running binary atomically. If the current directory contains a `.smaqit/` project, it automatically re-runs `init` to deploy updated agents, skills, and templates without overwriting your project state (tasks, history, glossary).
+Fetches the latest release from GitHub, downloads the new binary, and replaces the running binary atomically. If the detected project root contains `.smaqit/`, it automatically re-runs `init` there to deploy updated agents, skills, and templates without overwriting your project state (tasks, history, glossary).
 
 > **Note:** Self-update is currently supported on Linux only.
 

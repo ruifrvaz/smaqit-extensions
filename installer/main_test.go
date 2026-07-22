@@ -63,3 +63,48 @@ func TestCheckAndReInitWithBinarySkipsNonSmaqitDirectory(t *testing.T) {
 		t.Fatalf("fresh process unexpectedly ran without .smaqit; stat error: %v", err)
 	}
 }
+
+func TestResolveDefaultProjectDirPrefersGitRootOverNestedSmaqit(t *testing.T) {
+	projectDir := t.TempDir()
+	if err := os.Mkdir(filepath.Join(projectDir, ".git"), 0755); err != nil {
+		t.Fatalf("create .git directory: %v", err)
+	}
+	nestedDir := filepath.Join(projectDir, "scripts", "tools")
+	if err := os.MkdirAll(filepath.Join(projectDir, "scripts", ".smaqit"), 0755); err != nil {
+		t.Fatalf("create accidental nested .smaqit directory: %v", err)
+	}
+	if err := os.MkdirAll(nestedDir, 0755); err != nil {
+		t.Fatalf("create nested working directory: %v", err)
+	}
+
+	if got := resolveDefaultProjectDir(nestedDir); got != projectDir {
+		t.Fatalf("resolve project root: got %q, want %q", got, projectDir)
+	}
+}
+
+func TestResolveDefaultProjectDirUsesAncestorSmaqitOutsideGit(t *testing.T) {
+	projectDir := t.TempDir()
+	if err := os.Mkdir(filepath.Join(projectDir, ".smaqit"), 0755); err != nil {
+		t.Fatalf("create .smaqit directory: %v", err)
+	}
+	nestedDir := filepath.Join(projectDir, "scripts", "tools")
+	if err := os.MkdirAll(nestedDir, 0755); err != nil {
+		t.Fatalf("create nested working directory: %v", err)
+	}
+
+	if got := resolveDefaultProjectDir(nestedDir); got != projectDir {
+		t.Fatalf("resolve non-Git project root: got %q, want %q", got, projectDir)
+	}
+}
+
+func TestResolveDefaultProjectDirFallsBackToStartDirectory(t *testing.T) {
+	projectDir := t.TempDir()
+	nestedDir := filepath.Join(projectDir, "new-project")
+	if err := os.Mkdir(nestedDir, 0755); err != nil {
+		t.Fatalf("create start directory: %v", err)
+	}
+
+	if got := resolveDefaultProjectDir(nestedDir); got != nestedDir {
+		t.Fatalf("resolve new non-Git project: got %q, want %q", got, nestedDir)
+	}
+}

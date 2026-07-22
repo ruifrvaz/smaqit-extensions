@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-07-22
+
+### Added
+- **Desktop Linux SSH-agent recovery** — local release agents and the Git release skill now discover already-running GCR, GNOME Keyring, GnuPG, and OpenSSH session sockets on WSL2/WSLg, native Ubuntu/GNOME, and XFCE, then retry an explicitly authorized failed SSH operation once with a command-scoped socket so the desktop unlock or confirmation prompt can appear. The shared project-instructions template used for `CLAUDE.md` documents the same safeguards against persistence or broader authorization. (9465bd5, 7740741)
+
+### Fixed
+- **Nested-directory project targeting** — bare `init`, `update`, and `uninstall` commands now detect the enclosing Git worktree root instead of writing into the current subdirectory. Outside Git they use the nearest `.smaqit` ancestor, while explicit `init <dir>` continues to honor the supplied directory exactly. Regression coverage reproduces an accidental `scripts/.smaqit` installation and verifies implicit commands still target the repository root. (f58d89b, 7740741)
+- **Existing project instructions during `smaqit.project-init`** — initialization now reads and inferentially merges existing `AGENTS.md`, `CLAUDE.md`, and `.github/copilot-instructions.md` instead of aborting when the active platform file exists. The synchronized result uses canonical root `AGENTS.md`, a Claude `@AGENTS.md` importer with Claude-only additions, and a relative Copilot symlink to `../AGENTS.md`; explicit rules are preserved, conflicts are surfaced before writing, and repeat runs are idempotent. Claude Code's known upstream limitation for ancestor imports during some subdirectory launches is documented by the skill. (733d2f6, 7740741)
+
 ## [1.6.1] - 2026-07-21
 
 ### Changed
@@ -527,7 +536,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.6.1...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.6.1...v1.7.0
 [1.6.1]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.4.0...v1.5.0

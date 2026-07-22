@@ -21,6 +21,20 @@ When reasoning about business context, architecture, domain logic, or project co
 
 These files exist to support developer workflow automation and are maintained separately from the project's own code. They do not represent business requirements, domain models, or architectural decisions for this project.
 
+## Desktop Linux SSH Agent Recovery
+
+When an explicitly authorized Git SSH operation fails with `Permission denied (publickey)`, `sign_and_send_pubkey`, or a missing `ssh-askpass`, an interactive WSL2/WSLg, Ubuntu/GNOME, or XFCE session may have a usable agent socket that the current process did not inherit.
+
+Inspect already-running agents in this order: `${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/gcr/ssh`, `${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/keyring/ssh`, the socket reported by `gpgconf --list-dirs agent-ssh-socket`, the current `SSH_AUTH_SOCK`, and the `SSH_AUTH_SOCK` value from `systemctl --user show-environment`. Select the first existing socket for which command-scoped `ssh-add -l` lists identities, then retry only the exact failed Git command once:
+
+```bash
+SSH_AUTH_SOCK="$agent_socket" git push origin main
+```
+
+GCR or GNOME Keyring may display a WSLg/GNOME unlock dialog; GnuPG or a confirmation-constrained OpenSSH agent may display its configured pinentry or askpass prompt. If no usable socket is found, signing still fails, the command times out, or the prompt was closed, stop and ask the user to reopen/unlock their desktop key store or SSH agent before retrying.
+
+Never use this recovery in CI or another headless environment. Do not start or replace agents, persist `SSH_AUTH_SOCK`, edit shell startup files, load or remove identities, change remote transport, or use the unlocked agent for any operation beyond the one the user already authorized.
+
 # Project
 
 ## Project Name

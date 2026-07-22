@@ -2,7 +2,7 @@
 name: smaqit.release-git-local
 description: Execute git operations (commit, tag, push) for local releases
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # Release Git Local
@@ -193,6 +193,47 @@ git ls-remote --tags origin vX.Y.Z
 git ls-remote origin main
 ```
 
+### Desktop Linux SSH Agent Recovery
+
+If an explicitly authorized fetch, push, or `ls-remote` command fails with `Permission denied (publickey)`, `sign_and_send_pubkey`, or a missing `ssh-askpass`, use this recovery on an interactive WSL2/WSLg, native Ubuntu/GNOME, or XFCE session. Do not use it in CI or another headless environment.
+
+1. Confirm that `origin` uses SSH.
+2. Discover an already-running agent without changing persistent shell configuration:
+   ```bash
+   runtime_dir="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+   runtime_dir="${runtime_dir%/}"
+   agent_candidates=(
+     "$runtime_dir/gcr/ssh"
+     "$runtime_dir/keyring/ssh"
+   )
+   if command -v gpgconf >/dev/null 2>&1; then
+     agent_candidates+=("$(gpgconf --list-dirs agent-ssh-socket 2>/dev/null)")
+   fi
+   agent_candidates+=("${SSH_AUTH_SOCK:-}")
+   if command -v systemctl >/dev/null 2>&1; then
+     session_socket="$(systemctl --user show-environment 2>/dev/null | sed -n 's/^SSH_AUTH_SOCK=//p')"
+     agent_candidates+=("$session_socket")
+   fi
+
+   agent_socket=""
+   for candidate_socket in "${agent_candidates[@]}"; do
+     if [[ -n "$candidate_socket" && -S "$candidate_socket" ]] && \
+        SSH_AUTH_SOCK="$candidate_socket" ssh-add -l >/dev/null 2>&1; then
+       agent_socket="$candidate_socket"
+       break
+     fi
+   done
+   test -n "$agent_socket"
+   ```
+3. Retry only the exact failed Git command, once:
+   ```bash
+   SSH_AUTH_SOCK="$agent_socket" git push origin main
+   ```
+   GCR or GNOME Keyring may display a WSLg/GNOME unlock dialog; GnuPG or a confirmation-constrained OpenSSH agent may display its configured pinentry or askpass prompt.
+4. If no usable socket is found, signing still fails, the command times out, or the prompt was closed, stop and ask the user to reopen/unlock their desktop key store or SSH agent. After confirmation, retry only the failed step.
+
+Do not start or replace agents, persist `SSH_AUTH_SOCK`, edit shell startup files, load or remove identities, switch the remote to HTTPS, or broaden the Git operation without explicit user direction.
+
 ## Output
 
 Provide a summary of git operations:
@@ -219,7 +260,8 @@ remote_url: https://github.com/owner/repo.git
 | `nothing to commit` | Files unchanged or not staged | Verify changes were made and staged correctly |
 | `tag 'vX.Y.Z' already exists` | Tag created in previous attempt | Delete local tag: `git tag -d vX.Y.Z`, then retry |
 | `rejected - non-fast-forward` | Remote has commits not in local | Pull latest: `git pull origin main`, then retry |
-| `Permission denied (publickey)` | SSH key not configured | Configure git credentials or use HTTPS |
+| `Permission denied (publickey)` | SSH key unavailable or its desktop store is locked | On interactive desktop Linux, try the single command-scoped agent recovery above; otherwise ask the user to configure or unlock credentials |
+| `sign_and_send_pubkey` failed | Agent can list the key but cannot sign with it | Ask the user to reopen/unlock the desktop key store or SSH agent, then retry only the failed step |
 | `remote: Permission to repo denied` | No push access to repository | Verify repository permissions |
 | `fatal: tag 'vX.Y.Z' already exists` on remote | Tag already pushed previously | Version conflict - check CHANGELOG.md |
 
@@ -256,5 +298,5 @@ git tag -d vX.Y.Z  # Delete local tag
 - Both commit and tag must be pushed for release to be complete
 - Tag push typically triggers CI/CD release workflows (GitHub Actions, etc.)
 - Never force push (`-f`) release commits or tags
-- If any step fails, stop immediately and report the error - do not continue
+- If any step fails, stop immediately and report the error - do not continue beyond the single scoped desktop Linux SSH retry described above
 - Good commit hygiene makes git history useful for understanding project evolution

@@ -2,7 +2,7 @@
 name: smaqit.release.local
 description: Orchestrate a release process with direct git access (local development)
 metadata:
-  version: "0.4.0"
+  version: "0.5.0"
 tools: [execute/getTerminalOutput, execute/runInTerminal, read/readFile, read/terminalSelection, read/terminalLastCommand, edit, search, todo]
 ---
 
@@ -77,6 +77,50 @@ Executes git operations:
 Outputs:
 - Commit SHA and tag confirmation
 
+## Desktop Linux SSH Agent Recovery
+
+If an explicitly authorized Git fetch, push, or remote-verification command fails with an SSH authentication error such as `Permission denied (publickey)`, `sign_and_send_pubkey`, or a missing `ssh-askpass`, apply this recovery before treating an interactive Linux release as blocked. It covers WSL2/WSLg, native Ubuntu/GNOME, and XFCE sessions; do not use it in CI or another headless environment.
+
+1. Confirm that the remote uses SSH:
+   ```bash
+   git remote get-url origin
+   ```
+2. Discover an already-running desktop SSH agent without changing persistent shell configuration. Prefer GCR and GNOME Keyring, then GnuPG, the current process environment, and the systemd user-session environment:
+   ```bash
+   runtime_dir="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+   runtime_dir="${runtime_dir%/}"
+   agent_candidates=(
+     "$runtime_dir/gcr/ssh"
+     "$runtime_dir/keyring/ssh"
+   )
+   if command -v gpgconf >/dev/null 2>&1; then
+     agent_candidates+=("$(gpgconf --list-dirs agent-ssh-socket 2>/dev/null)")
+   fi
+   agent_candidates+=("${SSH_AUTH_SOCK:-}")
+   if command -v systemctl >/dev/null 2>&1; then
+     session_socket="$(systemctl --user show-environment 2>/dev/null | sed -n 's/^SSH_AUTH_SOCK=//p')"
+     agent_candidates+=("$session_socket")
+   fi
+
+   agent_socket=""
+   for candidate_socket in "${agent_candidates[@]}"; do
+     if [[ -n "$candidate_socket" && -S "$candidate_socket" ]] && \
+        SSH_AUTH_SOCK="$candidate_socket" ssh-add -l >/dev/null 2>&1; then
+       agent_socket="$candidate_socket"
+       break
+     fi
+   done
+   test -n "$agent_socket"
+   ```
+3. Retry the exact failed Git command once with the selected socket scoped to that command only:
+   ```bash
+   SSH_AUTH_SOCK="$agent_socket" git push origin main
+   ```
+   GCR or GNOME Keyring may display a WSLg/GNOME unlock dialog; GnuPG or a confirmation-constrained OpenSSH agent may display its configured pinentry or askpass prompt.
+4. If no usable socket is found, the retry still cannot sign, the command times out, or the prompt was closed, stop and ask the user to reopen/unlock their desktop key store or SSH agent. Resume only the failed Git step after the user confirms.
+
+Never start or replace an agent, export its socket globally, add it to shell startup files, load or remove identities, change the remote transport, or retry a different external operation without user direction. The fallback authorizes only the already-approved release command.
+
 ## Completion Criteria
 
 Before declaring success, verify:
@@ -93,7 +137,7 @@ Before declaring success, verify:
 
 ## Notes
 
-- If any skill fails, stop immediately and report the error
+- If any skill fails, stop immediately and report the error, except for the single scoped desktop Linux SSH recovery attempt above
 - Never skip validation steps - clean git state is required
 - Both commit and tag must be pushed for release to be complete
 - Tag push typically triggers CI/CD release workflows

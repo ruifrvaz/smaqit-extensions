@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-07-23
+
+### Fixed
+- **`smaqit.test-create` stack-agnostic rewrite** — the skill was hardcoded to a .NET/Discord/orchestrator stack (`dotnet build`, `orchestrator-start.sh`, `journalctl -u iodis-orchestrator`, `wscat ws://localhost:5000/ws`). It now probes the project for build/test/deploy/health-check commands by checking Makefile, package.json, pyproject.toml, go.mod, Cargo.toml, *.sln, AGENTS.md/CLAUDE.md, and specs/stack/*.md. The live-service E2E section derives verification from the project's actual interfaces (HTTP, WebSocket, bot, event-driven) instead of a fixed service enum. `references/playbook-template.md` is now a true template with `{placeholder}` tokens. Skill version bumped to 2.0.0.
+
 ## [1.7.0] - 2026-07-22
 
 ### Added
@@ -536,7 +541,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.7.1...HEAD
+[1.7.1]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.6.1...v1.7.0
 [1.6.1]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.5.0...v1.6.0

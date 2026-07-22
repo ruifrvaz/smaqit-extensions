@@ -60,10 +60,33 @@ assert_empty_or_missing() {
   echo "[OK] $label removed"
 }
 
+assert_contains() {
+  local path="$1"
+  local expected="$2"
+  local label="$3"
+
+  if ! grep -Fq "$expected" "$path"; then
+    echo "[ERROR] $label is missing expected content: $expected" >&2
+    exit 1
+  fi
+  echo "[OK] $label contains expected content"
+}
+
 echo "[INFO] Installer: $binary"
 echo "[INFO] Temporary project: $smoke_root"
-echo "[CHECK] Installing local development build"
-"$binary" init "$smoke_root"
+echo "[CHECK] Installing local development build from a nested working directory"
+mkdir -p "$smoke_root/.git" "$smoke_root/scripts/.smaqit"
+touch "$smoke_root/scripts/.smaqit/accidental-nested-project"
+(
+  cd "$smoke_root/scripts"
+  "$binary" init
+)
+
+assert_empty_or_missing "$smoke_root/scripts/.github" "nested GitHub target"
+assert_empty_or_missing "$smoke_root/scripts/.claude" "nested Claude target"
+assert_empty_or_missing "$smoke_root/scripts/.codex" "nested Codex target"
+assert_empty_or_missing "$smoke_root/scripts/.agents" "nested shared-agent target"
+echo "[OK] Nested init resolved the Git project root"
 
 assert_tree_matches "$repo_root/installer/agents-copilot" "$smoke_root/.github/agents" "GitHub Copilot agents"
 assert_tree_matches "$repo_root/installer/skills" "$smoke_root/.github/skills" "GitHub Copilot skills"
@@ -73,6 +96,28 @@ assert_tree_matches "$repo_root/installer/skills-claude" "$smoke_root/.claude/sk
 assert_tree_matches "$repo_root/installer/agents-codex" "$smoke_root/.codex/agents" "Codex agents"
 assert_tree_matches "$repo_root/installer/skills-codex" "$smoke_root/.agents/skills" "Codex skills"
 assert_tree_matches "$repo_root/installer/templates" "$smoke_root/.smaqit/templates" "smaqit templates"
+
+desktop_ssh_guidance="Desktop Linux SSH Agent Recovery"
+assert_contains "$smoke_root/.github/agents/smaqit.release.local.agent.md" "$desktop_ssh_guidance" "Copilot local-release agent desktop SSH recovery"
+assert_contains "$smoke_root/.claude/agents/smaqit.release.local.md" "$desktop_ssh_guidance" "Claude local-release agent desktop SSH recovery"
+assert_contains "$smoke_root/.codex/agents/smaqit.release.local.toml" "$desktop_ssh_guidance" "Codex local-release agent desktop SSH recovery"
+assert_contains "$smoke_root/.claude/skills/smaqit.release-git-local/SKILL.md" "$desktop_ssh_guidance" "Claude local-release skill desktop SSH recovery"
+assert_contains "$smoke_root/.smaqit/templates/copilot-instructions.template.md" "$desktop_ssh_guidance" "Claude project-instructions template desktop SSH recovery"
+assert_contains "$smoke_root/.claude/agents/smaqit.release.local.md" 'gpgconf --list-dirs agent-ssh-socket' "Claude agent GnuPG socket discovery"
+assert_contains "$smoke_root/.claude/agents/smaqit.release.local.md" 'keyring/ssh' "Claude agent GNOME Keyring socket discovery"
+
+if grep -R -E '(^|[[:space:]])export SSH_AUTH_SOCK=' \
+  "$smoke_root/.github/agents/smaqit.release.local.agent.md" \
+  "$smoke_root/.claude/agents/smaqit.release.local.md" \
+  "$smoke_root/.codex/agents/smaqit.release.local.toml" \
+  "$smoke_root/.github/skills/smaqit.release-git-local" \
+  "$smoke_root/.claude/skills/smaqit.release-git-local" \
+  "$smoke_root/.agents/skills/smaqit.release-git-local" \
+  "$smoke_root/.smaqit/templates/copilot-instructions.template.md"; then
+  echo "[ERROR] Desktop Linux SSH recovery must not persist SSH_AUTH_SOCK" >&2
+  exit 1
+fi
+echo "[OK] Desktop Linux SSH recovery remains command-scoped"
 
 if [[ ! -f "$smoke_root/.smaqit/tasks/PLANNING.md" ]]; then
   echo "[ERROR] Missing .smaqit/tasks/PLANNING.md" >&2
@@ -118,15 +163,33 @@ if grep -R -E '\[SMAQIT_SKILLS_DIR\]|\{\{(INSTRUCTIONS_FILE|PUSH_STEP|PUSH_METHO
   exit 1
 fi
 
-if ! grep -Fq "generating \`AGENTS.md\`" "$smoke_root/.agents/skills/smaqit.project-init/SKILL.md"; then
-  echo "[ERROR] Codex project-init skill was not resolved to AGENTS.md" >&2
+project_init_copilot="$smoke_root/.github/skills/smaqit.project-init/SKILL.md"
+project_init_claude="$smoke_root/.claude/skills/smaqit.project-init/SKILL.md"
+project_init_codex="$smoke_root/.agents/skills/smaqit.project-init/SKILL.md"
+
+assert_contains "$project_init_codex" 'AGENTS.md` — canonical shared project instructions' "project-init canonical AGENTS contract"
+assert_contains "$project_init_codex" 'Claude-only instructions' "project-init Claude import contract"
+assert_contains "$project_init_codex" 'relative symlink to' "project-init Copilot symlink contract"
+assert_contains "$project_init_codex" '../AGENTS.md' "project-init Copilot symlink target"
+assert_contains "$project_init_codex" 'Do not stop merely because one or more instruction files already exist.' "project-init existing-file migration contract"
+assert_contains "$project_init_codex" 'Semantic merging must be performed through model inference' "project-init inferential merge contract"
+
+if grep -Fq 'Aborting to avoid overwriting' "$project_init_codex" ||
+  grep -Fq '**Never overwrite**' "$project_init_codex"; then
+  echo "[ERROR] Legacy project-init existing-file abort behavior remains" >&2
   exit 1
 fi
-echo "[OK] Codex platform-specific content resolved"
+
+if ! cmp -s "$project_init_copilot" "$project_init_claude" ||
+  ! cmp -s "$project_init_copilot" "$project_init_codex"; then
+  echo "[ERROR] Project-init synchronization contract differs across platforms" >&2
+  exit 1
+fi
+echo "[OK] Project-init synchronization contract is shared across platforms"
 
 echo "[CHECK] Uninstalling from temporary project"
 (
-  cd "$smoke_root"
+  cd "$smoke_root/scripts"
   "$binary" uninstall
 )
 
@@ -137,5 +200,6 @@ assert_empty_or_missing "$smoke_root/.claude/commands" "Claude Code commands"
 assert_empty_or_missing "$smoke_root/.claude/skills" "Claude Code skills"
 assert_empty_or_missing "$smoke_root/.codex/agents" "Codex agents"
 assert_empty_or_missing "$smoke_root/.agents/skills" "Codex skills"
+echo "[OK] Nested uninstall resolved the Git project root"
 
 echo "[PASS] Local installer smoke test completed successfully"

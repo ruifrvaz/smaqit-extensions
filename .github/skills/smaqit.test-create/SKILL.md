@@ -111,13 +111,13 @@ Report to the user:
 **Request:** `task.test-create 058`
 
 **Agent actions:**
-1. Reads `.smaqit/tasks/058_example_task.md`
+1. Reads `.smaqit/tasks/058_{example_task}.md`
 2. Probes project: finds `Makefile` with `build`, `test`, `deploy` targets
 3. Determines: task touches the API server (a live service)
 4. Loads `references/playbook-template.md`
-5. Writes `.smaqit/user-testing/tests/058_example-task.md` with Build Gate (`make build && make test`), Deploy (`make deploy`), Live Service E2E (HTTP curl + log grep), and Evidence checklist
+5. Writes `.smaqit/user-testing/tests/058_{example-task}.md` with Build Gate (`make build && make test`), Deploy (`make deploy`), Live Service E2E (HTTP curl + log grep), and Evidence checklist
 
-**Output:** Playbook created at `.smaqit/user-testing/tests/058_example-task.md`. Sections: Build Gate, Deploy, Live Service E2E (HTTP curl + log grep).
+**Output:** Playbook created at `.smaqit/user-testing/tests/058_{example-task}.md`. Sections: Build Gate, Deploy, Live Service E2E (HTTP curl + log grep).
 
 ## Gotchas
 

@@ -1,7 +1,8 @@
 # Add In-Progress Task Gate to Session Finish
 
-**Status:** In Progress
+**Status:** Completed
 **Created:** 2026-07-23
+**Completed:** 2026-07-23
 
 ## Description
 
@@ -9,9 +10,9 @@ Insert a pre-flight check in `smaqit.session-finish` that scans PLANNING.md for 
 
 ## Acceptance Criteria
 
-- [ ] Session-finish stops and lists in-progress tasks when any exist
-- [ ] Session-finish proceeds normally when no tasks are in progress
-- [ ] Session-finish skips silently when PLANNING.md doesn't exist
+- [x] Session-finish stops and lists in-progress tasks when any exist
+- [x] Session-finish proceeds normally when no tasks are in progress
+- [x] Session-finish skips silently when PLANNING.md doesn't exist
 
 ## Implementation Steps
 
@@ -26,7 +27,7 @@ Insert a pre-flight check in `smaqit.session-finish` that scans PLANNING.md for 
 
 ## Findings
 
-**Implementation approach:**
-**Decisions made:**
-**Blockers encountered:**
-**Follow-up identified:**
+**Implementation approach:** Added new Step 1 in session-finish SKILL.md before history creation; reads PLANNING.md, lists in-progress tasks, stops with skip escape; renumbered steps 1-4 to 2-6.
+**Decisions made:** Flag all "In Progress" regardless of session; hard stop with user-controlled skip.
+**Blockers encountered:** None.
+**Follow-up identified:** None.

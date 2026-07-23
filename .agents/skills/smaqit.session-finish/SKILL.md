@@ -2,7 +2,7 @@
 name: smaqit.session-finish
 description: End session by documenting the entire conversation. Use at session completion to create history entries.
 metadata:
-  version: "0.8.1"
+  version: "0.9.0"
 ---
 
 # Session Finish
@@ -22,7 +22,12 @@ End a session by documenting the **entire session** (not just recent activity).
    - Build the complete session arc from that anchor to the current turn: all topics discussed, decisions made, and files modified
    - Do not proceed to Step 1 until you can enumerate the full arc from `session.start` to now
 
-1. **Create history file** if session qualifies as significant
+1. **Check for in-progress tasks** before creating history.
+   - Read `.smaqit/tasks/PLANNING.md` (skip silently if absent).
+   - If any task shows status "In Progress", list them, STOP, and instruct: "Complete with `task.complete [id]` first, or say 'skip' to proceed."
+   - Otherwise continue.
+
+2. **Create history file** if session qualifies as significant
    - Filename: `.smaqit/history/NNN_description_YYYY-MM-DD.md`
      - `NNN` = Next sequential number (inspect existing files; if none exist, start at `001`)
      - `description` = Brief topic description (2-4 words, lowercase with underscores)
@@ -40,7 +45,7 @@ End a session by documenting the **entire session** (not just recent activity).
    - Focus on **what** and **why**, not implementation details
    - Cover the **complete session arc**, not just the last activity
 
-2. **If a persistent, cross-session memory/notes capability is available in this environment**, use it to record the following (best-effort — the history file written in Step 1 remains the source of truth regardless of whether this step is available or succeeds):
+3. **If a persistent, cross-session memory/notes capability is available in this environment**, use it to record the following (best-effort — the history file written in Step 1 remains the source of truth regardless of whether this step is available or succeeds):
    - **Session summary** — captures what happened so any future session on any branch can pick up where this one left off:
      - `subject`: `"session history"`
      - `fact`: `"[NNN] [YYYY-MM-DD]: [2–3 sentence summary of key actions, decisions, and outcomes]"` (≤ 200 chars)
@@ -54,7 +59,7 @@ End a session by documenting the **entire session** (not just recent activity).
 
    **Note:** Task state in memory is owned by task skills (`task-create`, `task-start`, `task-complete`). Do NOT store task lists or task status here.
 
-3. **Refresh research map** (best-effort — do not let failure block session completion)
+4. **Refresh research map** (best-effort — do not let failure block session completion)
    1. Check whether `.smaqit/references/project-research.md` exists.
    2. **Does not exist** → invoke `smaqit.project-research` to build it for the first time, then continue to Step 4.
    3. **Exists** → read the `**Refreshed:**` date from the map header.
@@ -62,11 +67,11 @@ End a session by documenting the **entire session** (not just recent activity).
    5. Check whether any project manifest file (`go.mod`, `package.json`, `requirements.txt`, `pyproject.toml`, `*.csproj`, `pom.xml`, `Cargo.toml`, `Gemfile`, `composer.json`, `build.gradle`) has a modification timestamp **newer** than the map's `Refreshed:` date.
    6. **Map is stale** (age ≥ 7 days OR any manifest is newer) → invoke `smaqit.project-research` to rebuild.
    7. **Map is current** → report "Research map is current (last updated: YYYY-MM-DD)" and skip rebuild.
-   8. If any error occurs during this step, log a brief warning and continue to Step 4 — research refresh is best-effort.
+   8. If any error occurs during this step, log a brief warning and continue to Step 6 — research refresh is best-effort.
 
-4. **Update this history file** as the session reference for next chat
+5. **Update this history file** as the session reference for next chat
 
-4. **Update the project compendium** (after history file is written):
+6. **Update the project compendium** (after history file is written):
    - Read `references/COMPENDIUM_FORMAT.md` from the `smaqit.project-compendium` skill before writing any entries.
    - Scan the session transcript for user questions — identify questions that are project-specific, non-trivial, and were answered substantively by the agent.
    - Filter out: purely navigational inputs ("what's next?", "continue", "proceed"), one-word commands, meta-session phrases ("new session", "session start", "can you recap?"), and questions whose answers are entirely generic (not project-specific).

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-07-23
+
+### Added
+- **In-progress task gate in `smaqit.session-finish` (v0.9.0)** — before creating the session history file, the skill now scans `.smaqit/tasks/PLANNING.md` for tasks still marked "In Progress". If any are found, the finish stops and instructs the user to complete them with `task.complete [id]` first (or say "skip" to proceed). Prevents sessions from closing with unfinished tracked work.
+
 ## [1.7.1] - 2026-07-23
 
 ### Fixed
@@ -541,7 +546,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.7.1...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.7.1...v1.8.0
 [1.7.1]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.6.1...v1.7.0
 [1.6.1]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.6.0...v1.6.1

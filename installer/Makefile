@@ -1,6 +1,6 @@
 .PHONY: build clean test smoke-test prepare
 
-VERSION ?= 1.8.0
+VERSION ?= 1.9.0
 
 prepare:
 	@echo "Preparing build environment..."

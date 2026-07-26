@@ -7,32 +7,32 @@
 
 ## Description
 
-Adapt the proven branch, Git worktree, and VS Code multi-root workspace workflow from `daisy-enterprise-poc` into the canonical smaqit skill sources.
+Integrate a proven branch, Git worktree, and VS Code multi-root workspace workflow into the canonical smaqit skill sources.
 
 Every `task.start` creates or reuses a `task/NNN-title` branch and sibling worktree. `task.complete` merges the task branch, removes its worktree, safely deletes the merged branch, and rebuilds the workspace file. This is a skill-level workflow refactor; it does not add a binary command or new lifecycle architecture.
 
 ## Design Decisions
 
-- **Implementation:** Reuse the Daisy `smaqit.utils.worktree` skill and scripts rather than adding an installer command.
+- **Implementation:** Reuse the proven `smaqit.utils.worktree` workflow and scripts rather than adding an installer command.
 - **Task start:** Branch and worktree creation happen for every started task using `task/NNN-kebab-title`.
 - **Task completion:** Merge into `main`, remove the registered worktree, safely delete the merged local branch, and rebuild the workspace.
-- **Project portability:** Derive the repository name and sibling worktree prefix instead of hardcoding `daisy-enterprise-poc`.
+- **Project portability:** Derive the repository name and sibling worktree prefix instead of hardcoding a project identity.
 - **Workspace behavior:** Update an existing root `.code-workspace` file or create `<project>.code-workspace`.
-- **Daisy baseline:** Preserve the complete Daisy workflow instructions and script contracts; make only explicit portability and safety corrections.
-- **Sparse checkout:** Preserve Daisy's generated-scaffolding exclusions in task worktrees to prevent duplicate skill and agent discovery.
-- **Session migration:** Include Daisy's explicit opt-in VS Code chat-session migration with injectable storage paths and dependency checks.
-- **Instruction contract:** Add Daisy's execute-skills-verbatim rule to the canonical smaqit project-instructions template.
+- **Behavioral baseline:** Preserve the complete proven workflow instructions and script contracts; make only explicit portability and safety corrections.
+- **Sparse checkout:** Preserve generated-scaffolding exclusions in task worktrees to prevent duplicate skill and agent discovery.
+- **Session migration:** Include explicit opt-in VS Code chat-session migration with injectable storage paths and dependency checks.
+- **Instruction contract:** Add an execute-skills-verbatim rule to the canonical smaqit project-instructions template.
 - **Dependencies:** Preserve the proven Bash, Git, jq, and `realpath --relative-to` workflow.
 - **Distribution:** Install the skill and scripts for Copilot, Claude Code, and Codex as the 29th skill.
 - **Scope boundary:** No new Go command, lifecycle metadata, control-plane abstraction, or CI architecture.
 
 ## Implementation Steps
 
-1. Use Daisy's worktree skill and eight scripts as the literal baseline, changing only hardcoded project paths, cross-platform storage discovery, and confirmed safety defects.
-2. Preserve Daisy's non-interactive task setup, interactive `worktree.sync`, sparse-checkout, workspace generation, reporting, failure handling, and explicit session-migration flow.
-3. Port Daisy's detailed branch derivation, complete worktree-skill execution, path reporting, and workspace reopen instructions into `smaqit.task-start`.
-4. Port Daisy's merge/remove/delete lifecycle into `smaqit.task-complete`, using registered worktree paths and refusing force removal.
-5. Add Daisy's execute-skills-verbatim rule to the canonical project-instructions template.
+1. Use the proven worktree skill and eight scripts as the behavioral baseline, changing only hardcoded project paths, cross-platform storage discovery, and confirmed safety defects.
+2. Preserve non-interactive task setup, interactive `worktree.sync`, sparse checkout, workspace generation, reporting, failure handling, and explicit session migration.
+3. Port detailed branch derivation, complete worktree-skill execution, path reporting, and workspace reopen instructions into `smaqit.task-start`.
+4. Port the merge/remove/delete lifecycle into `smaqit.task-complete`, using registered worktree paths and refusing force removal.
+5. Add the execute-skills-verbatim rule to the canonical project-instructions template.
 6. Register the 29th skill in the generator/dogfooding list and installer help counts.
 7. Update README and CHANGELOG with the complete skill-level workflow.
 8. Generate all platform targets; test branch creation, sparse checkout, workspace generation, cleanup, and session migration in temporary fixtures; then run existing installer tests.
@@ -57,10 +57,10 @@ Every `task.start` creates or reuses a `task/NNN-title` branch and sibling workt
 - [ ] `task.start [id]` derives and creates or reuses `task/NNN-kebab-title`.
 - [ ] Starting a task creates or reuses its sibling worktree and rebuilds the root VS Code workspace.
 - [ ] `task.complete [id]` merges the task branch, removes its worktree, safely deletes the merged branch, and rebuilds the workspace.
-- [ ] The worktree scripts derive project names and paths without Daisy-specific constants.
+- [ ] The worktree scripts derive project names and paths without project-specific constants.
 - [ ] Existing registered worktrees are skipped without duplication.
 - [ ] Dirty worktrees are not force-removed.
-- [ ] Task worktrees preserve Daisy's sparse-checkout exclusions for generated platform scaffolding while retaining canonical project source.
+- [ ] Task worktrees preserve sparse-checkout exclusions for generated platform scaffolding while retaining canonical project source.
 - [ ] `worktree.migrate-sessions` is installed as an explicit opt-in operation with storage-path injection, dependency validation, and idempotent delta migration.
 - [ ] Canonical project instructions require agents to execute every documented skill script in order without streamlining.
 - [ ] The new skill and scripts are generated and installed for Copilot, Claude Code, and Codex, increasing the skill count to 29.
@@ -100,7 +100,7 @@ Every `task.start` creates or reuses a `task/NNN-title` branch and sibling workt
 
 ## Notes
 
-- Convergence assessment: `docs/parity/daisy-enterprise-poc-scaffolding/ASSESSMENT.md`.
-- Daisy's worktree implementation is the direct source for this refactor.
+- Convergence assessment: `docs/parity/reference-scaffolding/ASSESSMENT.md`.
+- The proven worktree implementation is the behavioral source for this refactor.
 - The first Task 018 implementation was intentionally rolled back after it introduced an unnecessary Go command and broad lifecycle architecture.
-- The second implementation was reassessed because it streamlined Daisy's documented task-start and worktree steps and excluded sparse checkout and session migration.
+- The second implementation was reassessed because it streamlined documented task-start and worktree steps and excluded sparse checkout and session migration.

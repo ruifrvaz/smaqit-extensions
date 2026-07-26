@@ -59,7 +59,7 @@
 
 - Mark Task 004 as Completed in PLANNING.md (all acceptance criteria met)
 - Install `smaqit-extensions` v0.9.5 into target projects to pick up the new skill
-- Test `smaqit.project-glossary` in daisy-tribe — add infrastructure terms from the existing `docs/glossary.md` into `.smaqit/glossary.md` as a validation exercise
+- Test `smaqit.project-glossary` in internal project — add infrastructure terms from the existing `docs/glossary.md` into `.smaqit/glossary.md` as a validation exercise
 
 ---
 

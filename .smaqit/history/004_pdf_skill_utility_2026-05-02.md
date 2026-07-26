@@ -64,7 +64,7 @@
 
 - Mark Task 003 as Completed in PLANNING.md
 - Install `poppler-utils` (`sudo apt install poppler-utils`) to enable end-to-end testing of the skill
-- Test the skill against `assets/docs/nvidia-dgx-spark-review-pros-cons-performance-benchmarks.pdf` in daisy-tribe — the original use case that prompted this work
+- Test the skill against `assets/docs/nvidia-dgx-spark-review-pros-cons-performance-benchmarks.pdf` in internal project — the original use case that prompted this work
 - Review the benchmark document once extraction is working
 
 ---

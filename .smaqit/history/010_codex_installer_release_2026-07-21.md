@@ -10,7 +10,7 @@
 ## Actions Taken
 
 - Started the session by loading the project README, contributor instructions, build entrypoints, latest history, planning state, compendium, and release-workflow implementation.
-- Assessed the requested Codex compatibility before implementation, comparing the current dual-target architecture with the working Codex layout in `daisy-enterprise-poc` and the current official Codex discovery rules.
+- Assessed the requested Codex compatibility before implementation, comparing the current dual-target architecture with the working Codex layout in `comparison implementation` and the current official Codex discovery rules.
 - Confirmed the supported Codex project locations: `.codex/agents/*.toml` for custom agents and `.agents/skills/*/SKILL.md` for repository skills.
 - Extended `scripts/generate-targets.py` with a third `codex` platform that renders standalone TOML agents and platform-resolved skill trees under ephemeral `installer/{agents-codex,skills-codex}/` staging directories.
 - Added Codex metadata for all three utility agents and Codex values for platform-specific skill behavior, including `AGENTS.md`, `.agents/skills`, and direct `git`/`gh` use for PR releases.
@@ -26,7 +26,7 @@
 ## Problems Solved
 
 - **No Codex installation target:** Added generated Codex agents and skills without changing the canonical root source model.
-- **Reference migration contained stale assumptions:** Used the Daisy project for artifact shape but did not copy its older agent bodies or its unverified relative `skills.config` entries. Codex relies on native repository skill discovery instead.
+- **Reference migration contained stale assumptions:** Used an internal installation for artifact shape but did not copy its older agent bodies or its unverified relative `skills.config` entries. Codex relies on native repository skill discovery instead.
 - **PR release agent contained Copilot-only language:** Added platform-specific agent placeholders so Copilot retains `report_progress` while Claude Code and Codex use direct `git push` with current credentials.
 - **Dogfooding and installer staging could be conflated:** Documented and enforced that root `.github/`, `.codex/`, and `.agents/` are committed workspace mirrors, while `installer/*` generated trees are the only embed staging inputs.
 - **Installer verification was duplicated and incomplete:** Replaced fixed-path CI shell blocks with one reusable temporary-project smoke test that validates every installed artifact and uninstall behavior.

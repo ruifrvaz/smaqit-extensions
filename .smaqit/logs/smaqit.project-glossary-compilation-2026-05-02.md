@@ -11,8 +11,8 @@
 | File | Role |
 |------|------|
 | `.smaqit/definitions/skills/smaqit.project-glossary.md` | Primary definition (name, steps, output, scope, completion, failure) |
-| `daisy-tribe/.smaqit/templates/skills/base-skill.template.md` | Structure template |
-| `daisy-tribe/.smaqit/templates/skills/compiled/skill.rules.md` | Compilation directives, placeholder catalog, degrees of freedom |
+| `internal project/.smaqit/templates/skills/base-skill.template.md` | Structure template |
+| `internal project/.smaqit/templates/skills/compiled/skill.rules.md` | Compilation directives, placeholder catalog, degrees of freedom |
 
 ---
 

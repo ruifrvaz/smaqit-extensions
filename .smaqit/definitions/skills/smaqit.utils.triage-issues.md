@@ -27,7 +27,7 @@ Invoked automatically as step 2a of `smaqit.task-start` (after the research map 
 
 2. **Check `triage: skip`** — if the task Notes section contains `triage: skip`, log a note ("Triage skipped — explicitly marked in task Notes") and exit cleanly. Used to prevent circular triage on tasks that exist to track a known issue.
 
-3. **Extract tool/component names** — from the task file's description, acceptance criteria, and notes. Tools are anything that is a third-party dependency: a named product, library, platform, or service. Internal project names (daisy-tribe infrastructure, smaqit framework itself) are excluded.
+3. **Extract tool/component names** — from the task file's description, acceptance criteria, and notes. Tools are anything that is a third-party dependency: a named product, library, platform, or service. Internal project names (private infrastructure, smaqit framework itself) are excluded.
 
 4. **Check for third-party tools** — if none are identified, log a note ("No third-party tools identified — triage not applicable") and exit cleanly.
 

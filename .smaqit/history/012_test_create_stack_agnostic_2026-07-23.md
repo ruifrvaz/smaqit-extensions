@@ -8,9 +8,9 @@
 ## Actions Taken
 
 - Identified all hardcoded .NET/Discord/orchestrator references in `smaqit.test-create/SKILL.md` and `references/playbook-template.md`
-- Rewrote `SKILL.md` Step 2: replaced fixed `dotnet build Iodis.sln` / `orchestrator-start.sh` / `health.sh` / `journalctl -u iodis-orchestrator` / `wscat ws://localhost:5000/ws` with a generic stack-probing step that checks Makefile, package.json, pyproject.toml, go.mod, Cargo.toml, *.sln, AGENTS.md/CLAUDE.md, and specs/stack/*.md
+- Rewrote `SKILL.md` Step 2: replaced fixed `dotnet build project.sln` / `orchestrator-start.sh` / `health.sh` / `journalctl -u project-orchestrator` / `wscat ws://localhost:5000/ws` with a generic stack-probing step that checks Makefile, package.json, pyproject.toml, go.mod, Cargo.toml, *.sln, AGENTS.md/CLAUDE.md, and specs/stack/*.md
 - Replaced the fixed live-service enum (`orchestrator, Discord, WebSocket, vLLM, Hindsight, RAG, TTS, STT`) with generic detection (any live/running service) and derivation of verification from the project's actual interfaces
-- Rewrote `references/playbook-template.md` from a filled-in Iodis example into a true template with `{placeholder}` tokens and generic HTTP/WebSocket/bot patterns
+- Rewrote `references/playbook-template.md` from a filled-in project-specific example into a true template with `{placeholder}` tokens and generic HTTP/WebSocket/bot patterns
 - Bumped skill version 1.0.0 → 2.0.0
 - Ran `make sync` to distribute to `.github/`, `.agents/`, `installer/` and verified all copies match
 - Released v1.7.1: updated CHANGELOG.md, bumped installer/main.go + installer/Makefile to 1.7.1, committed in 3 logical commits, tagged, and pushed
@@ -22,7 +22,7 @@
 ## Decisions Made
 
 - **Stack probing approach**: Mirror `smaqit.session-start`'s pattern of checking multiple project manifests in a defined priority order, rather than checking a single manifest type.
-- **Drop the Iodis worked example**: The old template was indistinguishable from a real template. Moved generic patterns into the template itself; no separate worked-example file was created since the three interface patterns (HTTP, WebSocket, bot/event-driven) are self-documenting.
+- **Drop the project-specific worked example**: The old template was indistinguishable from a real template. Moved generic patterns into the template itself; no separate worked-example file was created since the three interface patterns (HTTP, WebSocket, bot/event-driven) are self-documenting.
 - **PATCH release**: The fix is backward-compatible — existing playbooks are unaffected, the playbook structure is unchanged. Only the command derivation changed.
 
 ## Files Modified

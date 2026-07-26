@@ -76,4 +76,4 @@ No `references/` or `assets/` directories needed — instructions fit in `SKILL.
 
 **`poppler-utils` status:** Not installed on the development WSL at time of task creation. Running `sudo apt install poppler-utils` is a prerequisite before the skill can be tested end-to-end.
 
-**Context for first-session pickup:** The immediate use case that prompted this task was reading `assets/docs/nvidia-dgx-spark-review-pros-cons-performance-benchmarks.pdf` in the daisy-tribe workspace, where the agent could not access the PDF content natively. This skill unblocks that and any future PDF-based workflows.
+**Context for first-session pickup:** The immediate use case that prompted this task was reading `assets/docs/nvidia-dgx-spark-review-pros-cons-performance-benchmarks.pdf` in an internal project workspace, where the agent could not access the PDF content natively. This skill unblocks that and any future PDF-based workflows.

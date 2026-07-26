@@ -2,7 +2,7 @@
 name: smaqit.release-prepare-files
 description: Validate git state and prepare all files (CHANGELOG.md, version files) for release
 metadata:
-  version: "0.5.0"
+  version: "0.6.0"
 ---
 
 # Release Prepare Files
@@ -42,7 +42,7 @@ grep "## \\[X.Y.Z\\]" CHANGELOG.md
 
 **A. Collect all changes since last release (reconciliation source):**
 
-The release workflow always creates a commit named exactly `"Prepare release vX.Y.Z"`. Use this commit as the **authoritative boundary** — it is more reliable than git tags (absent in shallow clones) and more precise than PR merge timestamps (which can be incorrectly ordered).
+The release workflows create exact release-marker commits in two compatible forms: `"Release vX.Y.Z"` for local releases and `"Prepare release vX.Y.Z"` for PR-based releases. Use the most recent marker of either form as the **authoritative boundary** — it is more reliable than git tags (absent in shallow clones) and more precise than PR merge timestamps (which can be incorrectly ordered).
 
 **Step 2A-1 — Deepen the clone so the boundary commit is reachable:**
 ```bash
@@ -51,10 +51,10 @@ git fetch --unshallow 2>/dev/null || git fetch --depth=2147483647 2>/dev/null ||
 
 **Step 2A-2 — Find the boundary SHA:**
 ```bash
-# List all "Prepare release" commits, most recent first
-git log --format="%H %s" | grep -iE "^[0-9a-f]+ Prepare release v[0-9]"
+# List all exact local and PR release markers, most recent first
+git log --format="%H %s" | grep -iE "^[0-9a-f]+ (Prepare release|Release) v[0-9]+\.[0-9]+\.[0-9]+$"
 ```
-- **If HEAD is a "Prepare release" commit** (agent is on the release PR branch) — take the **second** entry.
+- **If HEAD is a release-marker commit** (agent is already on a prepared release commit) — take the **second** entry.
 - **Otherwise** — take the **first** entry.
 
 Store as `<boundary-sha>`. Confirm:
@@ -73,12 +73,12 @@ git log "<boundary-sha>..HEAD" --no-merges --pretty=format:"%h %s"
 
 **Filter out noise commits** from both lists before analysing:
 - Lines matching `Initial plan` — release workflow setup commits
-- Lines matching `Prepare release v` — release boundary markers themselves
+- Lines matching exact `Prepare release vX.Y.Z` or `Release vX.Y.Z` markers — release boundaries themselves
 - Lines matching `Merge pull request .*/copilot/release-` — release PR merges
 
 The remaining commits are the real changelog delta.
 
-**Fallback (no "Prepare release" commits found):** use git tags:
+**Fallback (no release-marker commits found):** use git tags:
 ```bash
 git fetch --tags --quiet 2>/dev/null || true
 git tag --sort=-v:refname | head -1
@@ -227,6 +227,6 @@ version_synced: true
 - Version files are optional - CHANGELOG.md is the only required file
 - Keep a Changelog format uses version WITHOUT 'v' prefix in headers (e.g., `## [0.3.0]`), but git tags use 'v' prefix (e.g., `v0.3.0`)
 - For PR-based releases, validation rules are slightly relaxed (feature branch OK)
-- **"Prepare release" commits are the canonical boundary** — always deepen the clone first; locate the previous "Prepare release" commit and use its SHA as the lower bound for `git log`
+- **Exact release-marker commits are the canonical boundary** — always deepen the clone first; locate the most recent local `"Release vX.Y.Z"` or PR `"Prepare release vX.Y.Z"` marker and use its SHA as the lower bound for `git log`
 - **Reconciliation is mandatory:** always cross-check `[Unreleased]` against the commit delta before promoting; the `[Unreleased]` section is often incomplete or empty
 - Uncommitted changes in working tree are acceptable - `release-git-local` handles commit grouping

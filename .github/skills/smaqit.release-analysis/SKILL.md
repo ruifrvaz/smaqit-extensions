@@ -2,7 +2,7 @@
 name: smaqit.release-analysis
 description: Collect changes, assess severity, and suggest next version for a release
 metadata:
-  version: "0.6.0"
+  version: "0.7.0"
 ---
 
 # Release Analysis
@@ -20,7 +20,7 @@ Use this skill at the start of a release workflow to:
 
 ### Step 1: Find the Release Boundary Commit
 
-The release workflow always creates a commit named exactly `"Prepare release vX.Y.Z"` at every release point (hardcoded in `smaqit.release-git-pr` and `smaqit.release-git-local`). Use this commit as the **authoritative lower boundary** for the current release delta. It is more reliable than git tags (absent in shallow clones) and more precise than PR merge timestamps (which can be incorrectly ordered).
+The release workflows create exact release-marker commits in two compatible forms: `"Release vX.Y.Z"` for local releases and `"Prepare release vX.Y.Z"` for PR-based releases. Use the most recent marker of either form as the **authoritative lower boundary** for the current release delta. It is more reliable than git tags (absent in shallow clones) and more precise than PR merge timestamps (which can be incorrectly ordered).
 
 **Step 1a — Deepen the clone so all history is visible:**
 
@@ -28,7 +28,7 @@ The release workflow always creates a commit named exactly `"Prepare release vX.
 git fetch --unshallow 2>/dev/null || git fetch --depth=2147483647 2>/dev/null || true
 ```
 
-**Step 1b — Check whether HEAD itself is a "Prepare release" commit** (i.e., the agent is already on the release PR branch):
+**Step 1b — Check whether HEAD itself is a release-marker commit** (i.e., the agent is already on a prepared release commit):
 
 ```bash
 git log -1 --format="%s"
@@ -37,11 +37,11 @@ git log -1 --format="%s"
 **Step 1c — Find the boundary SHA:**
 
 ```bash
-# List every "Prepare release" commit in reverse-chronological order
-git log --format="%H %s" | grep -iE "^[0-9a-f]+ Prepare release v[0-9]"
+# List every exact local or PR release marker in reverse-chronological order
+git log --format="%H %s" | grep -iE "^[0-9a-f]+ (Prepare release|Release) v[0-9]+\.[0-9]+\.[0-9]+$"
 ```
 
-- **If HEAD is a "Prepare release" commit** — take the **second** entry from the list above (the one immediately before the current release).
+- **If HEAD is a release-marker commit** — take the **second** entry from the list above (the one immediately before the current release).
 - **Otherwise** — take the **first** entry.
 
 Store the result as `<boundary-sha>`.
@@ -58,7 +58,7 @@ git log -1 --format="%s" "<boundary-sha>" | grep -oE "v[0-9]+\.[0-9]+\.[0-9]+"
 
 Store as `<last-version>` (e.g., `v1.1.2`).
 
-**Fallback (no "Prepare release" commits exist — new repository):**
+**Fallback (no release-marker commits exist — new repository):**
 ```bash
 git fetch --tags --quiet 2>/dev/null || true
 git tag --sort=-v:refname | head -1
@@ -83,7 +83,7 @@ git log "<boundary-sha>..HEAD" --no-merges --pretty=format:"%h %s"
 
 **Filter out noise commits** from both lists before analysing:
 - Lines matching `Initial plan` — release workflow setup commits, not changelog material
-- Lines matching `Prepare release v` — release boundary markers themselves
+- Lines matching exact `Prepare release vX.Y.Z` or `Release vX.Y.Z` markers — release boundaries themselves
 - Lines matching `Merge pull request .*/copilot/release-` — the PR merge for the current release, not a feature
 
 The remaining commits are the real changelog delta. Group related commits (individual commits + their merge commit) into a single changelog entry per PR.
@@ -170,7 +170,7 @@ rationale: "New features added (release agent), no breaking changes detected"
 **Output fields:**
 - `changes`: Complete list of changes since the last release boundary, one entry per PR or meaningful commit. Use conventional changelog types: `Added`, `Changed`, `Fixed`, `Removed`, `Deprecated`, `Security`. Each entry must be a self-contained description suitable for pasting directly into `CHANGELOG.md`. Include a `reference` (PR number or commit SHA) for traceability.
 - `severity`: MAJOR, MINOR, or PATCH
-- `latest_version`: Version extracted from the boundary "Prepare release" commit (e.g., `v1.1.2`)
+- `latest_version`: Version extracted from the boundary release-marker commit (e.g., `v1.1.2`)
 - `suggested_version`: Next version following semver rules
 - `rationale`: Brief explanation of the severity assessment
 
@@ -181,8 +181,8 @@ rationale: "New features added (release agent), no breaking changes detected"
 - This skill only **analyzes and suggests** - it does not modify any files
 - The suggested version is a recommendation that must be approved before use
 - Session history files (`.smaqit/history/`) are optional - if they don't exist, rely on git log
-- **"Prepare release" commits are the canonical boundary** — they are always created by the release skills and mark exact release points; use them in preference to git tags or PR timestamps
-- **Shallow clones:** always deepen before querying git log; the boundary-commit approach still works as long as the previous "Prepare release" commit is reachable
+- **Exact release-marker commits are the canonical boundary** — local releases use `"Release vX.Y.Z"` and PR-based releases use `"Prepare release vX.Y.Z"`; use the most recent marker of either form in preference to git tags or PR timestamps
+- **Shallow clones:** always deepen before querying git log; the boundary-commit approach still works as long as the previous release-marker commit is reachable
 - Focus on user-facing changes; internal implementation details should not drive severity
 - When in doubt between severities, prefer conservative (e.g., MINOR over MAJOR)
-- Filter out `Initial plan` commits, `Prepare release` commits, and release-PR merge commits from the delta — these are workflow noise, not changelog material
+- Filter out `Initial plan` commits, exact release-marker commits, and release-PR merge commits from the delta — these are workflow noise, not changelog material

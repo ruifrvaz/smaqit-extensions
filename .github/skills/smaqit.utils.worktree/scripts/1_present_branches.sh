@@ -23,7 +23,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
 
 # Gather local branches. Parsing the complete `git branch -vv` output avoids
-# Daisy's invalid leading comma when the current branch is the only branch.
+# an invalid leading comma when the current branch is the only branch.
 local_json="["
 sep=""
 while IFS= read -r line; do

@@ -1,8 +1,8 @@
 ---
 name: smaqit.task-complete
-description: Mark a task as completed by updating a task's status. Verify its acceptance criteria and record state in PLANNING.md. Use when marking a task as done — whether just implemented, retroactively closing completed work, or responding to a status update request. Follow the steps and mode-specific rules to ensure proper task management.
+description: Mark a task as completed by updating a task's status. Verify its acceptance criteria, record state in PLANNING.md, merge its task branch, and refresh the worktree workspace.
 metadata:
-  version: "0.6.0"
+  version: "0.8.0"
 ---
 
 # Task Complete
@@ -36,6 +36,33 @@ Mark a task as done with the format: `task.complete [id]`
    - `fact`: `"[NNN] [Title] — [Completed|Abandoned] (YYYY-MM-DD)"` (≤ 200 chars)
    - `citations`: path to the task file (e.g., `.smaqit/tasks/NNN_task_title.md`)
    - `reason`: `"Ensures final task state is visible in any branch without reading files, supporting parallel agent workflows"`
+10. **Merge task branch into main** — merge the completed task's branch so the code becomes part of the mainline:
+    - Derive the expected branch name: `task/NNN-kebab-title` (matching the pattern used by `task-start` Step 2).
+    - Check if the branch exists: `git branch --list "<branch-name>"`.
+    - Resolve the primary repository path from `git worktree list --porcelain`; do not assume the current directory is the primary worktree.
+    - If the branch has a registered worktree, require it to be clean before merging. If it contains uncommitted changes, stop and report them instead of merging or removing it.
+    - If the branch exists, merge it from the primary repository:
+      ```bash
+      git checkout main
+      git merge "<branch-name>" --no-ff -m "merge: task NNN — <summary>"
+      ```
+    - If merge conflicts occur, STOP and report conflicts to the user for manual resolution.
+    - If the branch does not exist, skip silently (already merged or task had no branch).
+
+11. **Remove task worktree** — remove the registered worktree before deleting the branch:
+    - Invoke the task-completion cleanup path of `smaqit.utils.worktree`.
+    - Execute its documented enumeration, removal, and workspace rebuild steps in order. Do not guess the worktree path from the branch name.
+    - Never force-remove a dirty worktree.
+    - If no registered worktree exists, skip removal silently.
+    - Report the refreshed `.code-workspace` path.
+
+12. **Delete task branch** — the branch is now merged and its worktree is gone; remove it locally:
+    - Safely delete the merged local branch:
+      ```bash
+      git branch -d "<branch-name>"
+      ```
+    - Use `-d` only; Git must refuse deletion if the branch is not fully merged.
+    - If the branch does not exist, skip silently.
 
 ## Mode-Aware Enforcement
 

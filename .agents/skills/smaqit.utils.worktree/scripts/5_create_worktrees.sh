@@ -46,7 +46,7 @@ for branch in $(echo "$input_json" | jq -r 'keys[]'); do
 
   # Create the worktree and capture stderr for branch-specific reporting.
   if err_output="$(git -C "$REPO_ROOT" worktree add --checkout "$wt_path" "$branch" 2>&1)"; then
-    # Preserve Daisy's sparse-checkout behavior: generated scaffolding remains
+    # Use sparse checkout so generated scaffolding remains
     # available from the primary workspace folder but is excluded from task
     # worktrees to prevent duplicate skill and agent discovery. Canonical root
     # sources such as skills/, agents/, scripts/, and installer/ remain present.

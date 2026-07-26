@@ -1,8 +1,8 @@
 ---
 name: smaqit.task-start
-description: Start working on a task. Supports autonomous mode (AI completes) or assisted mode (user approval required). Use when beginning work on tasks to set proper workflow.
+description: Start working on a task by creating its task branch and worktree, updating the VS Code workspace, and setting assisted or autonomous workflow mode.
 metadata:
-  version: "0.7.0"
+  version: "0.8.0"
 ---
 
 # Task Start
@@ -54,30 +54,53 @@ task.start [id] --assisted         # Explicit assisted mode
 1. **Read task file** (`.smaqit/tasks/NNN_*.md`) to understand requirements
    - If `## Findings` already contains non-placeholder content, surface it in context for continuity:
      - Print: `Existing findings loaded from previous execution: [summary]`
-2. **Research map verification** — check whether `.smaqit/references/project-research.md` exists:
-   - If **absent** → invoke `smaqit.project-research [task-id]` before proceeding. Surface the resulting map in-context. Do not continue to Step 2a until the map is written.
+
+2. **Create task branch** — derive a branch name from the task and create it:
+   - Derive the branch name from the task ID and title:
+     - Take the task ID (e.g., `091`) and the task title.
+     - Convert the title to kebab-case: lowercase, replace spaces and special characters with `-`.
+     - Format: `task/NNN-kebab-title` (e.g., `task/091-fix-something`).
+   - Create the branch from `main`:
+     ```bash
+     git branch "<branch-name>" main
+     ```
+   - If the branch already exists, reuse it rather than creating a duplicate.
+
+3. **Create task worktree** — invoke `smaqit.utils.worktree` to set up a worktree for the new branch:
+   - Execute every documented worktree skill step in order, passing the new branch name as the target selection. Do not replace, skip, merge, or streamline its scripts.
+   - The skill validates prerequisites, computes the project-prefixed slug, creates or reuses the worktree, cleans safe orphans, updates the root `.code-workspace` file, and reports the result.
+   - Capture the actual worktree and workspace paths returned by the skill.
+   - After completion, inform the user:
+     - `Branch "<branch-name>" created with worktree at <worktree-path>.`
+     - `Open VS Code with \`code <workspace-path>\` to see it in the multi-root workspace.`
+   - Continue implementation from the returned worktree path.
+
+4. **Research map verification** — check whether `.smaqit/references/project-research.md` exists:
+   - If **absent** → invoke `smaqit.project-research [task-id]` before proceeding. Surface the resulting map in-context. Do not continue to Step 4a until the map is written.
    - If **present** → proceed without refreshing. The existing map is sufficient. Surface it in-context (render the table) so the implementing agent has documentation topology available.
-2a. **Issue triage** — invoke `smaqit.utils.triage-issues` with the current task ID:
+
+4a. **Issue triage** — invoke `smaqit.utils.triage-issues` with the current task ID:
    - Skill reads the research map, extracts third-party tools, and searches GitHub for known open issues.
    - After triage returns, write/overwrite `## Known Issues Triage` in the task file using the format from `skills/smaqit.utils.triage-issues/references/TRIAGE_BLOCK.md`.
-   - **If blocking issues found** → STOP. Do not continue to Step 3. Present findings and await user direction (proceed, reframe scope, or mark as Blocked).
-   - **If advisory or clear** → continue to Step 3. Advisory findings are visible in-context but do not require approval.
-   - **If triage exits cleanly** (skip flag, no tools, gh unavailable, registry missing) → continue to Step 3 silently.
+   - **If blocking issues found** → STOP. Do not continue to Step 5. Present findings and await user direction (proceed, reframe scope, or mark as Blocked).
+   - **If advisory or clear** → continue to Step 5. Advisory findings are visible in-context but do not require approval.
+   - **If triage exits cleanly** (skip flag, no tools, gh unavailable, registry missing) → continue to Step 5 silently.
    - If triage write-back fails, report a warning and continue (non-blocking).
-3. **Determine mode** from command arguments (default: assisted)
-4. **Update task status** to "In Progress"
-5. **Store mode in task file** as metadata field:
+
+5. **Determine mode** from command arguments (default: assisted)
+6. **Update task status** to "In Progress"
+7. **Store mode in task file** as metadata field:
    ```markdown
    **Mode:** Autonomous | Assisted
    ```
-6. **Update PLANNING.md** to reflect "In Progress" status
-7. **If a persistent, cross-session memory/notes capability is available in this environment**, use it to record task state (best-effort — `PLANNING.md` and the task file remain the source of truth regardless):
+8. **Update PLANNING.md** to reflect "In Progress" status
+9. **If a persistent, cross-session memory/notes capability is available in this environment**, use it to record task state (best-effort — `PLANNING.md` and the task file remain the source of truth regardless):
    - `subject`: `"task state"`
    - `fact`: `"[NNN] [Title] — In Progress ([Assisted|Autonomous], started YYYY-MM-DD)"` (≤ 200 chars)
    - `citations`: path to the task file (e.g., `.smaqit/tasks/NNN_task_title.md`)
    - `reason`: `"Ensures in-progress task and mode are visible in any branch, supporting parallel agent workflows"`
-8. **Load workflow rules** by reading [references/RULES.md](references/RULES.md)
-9. **Begin implementation** following task requirements
+10. **Load workflow rules** by reading [references/RULES.md](references/RULES.md)
+11. **Begin implementation** in the task worktree following task requirements
 
 ## Task File Format
 

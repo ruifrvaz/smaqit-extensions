@@ -1,9 +1,10 @@
 # Converge Worktree-Aware Task Lifecycle
 
-**Status:** In Progress
+**Status:** Completed
 **Created:** 2026-07-26
 **Mode:** Assisted
 **Started:** 2026-07-26
+**Completed:** 2026-07-26
 
 ## Description
 
@@ -54,35 +55,35 @@ Every `task.start` creates or reuses a `task/NNN-title` branch and sibling workt
 
 ## Acceptance Criteria
 
-- [ ] `task.start [id]` derives and creates or reuses `task/NNN-kebab-title`.
-- [ ] Starting a task creates or reuses its sibling worktree and rebuilds the root VS Code workspace.
-- [ ] `task.complete [id]` merges the task branch, removes its worktree, safely deletes the merged branch, and rebuilds the workspace.
-- [ ] The worktree scripts derive project names and paths without project-specific constants.
-- [ ] Existing registered worktrees are skipped without duplication.
-- [ ] Dirty worktrees are not force-removed.
-- [ ] Task worktrees preserve sparse-checkout exclusions for generated platform scaffolding while retaining canonical project source.
-- [ ] `worktree.migrate-sessions` is installed as an explicit opt-in operation with storage-path injection, dependency validation, and idempotent delta migration.
-- [ ] Canonical project instructions require agents to execute every documented skill script in order without streamlining.
-- [ ] The new skill and scripts are generated and installed for Copilot, Claude Code, and Codex, increasing the skill count to 29.
-- [ ] Temporary-repository script checks cover slugging, enumeration, creation, sparse checkout, workspace generation, cleanup, and session migration.
-- [ ] Existing Go tests, installer tests, synchronization checks, and installer smoke tests pass.
-- [ ] README, installer help counts, and CHANGELOG describe the workflow.
+- [x] `task.start [id]` derives and creates or reuses `task/NNN-kebab-title`.
+- [x] Starting a task creates or reuses its sibling worktree and rebuilds the root VS Code workspace.
+- [x] `task.complete [id]` merges the task branch, removes its worktree, safely deletes the merged branch, and rebuilds the workspace.
+- [x] The worktree scripts derive project names and paths without project-specific constants.
+- [x] Existing registered worktrees are skipped without duplication.
+- [x] Dirty worktrees are not force-removed.
+- [x] Task worktrees preserve sparse-checkout exclusions for generated platform scaffolding while retaining canonical project source.
+- [x] `worktree.migrate-sessions` is installed as an explicit opt-in operation with storage-path injection, dependency validation, and idempotent delta migration.
+- [x] Canonical project instructions require agents to execute every documented skill script in order without streamlining.
+- [x] The new skill and scripts are generated and installed for Copilot, Claude Code, and Codex, increasing the skill count to 29.
+- [x] Temporary-repository script checks cover slugging, enumeration, creation, sparse checkout, workspace generation, cleanup, and session migration.
+- [x] Existing Go tests, installer tests, synchronization checks, and installer smoke tests pass.
+- [x] README, installer help counts, and CHANGELOG describe the workflow.
 
 ## Findings
 
-[Populated by smaqit.task-complete. Do not fill in manually before task is complete.]
-
 **Implementation approach:**
-- TBD
+- Ported the proven eight-script worktree workflow into canonical skill sources and generated platform targets.
+- Integrated branch, worktree, workspace, sparse-checkout, cleanup, and opt-in session migration behavior into task start and completion.
 
 **Decisions made:**
-- TBD
+- Kept worktree management at the skill layer with no new installer command.
+- Preserved the base repository's canonical-source model while deriving all project names and paths.
 
 **Blockers encountered:**
-- TBD
+- Initial implementations were rolled back or expanded until they preserved the complete proven workflow without project-specific content.
 
 **Follow-up identified:**
-- TBD
+- Corrected release-boundary detection so local and PR release markers remain compatible across all generated targets.
 
 ## Files to Create / Modify
 

@@ -224,12 +224,12 @@ func printHelp() {
 	fmt.Println()
 	fmt.Println("What gets installed:")
 	fmt.Println("  .github/agents/     - 3 utility agents (GitHub Copilot)")
-	fmt.Println("  .github/skills/     - 28 workflow skills (GitHub Copilot)")
+	fmt.Println("  .github/skills/     - 29 workflow skills (GitHub Copilot)")
 	fmt.Println("  .claude/agents/     - 3 utility agents (Claude Code)")
 	fmt.Println("  .claude/commands/   - 3 slash commands (Claude Code)")
-	fmt.Println("  .claude/skills/     - 28 workflow skills (Claude Code)")
+	fmt.Println("  .claude/skills/     - 29 workflow skills (Claude Code)")
 	fmt.Println("  .codex/agents/      - 3 utility agents (Codex)")
-	fmt.Println("  .agents/skills/     - 28 workflow skills (Codex)")
+	fmt.Println("  .agents/skills/     - 29 workflow skills (Codex)")
 	fmt.Println("  .smaqit/templates/  - 3 canonical templates")
 }
 

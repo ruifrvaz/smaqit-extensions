@@ -2,6 +2,8 @@
 
 This project uses **smaqit-extensions** scaffolding to support AI-assisted development workflows. The scaffolding files are **not part of this project's business domain**.
 
+Execute skills verbatim. When a skill specifies a sequence of scripts or tool invocations, execute every step in the documented order without skipping, merging, or streamlining. Skill scripts encapsulate non-obvious side effects such as sparse checkout, cleanup, and validation. Never substitute manual commands merely because they appear equivalent.
+
 When reasoning about business context, architecture, domain logic, or project conventions, **ignore the following smaqit scaffolding paths entirely**:
 
 - `.smaqit/` — smaqit state directory (task planning, session history, templates, user-testing artefacts)

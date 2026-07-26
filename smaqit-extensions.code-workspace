@@ -1,0 +1,20 @@
+{
+  "folders": [
+    {
+      "name": "main",
+      "path": "."
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/bin/**": true,
+      "**/obj/**": true,
+      ".github/agents/": true,
+      ".github/skills/": true,
+      ".github/workflows/": true,
+      ".agents/": true,
+      ".codex/": true,
+      ".claude/": true
+    }
+  }
+}

@@ -25,9 +25,9 @@ A single `smaqit-extensions init` installs all three targets. Each platform rece
 
 #### Task Tracking
 - **smaqit.task-create** - Create new tasks with auto-numbering
-- **smaqit.task-start** - Start working on a task with workflow mode
+- **smaqit.task-start** - Create a task branch and worktree, then start with the selected workflow mode
 - **smaqit.task-list** - Show current active tasks
-- **smaqit.task-complete** - Mark tasks as completed with verification
+- **smaqit.task-complete** - Verify and complete tasks, merge their branch, and refresh the workspace
 - **smaqit.task-refresh** - Identify session work with no corresponding task and surface retroactive task candidates
 
 #### Testing
@@ -56,6 +56,7 @@ A single `smaqit-extensions init` installs all three targets. Each platform rece
 #### Utilities
 - **smaqit.utils.read-pdf** - Extract text from a PDF file and continue with the caller's original goal
 - **smaqit.utils.triage-issues** - Search upstream GitHub repos for known issues before implementation begins (`task.triage [id]`)
+- **smaqit.utils.worktree** - Sync branch worktrees and the VS Code multi-root workspace
 
 ### Utility Agents
 
@@ -82,12 +83,12 @@ curl -fsSL https://raw.githubusercontent.com/ruifrvaz/smaqit-extensions/main/ins
 The installer compiles the canonical root sources into platform-specific artifacts, then installs:
 
 - `.github/agents/` - 3 utility agents (release local, release PR, user-testing)
-- `.github/skills/` - 28 workflow skills (complete implementations)
+- `.github/skills/` - 29 workflow skills (complete implementations)
 - `.claude/agents/` - 3 utility subagents (same 3, Claude Code format)
 - `.claude/commands/` - 3 slash commands, one per subagent
-- `.claude/skills/` - 28 workflow skills (same content as `.github/skills/`)
+- `.claude/skills/` - 29 workflow skills (same content as `.github/skills/`)
 - `.codex/agents/` - 3 project custom agents (standalone TOML)
-- `.agents/skills/` - 28 workflow skills (Codex repository discovery path)
+- `.agents/skills/` - 29 workflow skills (Codex repository discovery path)
 
 ## Usage
 
@@ -135,6 +136,12 @@ Fetches the latest release from GitHub, downloads the new binary, and replaces t
 - AI implements, verifies, and completes automatically
 - No user approval gate
 - Use for: CI/CD pipelines, batch operations, well-defined refactoring
+
+### Task Worktrees
+
+`smaqit.task-start [id]` creates a `task/NNN-title` branch, adds a sibling Git worktree, and refreshes the project’s `.code-workspace` file. `smaqit.task-complete [id]` merges the branch, removes its worktree, safely deletes the merged branch, and refreshes the workspace again.
+
+The workflow is implemented by the installed `smaqit.utils.worktree` skill and its shell scripts; there is no separate worktree command or service. Task worktrees use sparse checkout to omit generated platform scaffolding and avoid duplicate skill discovery while retaining canonical project source. `worktree.migrate-sessions` can explicitly migrate VS Code chat sessions when first switching to the multi-root workspace; it is never run automatically.
 
 Agents are available in GitHub Custom Agents:
 ```

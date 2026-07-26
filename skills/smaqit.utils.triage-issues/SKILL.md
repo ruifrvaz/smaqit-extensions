@@ -2,7 +2,7 @@
 name: smaqit.utils.triage-issues
 description: Pre-implementation gate that searches upstream GitHub repositories for open bugs and regressions relevant to a task. Resolves tool names to owner/repo pairs from GitHub URLs in the project research map, falling back to the GitHub REST API via curl. Classifies results as Blocking (halts smaqit.task-start and requires user direction), Advisory (surfaced but non-blocking), Historical (closed issues with workarounds), or Clear. Invoked automatically as step 2a of smaqit.task-start; also invokable standalone as `task.triage [id]`.
 metadata:
-  version: "1.4.0"
+  version: "1.4.1"
 ---
 
 # Triage Issues
@@ -24,7 +24,7 @@ Exit cleanly. This flag prevents circular triage on tasks that exist to track a 
 ### Step 3: Extract tool/component names
 
 From the task description, acceptance criteria, and notes, extract the names of all third-party dependencies: named products, libraries, platforms, or services. Exclude:
-- Internal project names (e.g., daisy-tribe infrastructure, smaqit framework files)
+- Internal project names (e.g., private infrastructure or smaqit framework files)
 - Generic terms (e.g., "bash script", "config file", "API endpoint")
 
 If no third-party tools are identified, log:

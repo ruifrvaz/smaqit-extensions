@@ -90,3 +90,11 @@ Agents, skills, and templates are compiled into the Go binary with `go:embed`. R
 After replacing the executable, the update path launches the new binary as a subprocess to run project initialization. Paths where no replacement occurs can safely reinitialize in-process because their embedded content has not changed.
 
 ---
+
+**Why can `smaqit-extensions update` leave an untracked `.claude/` directory in this repository?**
+
+`update` intentionally re-runs initialization whenever it finds `.smaqit/` at the resolved Git root. The initializer deploys every supported platform target, including Claude Code agents, commands, and skills under `.claude/`.
+
+This repository tracks Copilot and Codex dogfooding mirrors but currently neither tracks nor ignores its generated Claude Code target, so the 74 installed Claude files appear as one untracked `.claude/` directory. The updater needs a source-repository policy: ignore this runtime-only target, or generate and track it as a dogfooding mirror. A regression should assert that updating this repository leaves Git status clean under the selected policy.
+
+---

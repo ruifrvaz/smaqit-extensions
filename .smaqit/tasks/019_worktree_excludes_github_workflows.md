@@ -1,9 +1,10 @@
 # Repair Worktree Visibility and Sparse Checkout
 
-**Status:** In Progress
+**Status:** Completed
 **Created:** 2026-07-27
 **Mode:** Assisted
 **Started:** 2026-07-29
+**Completed:** 2026-07-29
 
 ## Description
 
@@ -56,30 +57,32 @@ This is the first time the worktree feature (shipped 2026-07-26) has been exerci
 
 ## Acceptance Criteria
 
-- [ ] A task worktree includes `.github/workflows/` and other project-owned platform configuration, allowing normal in-scope CI/CD and configuration edits.
-- [ ] A task worktree excludes only generated mirror subdirectories: `.github/agents/`, `.github/skills/`, `.claude/agents/`, `.claude/commands/`, `.claude/skills/`, `.agents/skills/`, and `.codex/agents/`.
-- [ ] The primary checkout remains non-sparse and retains all platform directories after task worktree creation.
-- [ ] A rebuilt `.code-workspace` never hides `.github`, `.claude`, `.agents`, or `.codex` from `main` or linked workspace roots.
-- [ ] Sparse-checkout setup reports failures and leaves the newly created worktree as a usable full checkout rather than silently accepting a partial state.
-- [ ] `smaqit.utils.worktree/SKILL.md` accurately documents the exact exclusions, workspace visibility, and failure behavior.
-- [ ] Hermetic regression coverage exercises creation, sparse layout, main checkout preservation, and workspace generation.
-- [ ] Copilot, Claude Code, and Codex generated targets remain synchronized; Go tests and installer smoke tests pass.
+- [x] A task worktree includes `.github/workflows/` and other project-owned platform configuration, allowing normal in-scope CI/CD and configuration edits.
+- [x] A task worktree excludes only generated mirror subdirectories: `.github/agents/`, `.github/skills/`, `.claude/agents/`, `.claude/commands/`, `.claude/skills/`, `.agents/skills/`, and `.codex/agents/`.
+- [x] The primary checkout remains non-sparse and retains all platform directories after task worktree creation.
+- [x] A rebuilt `.code-workspace` never hides `.github`, `.claude`, `.agents`, or `.codex` from `main` or linked workspace roots.
+- [x] Sparse-checkout setup reports failures and leaves the newly created worktree as a usable full checkout rather than silently accepting a partial state.
+- [x] `smaqit.utils.worktree/SKILL.md` accurately documents the exact exclusions, workspace visibility, and failure behavior.
+- [x] Hermetic regression coverage exercises creation, sparse layout, main checkout preservation, and workspace generation.
+- [x] Copilot, Claude Code, and Codex generated targets remain synchronized; Go tests and installer smoke tests pass.
 
 ## Findings
 
 [Populated by smaqit.task-complete. Do not fill in manually before task is complete.]
 
 **Implementation approach:**
-- TBD
+- Narrowed sparse exclusions to generated mirror directories and added a full-checkout fallback on setup failure.
+- Reworked workspace generation to exclude only build output and added hermetic regression coverage.
 
 **Decisions made:**
-- TBD
+- Retained sparse task worktrees to prevent duplicate discovery while preserving project-owned configuration.
+- Treated workspace Explorer visibility separately from sparse checkout behavior.
 
 **Blockers encountered:**
-- TBD
+- None; the regression reproduced and verified the reported downstream failure modes.
 
 **Follow-up identified:**
-- TBD
+- Publish the verified patch as v1.9.1.
 
 ## Files to Create / Modify
 

@@ -10,7 +10,6 @@ Central task tracking and planning for smaqit-extensions.
 | 007 | Create smaqit MCP Server (PoC) | Not Started | 2026-05-09 |
 | 010 | Publish smaqit-extensions as Copilot Marketplace Plugin | Not Started | 2026-05-09 |
 | 017 | Repair Skill Contract and Scope Inconsistencies | Not Started | 2026-07-24 |
-| 019 | Repair Worktree Visibility and Sparse Checkout | In Progress | 2026-07-27 |
 ## Completed Tasks
 
 | ID | Title | Status | Created | Completed |
@@ -29,6 +28,7 @@ Central task tracking and planning for smaqit-extensions.
 | 015 | Synchronize Project Instructions in Project Init | Completed | 2026-07-22 | 2026-07-23 |
 | 016 | Add In-Progress Task Gate to Session Finish | Completed | 2026-07-23 | 2026-07-23 |
 | 018 | Converge Worktree-Aware Task Lifecycle | Completed | 2026-07-26 | 2026-07-26 |
+| 019 | Repair Worktree Visibility and Sparse Checkout | Completed | 2026-07-27 | 2026-07-29 |
 
 ## Notes
 

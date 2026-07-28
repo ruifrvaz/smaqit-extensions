@@ -1,7 +1,9 @@
 # Repair Worktree Visibility and Sparse Checkout
 
-**Status:** Not Started
+**Status:** In Progress
 **Created:** 2026-07-27
+**Mode:** Assisted
+**Started:** 2026-07-29
 
 ## Description
 

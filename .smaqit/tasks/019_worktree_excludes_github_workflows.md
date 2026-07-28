@@ -91,4 +91,6 @@ This is the first time the worktree feature (shipped 2026-07-26) has been exerci
 
 ## Notes
 
+triage: skip — this task repairs a confirmed local workflow contract; no third-party component is being introduced or selected.
+
 Discovered on `iodis-crm-poc` during task 016/021 (Decommission Frontend Variant A / Close-out phase), 2026-07-27, in the same session that also surfaced a sister gap now tracked as task 094 in `~/projects/smaqit` (`smaqit.feature-new` has no mandatory browser/E2E gate for frontend-touching features). Both gaps were caught by the same downstream user in the same session and explicitly asked to be fed back to their respective owning projects rather than left as one-off local workarounds — this task is that feedback loop for the worktree feature specifically, filed against `smaqit-extensions` (the actual canonical source of `smaqit.utils.worktree`, confirmed via `skills/smaqit.utils.worktree/` existing here and not in `~/projects/smaqit`) rather than the `smaqit` core project.

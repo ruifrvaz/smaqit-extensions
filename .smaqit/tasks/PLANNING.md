@@ -10,6 +10,7 @@ Central task tracking and planning for smaqit-extensions.
 | 007 | Create smaqit MCP Server (PoC) | Not Started | 2026-05-09 |
 | 010 | Publish smaqit-extensions as Copilot Marketplace Plugin | Not Started | 2026-05-09 |
 | 017 | Repair Skill Contract and Scope Inconsistencies | Not Started | 2026-07-24 |
+| 019 | Repair Worktree Visibility and Sparse Checkout | Not Started | 2026-07-27 |
 ## Completed Tasks
 
 | ID | Title | Status | Created | Completed |

@@ -46,21 +46,26 @@ for branch in $(echo "$input_json" | jq -r 'keys[]'); do
 
   # Create the worktree and capture stderr for branch-specific reporting.
   if err_output="$(git -C "$REPO_ROOT" worktree add --checkout "$wt_path" "$branch" 2>&1)"; then
-    # Use sparse checkout so generated scaffolding remains
-    # available from the primary workspace folder but is excluded from task
-    # worktrees to prevent duplicate skill and agent discovery. Canonical root
-    # sources such as skills/, agents/, scripts/, and installer/ remain present.
-    git -C "$wt_path" sparse-checkout init --cone 2>/dev/null || true
-    git -C "$wt_path" sparse-checkout set --no-cone \
+    # Exclude only generated mirror subdirectories from linked task worktrees.
+    # Project-owned configuration, including .github/workflows/, stays available.
+    # `set` enables worktree-specific sparse config itself, so no separate init
+    # can leave a transient root-only checkout behind.
+    if sparse_error="$(git -C "$wt_path" sparse-checkout set --no-cone \
       '/*' \
       '!.github/agents/' \
       '!.github/skills/' \
-      '!.github/workflows/' \
-      '!.agents/' \
-      '!.codex/' \
-      '!.claude/' \
-      2>/dev/null || true
-    created="$(echo "$created" | jq --arg b "$branch" --arg p "$wt_path" '. + {($b): $p}')"
+      '!.claude/agents/' \
+      '!.claude/commands/' \
+      '!.claude/skills/' \
+      '!.agents/skills/' \
+      '!.codex/agents/' \
+      2>&1)"; then
+      created="$(echo "$created" | jq --arg b "$branch" --arg p "$wt_path" '. + {($b): $p}')"
+    else
+      # Preserve a usable full checkout when sparse configuration fails.
+      git -C "$wt_path" sparse-checkout disable >/dev/null 2>&1 || true
+      errors="$(echo "$errors" | jq --arg b "$branch" --arg m "Sparse checkout disabled after configuration failure: $sparse_error" '. + {($b): $m}')"
+    fi
   else
     errors="$(echo "$errors" | jq --arg b "$branch" --arg m "$err_output" '. + {($b): $m}')"
   fi

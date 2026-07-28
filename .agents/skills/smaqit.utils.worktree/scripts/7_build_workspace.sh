@@ -43,11 +43,11 @@ while IFS= read -r line; do
 done < <(git -C "$REPO_ROOT" worktree list --porcelain)
 folders="$folders]"
 
-# Exclude build output and generated smaqit mirrors from duplicate discovery in
-# the multi-root workspace. Canonical project source remains visible.
+# Exclude build output only. Workspace settings apply to every root, so hiding
+# platform paths here would also hide them from the primary checkout and agents.
 jq -n \
   --argjson folders "$folders" \
-  '{folders: $folders, settings: {"files.exclude": {"**/bin/**": true, "**/obj/**": true, ".github/agents/": true, ".github/skills/": true, ".github/workflows/": true, ".agents/": true, ".codex/": true, ".claude/": true}}}' \
+  '{folders: $folders, settings: {"files.exclude": {"**/bin/**": true, "**/obj/**": true}}}' \
   > "$WORKSPACE_FILE"
 
 echo "$WORKSPACE_FILE"

@@ -2,7 +2,7 @@
 name: smaqit.utils.worktree
 description: "Sync Git worktrees and update the VS Code multi-root workspace, or set up worktrees for task branches. For interactive sync, presents local and remote branches and asks which branches to sync. Then creates missing sibling worktrees, detects and removes safe orphans, and keeps the project workspace in sync. Also migrates VS Code chat sessions when switching from a single-folder project to the generated multi-root workspace. Use after task branch creation, task completion, workspace migration, or when worktree folders are missing from VS Code Explorer. Triggers: `worktree.sync`, `worktree.migrate-sessions`."
 metadata:
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # smaqit Utils: Git Worktree Manager
@@ -107,7 +107,9 @@ The script outputs a JSON summary:
 }
 ```
 
-**Error handling** is built into the script — it logs per-branch errors and continues. Report any errors to the user after the script completes.
+**Sparse layout.** Task worktrees retain project-owned paths, including `.github/workflows/`. To avoid duplicate agent and skill discovery, only generated mirror subdirectories are excluded: `.github/agents/`, `.github/skills/`, `.claude/agents/`, `.claude/commands/`, `.claude/skills/`, `.agents/skills/`, and `.codex/agents/`.
+
+**Error handling** is built into the script — it logs per-branch errors and continues. If sparse configuration fails after worktree creation, the script disables sparse checkout in that worktree and reports the error, leaving a usable full checkout. Report any errors to the user after the script completes.
 
 ### 6. Detect orphan worktrees
 
@@ -137,6 +139,8 @@ The script is self-contained — it re-enumerates worktrees from `git worktree l
 If there are no active worktrees, the folders array contains only `main`.
 
 ### 8. Write settings (omitted — merged into Step 7)
+
+The generated workspace excludes only build output (`bin/` and `obj/`). Do not add platform paths to workspace-level `files.exclude`: those settings apply to every workspace root and would hide installed content from `main` as well as task worktrees.
 
 ### 9. Report summary
 
@@ -224,7 +228,7 @@ Do not force-remove a dirty worktree. Report the Git error and preserve the work
 8. **The workspace file is Git-committed.** Commit the updated workspace with other changes to keep it versioned.
 9. **VS Code must be reopened** with the root workspace file after it is created or updated for the new folder layout to appear.
 10. **Session migration when switching workspaces.** Switching to a multi-root workspace creates a new VS Code storage entry. Invoke `worktree.migrate-sessions` explicitly if existing chat sessions should be copied.
-11. **Scaffolding files excluded from task worktrees.** Generated agent, skill, command, and workflow directories are excluded through sparse checkout to prevent duplicate skill discovery across workspace folders. Canonical project source remains available.
+11. **Only generated mirrors are excluded from task worktrees.** Sparse checkout excludes `.github/agents/`, `.github/skills/`, `.claude/agents/`, `.claude/commands/`, `.claude/skills/`, `.agents/skills/`, and `.codex/agents/` to prevent duplicate discovery. Project-owned paths such as `.github/workflows/` remain available.
 12. **Task branches modify canonical source, not generated mirrors.** Regenerate platform mirrors from canonical sources during the normal synchronization step.
 13. **Existing unregistered directories are preserved.** Report the conflict for user review; do not remove the directory automatically.
 
@@ -246,6 +250,7 @@ Do not force-remove a dirty worktree. Report the Git error and preserve the work
 |-----------|--------|
 | `jq` not installed | Report that jq 1.6 or newer is required and stop |
 | `git worktree add` fails for a branch | Log the specific error; continue with remaining branches |
+| Sparse configuration fails after worktree creation | Disable sparse checkout in that worktree, report the error, and leave the full checkout usable |
 | Worktree directory exists but is unregistered | Report the stale path and preserve it for user review |
 | Workspace write fails | Report the error and intended workspace path |
 | No local branches besides `main` | Report "No additional branches found — nothing to sync." Exit cleanly |

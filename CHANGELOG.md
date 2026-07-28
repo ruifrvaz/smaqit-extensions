@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.1] - 2026-07-29
+
+### Fixed
+- **Task worktree platform visibility** — sparse task worktrees now retain project-owned configuration, including `.github/workflows/`, while excluding only generated agent and skill mirrors. Sparse configuration failures fall back to a usable full checkout.
+- **VS Code workspace visibility** — generated multi-root workspaces now exclude only build output and no longer hide `.github`, `.claude`, `.agents`, or `.codex` from the primary or linked roots.
+
 ## [1.9.0] - 2026-07-26
 
 ### Added
@@ -559,7 +565,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.9.0...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.9.1...HEAD
+[1.9.1]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.9.0...v1.9.1
 [1.9.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.7.1...v1.8.0
 [1.7.1]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.7.0...v1.7.1

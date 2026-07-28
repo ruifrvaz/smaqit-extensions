@@ -33,6 +33,14 @@ A handful of skills reference their own install path in usage comments or exampl
 
 ---
 
+**Does the worktree workflow add a separate installer or CLI command?**
+
+No. Worktree behavior is implemented by the canonical `smaqit.utils.worktree` skill and its eight shell scripts. The normal initializer installs that skill for GitHub Copilot, Claude Code, and Codex alongside the other workflow skills.
+
+`smaqit.task-start` invokes the workflow to create or reuse a task branch, sibling worktree, sparse checkout, and root VS Code workspace. `smaqit.task-complete` invokes its cleanup path after merging. `worktree.sync` and `worktree.migrate-sessions` are skill triggers, not commands in the `smaqit-extensions` binary.
+
+---
+
 ## Testing
 
 **How can the local installer be tested end to end?**

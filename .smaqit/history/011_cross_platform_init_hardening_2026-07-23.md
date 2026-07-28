@@ -12,7 +12,7 @@
 - Added Codex dogfooding mirrors, platform substitution checks, and a disposable local-installer smoke test, then published v1.6.0.
 - Confirmed and fixed the self-update stale-embed defect by making the replaced executable launch a fresh process for project reinitialization, then published v1.6.1.
 - Diagnosed WSL2 SSH-agent inheritance, demonstrated command-scoped GCR access that permits a desktop unlock prompt, assessed key-exposure risk, and broadened recovery guidance across WSL2/WSLg, Ubuntu/GNOME, XFCE, GnuPG, and OpenSSH.
-- Reproduced an accidental installation under `areaoffice-poc/scripts`, identified invocation from the nested directory as the cause, and made bare `init`, `update`, and `uninstall` resolve the enclosing Git root or nearest `.smaqit` ancestor.
+- Reproduced an accidental installation under another scripts folder, identified invocation from the nested directory as the cause, and made bare `init`, `update`, and `uninstall` resolve the enclosing Git root or nearest `.smaqit` ancestor.
 - Planned, created, started, implemented, verified, and completed Task 015. `smaqit.project-init` now inferentially reads all existing project-instruction sources and synchronizes them around canonical root `AGENTS.md`.
 - Exercised project initialization in isolated model-driven fixtures covering fresh creation, populated-file migration, Copilot symlink conversion, conflict safety, and a hash-stable second run.
 - Ran the local release agent for v1.7.0, organized four source commits plus a release commit, unlocked WSL2 GCR without persisting environment changes, pushed the branch and tag, and verified five published release binaries.

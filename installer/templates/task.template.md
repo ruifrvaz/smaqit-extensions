@@ -1,6 +1,7 @@
 # [Task Title]
 
 **Status:** Not Started | In Progress | Completed | Abandoned | Blocked
+<!-- **Parent:** NNN (optional; omit for a standalone or lifecycle-owner task) -->
 **Mode:** Assisted | Autonomous
 **Created:** YYYY-MM-DD
 **Started:** YYYY-MM-DD
@@ -15,3 +16,5 @@
 
 ## Notes
 [Optional additional context]
+
+Child tasks inherit their active parent's branch, worktree, and workflow mode. Only a standalone or parent task owns Git lifecycle cleanup.

@@ -1,7 +1,9 @@
 # Add Parent-Owned Subtask Worktree Lifecycle
 
-**Status:** Not Started
+**Status:** In Progress
 **Created:** 2026-07-29
+**Mode:** Assisted
+**Started:** 2026-07-29
 
 ## Description
 
@@ -34,7 +36,21 @@ A parent feature-cycle task must own the only branch/worktree for its children. 
 
 ## Known Issues Triage
 
-[Populated by smaqit.task-start via smaqit.utils.triage-issues. Do not edit manually.]
+**Triaged:** 2026-07-29
+**Tools searched:** None — no third-party tools identified
+**Result:** Clear
+
+### Blocking Issues
+- None.
+
+### Advisory Issues
+- None.
+
+### Historical (Closed)
+- None.
+
+### Unresolvable Tools
+- None.
 
 ## Acceptance Criteria
 

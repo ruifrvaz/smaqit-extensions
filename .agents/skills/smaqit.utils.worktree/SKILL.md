@@ -2,7 +2,7 @@
 name: smaqit.utils.worktree
 description: "Sync Git worktrees and update the VS Code multi-root workspace, or set up worktrees for task branches. For interactive sync, presents local and remote branches and asks which branches to sync. Then creates missing sibling worktrees, detects and removes safe orphans, and keeps the project workspace in sync. Also migrates VS Code chat sessions when switching from a single-folder project to the generated multi-root workspace. Use after task branch creation, task completion, workspace migration, or when worktree folders are missing from VS Code Explorer. Triggers: `worktree.sync`, `worktree.migrate-sessions`."
 metadata:
-  version: "1.0.1"
+  version: "1.1.0"
 ---
 
 # smaqit Utils: Git Worktree Manager
@@ -11,7 +11,7 @@ metadata:
 
 ### 1. Present branch selection
 
-When called by `smaqit.task-start`, use the supplied task branch without prompting. When invoked directly as `worktree.sync`, present the full branch landscape and ask which branches should have worktrees before touching the filesystem or Git state.
+When called by `smaqit.task-start` for a lifecycle-owner task, use the supplied task branch without prompting. A declared child task is resolved by Step 9 first and does not reach branch selection or worktree creation. When invoked directly as `worktree.sync`, present the full branch landscape and ask which branches should have worktrees before touching the filesystem or Git state.
 
 Run the branch info script to gather all local and remote branches with tracking data:
 
@@ -142,7 +142,27 @@ If there are no active worktrees, the folders array contains only `main`.
 
 The generated workspace excludes only build output (`bin/` and `obj/`). Do not add platform paths to workspace-level `files.exclude`: those settings apply to every workspace root and would hide installed content from `main` as well as task worktrees.
 
-### 9. Report summary
+### 9. Resolve task lifecycle ownership
+
+Run this operation from the primary checkout whenever `task.create`, `task.start`, or `task.complete` needs to determine whether a task owns Git resources or joins an active parent:
+
+```bash
+bash .agents/skills/smaqit.utils.worktree/scripts/9_resolve_task_lifecycle.sh \
+  --task NNN --purpose start|complete
+```
+
+For child creation, validate the parent before writing the task file:
+
+```bash
+bash .agents/skills/smaqit.utils.worktree/scripts/9_resolve_task_lifecycle.sh \
+  --parent NNN
+```
+
+The JSON result identifies `kind` (`owner` or `child`), parent task ID, branch, registered worktree, effective mode, and resolved task-file path. The script rejects invalid IDs, missing or inactive parents, self-references, nested parents, mode conflicts, and owner completion while any child is not `Completed`.
+
+Task worktrees intentionally omit installed skill directories through sparse checkout. Do not run this script from a linked task worktree by path; run it from the primary checkout, then operate on the returned worktree path.
+
+### 10. Report summary
 
 Print a structured summary listing created worktrees, removed orphans, skipped entries, and any errors. Include the workspace file path and a reminder to reopen VS Code with `code <workspace-path>`.
 
@@ -170,7 +190,7 @@ The script uses delta-copy and upsert behavior so repeated runs preserve session
 
 ## Task Completion Cleanup
 
-After `smaqit.task-complete` merges a task branch:
+After `smaqit.task-complete` completes a lifecycle-owner task:
 
 1. Use Step 4 to find the worktree registered for the task branch.
 2. Remove it with `git worktree remove "<path>"`.
@@ -178,6 +198,8 @@ After `smaqit.task-complete` merges a task branch:
 4. Run Step 7 to rebuild the workspace.
 
 Do not force-remove a dirty worktree. Report the Git error and preserve the worktree and branch for user review.
+
+For a child task, none of this cleanup runs. Child completion records criteria, findings, and status only; its parent performs the one eventual merge and cleanup after every declared child is `Completed`.
 
 ## Output
 
@@ -201,16 +223,20 @@ Do not force-remove a dirty worktree. Report the Git error and preserve the work
 - Orphan worktree detection and removal (branch confirmed deleted from `git branch --list`)
 - `.code-workspace` file generation and maintenance
 - Integration with task branch creation and completion
+- Parent-owned task lifecycle resolution for sequential child tasks
 
 **Out of scope:**
 - Creating or deleting Git branches (handled by `task-start`, `task-complete`, and release skills)
 - Pushing/pulling worktrees to/from remotes
 - Managing worktrees for remote-only branches (no local ref)
 - Custom worktree directory layouts (slug scheme is fixed)
+- Parallel independent editing in one shared parent worktree
 
 ## Examples
 
 **Automatic task setup.** `task-start` creates `task/018-simple-refactor` and passes it to this skill. The skill creates `../<project>-wt-task-018-simple-refactor`, writes the root workspace with `main` plus the task worktree, and returns the worktree path.
+
+**Child task setup.** `task-start` resolves Task 021's `Parent: 020` through Step 9. It returns Task 020's registered branch and worktree, so Task 021 updates its task state there without creating a child branch, worktree, or workspace entry.
 
 **Interactive sync with branch selection.** User invokes `worktree.sync`. Agent gathers `git branch -vv` and `git branch -r`, builds a comparison table, and presents it. User selects `demo/user-identity` and `feat/hindsight`. Agent creates both worktrees, writes the root workspace with 3 folders (main + 2 worktrees), and reports the summary.
 
@@ -231,6 +257,8 @@ Do not force-remove a dirty worktree. Report the Git error and preserve the work
 11. **Only generated mirrors are excluded from task worktrees.** Sparse checkout excludes `.github/agents/`, `.github/skills/`, `.claude/agents/`, `.claude/commands/`, `.claude/skills/`, `.agents/skills/`, and `.codex/agents/` to prevent duplicate discovery. Project-owned paths such as `.github/workflows/` remain available.
 12. **Task branches modify canonical source, not generated mirrors.** Regenerate platform mirrors from canonical sources during the normal synchronization step.
 13. **Existing unregistered directories are preserved.** Report the conflict for user review; do not remove the directory automatically.
+14. **Parent tasks own Git resources.** A child task joins its active parent's registered branch/worktree and inherits its mode. Only a standalone or parent task can merge, remove a worktree, delete a branch, or rebuild the workspace.
+15. **Run lifecycle resolution from primary.** Sparse task worktrees omit installed skill directories by design. Use the primary checkout's installed resolver and the JSON-returned worktree path.
 
 ## Completion
 
@@ -242,6 +270,7 @@ Do not force-remove a dirty worktree. Report the Git error and preserve the work
 - [ ] Orphan worktrees removed
 - [ ] Root `.code-workspace` file written with all active worktrees
 - [ ] Workspace settings applied (bin/obj excluded)
+- [ ] Task lifecycle ownership resolved before any child creates or cleans Git resources
 - [ ] Summary reported to user with reopen reminder
 
 ## Failure Handling

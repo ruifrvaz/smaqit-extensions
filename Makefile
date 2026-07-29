@@ -1,4 +1,4 @@
-.PHONY: sync clean smoke-test test-worktree-layout
+.PHONY: sync clean test smoke-test test-worktree-layout test-parent-task-lifecycle
 
 SKILLS := smaqit.session-start smaqit.project-diagnose smaqit.session-finish smaqit.session-assess smaqit.session-title smaqit.session-recap smaqit.task-create smaqit.task-list smaqit.task-complete smaqit.task-plan smaqit.task-refresh smaqit.task-start smaqit.test-create smaqit.test-complete smaqit.test-start smaqit.project-init smaqit.project-glossary smaqit.release-analysis smaqit.release-approval smaqit.release-prepare-files smaqit.release-git-local smaqit.release-git-pr smaqit.utils.read-pdf smaqit.utils.triage-issues smaqit.utils.worktree smaqit.project-research smaqit.project-recap smaqit.project-compendium smaqit.parity-assess
 
@@ -40,5 +40,10 @@ clean:
 test-worktree-layout:
 	@bash tests/skills/test-worktree-layout.sh
 
-smoke-test: test-worktree-layout
+test-parent-task-lifecycle:
+	@bash tests/skills/test-parent-task-lifecycle.sh
+
+test: test-worktree-layout test-parent-task-lifecycle
+
+smoke-test: test
 	@$(MAKE) -C installer smoke-test

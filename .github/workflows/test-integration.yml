@@ -20,5 +20,5 @@ jobs:
         with:
           go-version: '1.23'
       
-      - name: Run local installer smoke test
-        run: make -C installer smoke-test
+      - name: Run lifecycle and installer smoke tests
+        run: make smoke-test

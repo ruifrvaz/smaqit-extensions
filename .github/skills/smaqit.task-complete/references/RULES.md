@@ -112,6 +112,14 @@ In Progress → Not Started  (cannot regress, abandon instead)
 
 ---
 
+### Rule 4.5: Parent-Child Lifecycle Ownership
+
+- A task without `**Parent:** NNN` owns its normal branch/worktree lifecycle.
+- A child starts only when its parent is `In Progress` in a registered worktree; it inherits the parent mode and uses that branch/worktree.
+- A child never creates a branch or worktree, and never performs merge, cleanup, branch deletion, or workspace rebuild.
+- A parent may complete only when every declared child is `Completed`. Blocked and Abandoned children require explicit user resolution.
+- Parent relationships are single-level in this version. Reject self-referential, nested, and cyclic declarations.
+
 ## Implementation Checklist
 
 For skills that interact with tasks:

@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+# Hermetic contract and topology checks for parent-owned task lifecycles.
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SOURCE_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+FIXTURE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/smaqit-parent-lifecycle.XXXXXX")"
+PRIMARY_ROOT="$FIXTURE_ROOT/project"
+WORKTREE_SCRIPTS="$PRIMARY_ROOT/.agents/skills/smaqit.utils.worktree/scripts"
+
+cleanup() {
+  rm -rf "$FIXTURE_ROOT"
+}
+trap cleanup EXIT
+
+fail() {
+  echo "[FAIL] $*" >&2
+  exit 1
+}
+
+assert_eq() {
+  local actual="$1" expected="$2" message="$3"
+  [ "$actual" = "$expected" ] || fail "$message (expected $expected, got $actual)"
+}
+
+assert_contains() {
+  local file="$1" pattern="$2" message="$3"
+  rg -q --fixed-strings "$pattern" "$file" || fail "$message"
+}
+
+assert_fails() {
+  local expected="$1"
+  shift
+  local output
+  if output="$("$@" 2>&1)"; then
+    fail "Command unexpectedly succeeded: $*"
+  fi
+  printf '%s' "$output" | rg -q --fixed-strings "$expected" || fail "Expected failure text: $expected"
+}
+
+write_task() {
+  local path="$1" id="$2" title="$3" status="$4" parent="${5:-}" mode="${6:-Assisted}"
+  mkdir -p "$(dirname "$path")"
+  {
+    printf '# %s\n\n' "$title"
+    printf '**Status:** %s\n' "$status"
+    printf '**Mode:** %s\n' "$mode"
+    if [ -n "$parent" ]; then
+      printf '**Parent:** %s\n' "$parent"
+    fi
+  } > "$path"
+}
+
+mkdir -p "$WORKTREE_SCRIPTS" "$PRIMARY_ROOT/.smaqit/tasks"
+cp "$SOURCE_ROOT/skills/smaqit.utils.worktree/scripts/3_compute_slugs.sh" "$WORKTREE_SCRIPTS/"
+cp "$SOURCE_ROOT/skills/smaqit.utils.worktree/scripts/4_enumerate_worktrees.sh" "$WORKTREE_SCRIPTS/"
+cp "$SOURCE_ROOT/skills/smaqit.utils.worktree/scripts/5_create_worktrees.sh" "$WORKTREE_SCRIPTS/"
+cp "$SOURCE_ROOT/skills/smaqit.utils.worktree/scripts/7_build_workspace.sh" "$WORKTREE_SCRIPTS/"
+cp "$SOURCE_ROOT/skills/smaqit.utils.worktree/scripts/9_resolve_task_lifecycle.sh" "$WORKTREE_SCRIPTS/"
+chmod +x "$WORKTREE_SCRIPTS"/*.sh
+
+write_task "$PRIMARY_ROOT/.smaqit/tasks/100_feature_cycle.md" 100 "Feature Cycle" "Not Started"
+write_task "$PRIMARY_ROOT/.smaqit/tasks/101_spec_revalidation.md" 101 "Spec Revalidation" "Not Started" 100
+write_task "$PRIMARY_ROOT/.smaqit/tasks/102_development.md" 102 "Development" "Not Started" 100
+write_task "$PRIMARY_ROOT/.smaqit/tasks/103_self_parent.md" 103 "Self Parent" "Not Started" 103
+write_task "$PRIMARY_ROOT/.smaqit/tasks/104_invalid_parent.md" 104 "Invalid Parent" "Not Started"
+printf '**Parent:** invalid\n' >> "$PRIMARY_ROOT/.smaqit/tasks/104_invalid_parent.md"
+
+git -C "$PRIMARY_ROOT" init -b main >/dev/null
+git -C "$PRIMARY_ROOT" config user.email "test@example.invalid"
+git -C "$PRIMARY_ROOT" config user.name "Smaqit Test"
+git -C "$PRIMARY_ROOT" add .
+git -C "$PRIMARY_ROOT" commit -m "fixture: parent task files" >/dev/null
+
+assert_contains "$SOURCE_ROOT/.smaqit/templates/task.template.md" "**Parent:** NNN" "installed task template documents parent metadata"
+assert_contains "$SOURCE_ROOT/skills/smaqit.task-create/assets/TASK_TEMPLATE.md" "**Parent:** NNN" "creation task template documents parent metadata"
+assert_contains "$SOURCE_ROOT/skills/smaqit.task-start/SKILL.md" "9_resolve_task_lifecycle.sh" "task-start invokes lifecycle resolver"
+assert_contains "$SOURCE_ROOT/skills/smaqit.task-complete/SKILL.md" "**Child:** Report completion and stop" "task-complete exits before child cleanup"
+assert_contains "$SOURCE_ROOT/skills/smaqit.task-list/SKILL.md" "shares the parent's branch/worktree" "task-list documents child ownership"
+
+git -C "$PRIMARY_ROOT" branch task/100-feature-cycle main
+parent_slug_json="$(bash "$WORKTREE_SCRIPTS/3_compute_slugs.sh" task/100-feature-cycle)"
+existing_json="$(bash "$WORKTREE_SCRIPTS/4_enumerate_worktrees.sh")"
+printf '%s' "$parent_slug_json" | bash "$WORKTREE_SCRIPTS/5_create_worktrees.sh" --existing "$existing_json" >/dev/null
+bash "$WORKTREE_SCRIPTS/7_build_workspace.sh" >/dev/null
+
+PARENT_ROOT="$FIXTURE_ROOT/project-wt-task-100-feature-cycle"
+[ -d "$PARENT_ROOT" ] || fail "parent worktree was not created"
+sed -i 's/^\*\*Status:\*\*.*/**Status:** In Progress/' "$PARENT_ROOT/.smaqit/tasks/100_feature_cycle.md"
+
+child_result="$(bash "$WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --task 101 --purpose start)"
+assert_eq "$(jq -r '.kind' <<< "$child_result")" "child" "child task is resolved as child"
+assert_eq "$(jq -r '.parent' <<< "$child_result")" "100" "child parent is returned"
+assert_eq "$(jq -r '.branch' <<< "$child_result")" "task/100-feature-cycle" "child reuses parent branch"
+assert_eq "$(jq -r '.worktree' <<< "$child_result")" "$PARENT_ROOT" "child reuses parent worktree"
+assert_eq "$(jq -r '.mode' <<< "$child_result")" "Assisted" "child inherits parent mode"
+
+parent_create_result="$(bash "$WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --parent 100)"
+assert_eq "$(jq -r '.kind' <<< "$parent_create_result")" "child" "child creation resolves active parent"
+assert_fails "must inherit parent task 100 mode Assisted" bash "$WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --task 101 --purpose start --requested-mode autonomous
+assert_fails "cannot declare itself as its parent" bash "$WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --task 103 --purpose start
+assert_fails "Invalid Parent metadata" bash "$WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --task 104 --purpose start
+assert_fails "Parent task 999 must be In Progress" bash "$WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --parent 999
+rm "$PARENT_ROOT/.smaqit/tasks/104_invalid_parent.md"
+
+assert_eq "$(git -C "$PRIMARY_ROOT" branch --format='%(refname:short)' | { rg '^task/' || true; } | wc -l | tr -d ' ')" "1" "no child branches were created"
+assert_eq "$(git -C "$PRIMARY_ROOT" worktree list --porcelain | rg '^worktree ' | wc -l | tr -d ' ')" "2" "only main and parent worktrees are registered"
+assert_eq "$(jq '.folders | length' "$PRIMARY_ROOT/project.code-workspace")" "2" "workspace contains main and parent only"
+
+assert_fails "cannot complete while child tasks remain unfinished" bash "$WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --task 100 --purpose complete
+sed -i 's/^\*\*Status:\*\*.*/**Status:** Completed/' "$PARENT_ROOT/.smaqit/tasks/101_spec_revalidation.md"
+sed -i 's/^\*\*Status:\*\*.*/**Status:** Completed/' "$PARENT_ROOT/.smaqit/tasks/102_development.md"
+owner_result="$(bash "$WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --task 100 --purpose complete)"
+assert_eq "$(jq -r '.kind' <<< "$owner_result")" "owner" "parent is lifecycle owner"
+assert_eq "$(jq -r '.worktree' <<< "$owner_result")" "$PARENT_ROOT" "parent completion uses registered worktree"
+
+git -C "$PARENT_ROOT" add .smaqit/tasks
+git -C "$PARENT_ROOT" commit -m "test: complete child tasks" >/dev/null
+git -C "$PRIMARY_ROOT" merge task/100-feature-cycle --no-ff -m "merge: parent fixture" >/dev/null
+git -C "$PRIMARY_ROOT" worktree remove "$PARENT_ROOT"
+git -C "$PRIMARY_ROOT" branch -d task/100-feature-cycle >/dev/null
+bash "$WORKTREE_SCRIPTS/7_build_workspace.sh" >/dev/null
+assert_eq "$(git -C "$PRIMARY_ROOT" worktree list --porcelain | rg '^worktree ' | wc -l | tr -d ' ')" "1" "parent cleanup leaves one worktree"
+assert_eq "$(git -C "$PRIMARY_ROOT" branch --format='%(refname:short)' | { rg '^task/' || true; } | wc -l | tr -d ' ')" "0" "parent cleanup leaves no task branch"
+assert_eq "$(jq '.folders | length' "$PRIMARY_ROOT/project.code-workspace")" "1" "parent cleanup rebuilds one-folder workspace"
+
+write_task "$PRIMARY_ROOT/.smaqit/tasks/110_standalone.md" 110 "Standalone Task" "Not Started"
+git -C "$PRIMARY_ROOT" add .smaqit/tasks/110_standalone.md
+git -C "$PRIMARY_ROOT" commit -m "fixture: standalone task" >/dev/null
+standalone_start="$(bash "$WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --task 110 --purpose start --requested-mode autonomous)"
+assert_eq "$(jq -r '.kind' <<< "$standalone_start")" "owner" "standalone task remains owner"
+assert_eq "$(jq -r '.branch' <<< "$standalone_start")" "task/110-standalone-task" "standalone branch naming remains compatible"
+
+echo "[PASS] Parent-owned task lifecycle contract and topology"

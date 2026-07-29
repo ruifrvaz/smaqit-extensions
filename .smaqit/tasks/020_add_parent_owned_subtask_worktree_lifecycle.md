@@ -1,9 +1,10 @@
 # Add Parent-Owned Subtask Worktree Lifecycle
 
-**Status:** In Progress
+**Status:** Completed
 **Created:** 2026-07-29
 **Mode:** Assisted
 **Started:** 2026-07-29
+**Completed:** 2026-07-29
 
 ## Description
 
@@ -54,32 +55,30 @@ A parent feature-cycle task must own the only branch/worktree for its children. 
 
 ## Acceptance Criteria
 
-- [ ] Both canonical task templates support documented optional `Parent: NNN` metadata, while existing standalone task files remain valid.
-- [ ] Task creation validates declared parent relationships and creates child task records in the active parent worktree.
-- [ ] A deterministic resolver returns the owner/child relationship, registered worktree, branch, and effective mode; it rejects missing, inactive, self-referential, nested, and cyclic parent relationships with actionable errors.
-- [ ] Starting a parent creates or reuses exactly one branch and one worktree using the existing lifecycle.
-- [ ] Starting an eligible child reuses the active parent's branch and registered worktree, creates no child branch or worktree, and inherits the parent mode.
-- [ ] Starting a child whose parent is not In Progress, missing, or has no usable registered worktree stops safely with an actionable error.
-- [ ] Completing a child updates only child task state and findings; it does not merge, remove a worktree, delete a branch, or rebuild the workspace.
-- [ ] Completing a parent blocks unless every declared child is `Completed`; after all children complete, it performs the existing merge, worktree removal, branch deletion, and workspace refresh exactly once.
-- [ ] Task creation, start, completion, listing, mode rules, worktree guidance, and README consistently document lifecycle ownership and preserve standalone-task behavior.
-- [ ] Hermetic coverage executes resolver validation and proves the parent/child Git topology and standalone compatibility; generated Copilot, Claude Code, and Codex targets remain synchronized and installer tests pass.
+- [x] Both canonical task templates support documented optional `Parent: NNN` metadata, while existing standalone task files remain valid.
+- [x] Task creation validates declared parent relationships and creates child task records in the active parent worktree.
+- [x] A deterministic resolver returns the owner/child relationship, registered worktree, branch, and effective mode; it rejects missing, inactive, self-referential, nested, and cyclic parent relationships with actionable errors.
+- [x] Starting a parent creates or reuses exactly one branch and one worktree using the existing lifecycle.
+- [x] Starting an eligible child reuses the active parent's branch and registered worktree, creates no child branch or worktree, and inherits the parent mode.
+- [x] Starting a child whose parent is not In Progress, missing, or has no usable registered worktree stops safely with an actionable error.
+- [x] Completing a child updates only child task state and findings; it does not merge, remove a worktree, delete a branch, or rebuild the workspace.
+- [x] Completing a parent blocks unless every declared child is `Completed`; after all children complete, it performs the existing merge, worktree removal, branch deletion, and workspace refresh exactly once.
+- [x] Task creation, start, completion, listing, mode rules, worktree guidance, and README consistently document lifecycle ownership and preserve standalone-task behavior.
+- [x] Hermetic coverage executes resolver validation and proves the parent/child Git topology and standalone compatibility; generated Copilot, Claude Code, and Codex targets remain synchronized and installer tests pass.
 
 ## Findings
 
-[Populated by smaqit.task-complete. Do not fill in manually before task is complete.]
-
 **Implementation approach:**
-- TBD
+- Added a deterministic lifecycle resolver, parent metadata support, and ownership-aware task workflow guidance across all generated targets.
 
 **Decisions made:**
-- TBD
+- Standalone and parent tasks own Git resources; children inherit the parent branch, worktree, and mode under a single-level relationship model.
 
 **Blockers encountered:**
-- TBD
+- None. Completion used the branch-local resolver before its merge made it available in the primary checkout.
 
 **Follow-up identified:**
-- TBD
+- Adopt this generic lifecycle contract in the related feature-cycle workflow after its Phase 3 PR and deployment semantics are resolved.
 
 ## Files to Create / Modify
 

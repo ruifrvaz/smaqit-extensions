@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-07-29
+
+### Added
+- **Claude Code dogfooding mirror** — the generated `.claude/` agents, commands, and skills are now tracked in this repository, so running `smaqit-extensions update` no longer leaves its installed Claude assets untracked.
+- **Parent-owned subtask lifecycle** — an optional `Parent: NNN` task relationship lets sequential child tasks share one parent branch and worktree, inherit its workflow mode, and retain independent task state and findings.
+
+### Changed
+- **Task lifecycle safeguards** — task creation, start, completion, listing, templates, worktree guidance, CI, and hermetic topology tests now enforce parent/child ownership while preserving standalone task behavior.
+
 ## [1.9.1] - 2026-07-29
 
 ### Fixed
@@ -565,7 +574,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.9.1...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.10.0...HEAD
+[1.10.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.9.1...v1.10.0
 [1.9.1]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.9.0...v1.9.1
 [1.9.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.7.1...v1.8.0

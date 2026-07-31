@@ -2,7 +2,7 @@
 name: smaqit.release-git-local
 description: Execute git operations (commit, tag, push) for local releases
 metadata:
-  version: "0.3.0"
+  version: "0.3.1"
 ---
 
 # Release Git Local
@@ -296,7 +296,7 @@ git tag -d vX.Y.Z  # Delete local tag
 - **Commits should be grouped logically, not dumped together** - each commit tells a story
 - Release preparation (CHANGELOG + version) should be its own separate commit
 - Both commit and tag must be pushed for release to be complete
-- Tag push typically triggers CI/CD release workflows (GitHub Actions, etc.)
+- Tag push triggers `.github/workflows/post-merge-release.yml` (installed by `smaqit-extensions init`/`update`, create-if-absent), which publishes the GitHub Release; a project may have added its own build/artifact steps to that workflow
 - Never force push (`-f`) release commits or tags
 - If any step fails, stop immediately and report the error - do not continue beyond the single scoped desktop Linux SSH retry described above
 - Good commit hygiene makes git history useful for understanding project evolution

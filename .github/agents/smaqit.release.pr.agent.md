@@ -2,7 +2,7 @@
 name: smaqit.release.pr
 description: Orchestrate a release process via pull request (CI/CD, Coding Agent)
 metadata:
-  version: "0.5.0"
+  version: "0.5.1"
 ---
 
 # Release Agent (PR)
@@ -99,19 +99,18 @@ gh pr edit --title "Prepare release vX.Y.Z"
 
 ## Post-Merge Release Automation
 
-**CRITICAL:** This agent does NOT create tags or releases during PR workflow. All release actions happen automatically after PR merge.
+**CRITICAL:** This agent does NOT create tags or releases during PR workflow. All release actions happen automatically after PR merge, driven by `.github/workflows/post-merge-release.yml`.
 
 ### Automated Post-Merge Workflow
 
-When a PR with title matching "Prepare release vX.Y.Z" or "Release vX.Y.Z" is merged to `main`, the post-merge workflow (`.github/workflows/post-merge-release.yml`) automatically:
+`smaqit-extensions init`/`update` deploy `.github/workflows/post-merge-release.yml` automatically (create-if-absent, never overwriting a project-customized copy). When a PR with title matching "Prepare release vX.Y.Z" or "Release vX.Y.Z" is merged to `main`, it automatically:
 
 1. Creates and pushes git tag `vX.Y.Z`
-2. Builds binaries for all platforms (Linux, macOS, Windows on amd64/arm64)
-3. Creates GitHub Release with binaries and changelog excerpt
+2. Creates a GitHub Release with the matching CHANGELOG.md section as its notes
 
-**No manual intervention required!**
+The installed workflow ships with no build step. If the project builds and publishes artifacts (binaries, packages, etc.) as part of its release, that project has added those steps to its own copy of the workflow — check `.github/workflows/post-merge-release.yml` directly rather than assuming what it does.
 
-The release is fully automated from PR merge to GitHub Release creation.
+**No manual intervention required for the tag/release steps.**
 
 ## Completion Criteria
 
@@ -124,7 +123,7 @@ Before declaring success, verify:
 - [ ] PR created/updated with changes via the `report_progress` tool
 - [ ] **PR title verified** — must start with "Prepare release vX.Y.Z" or "Release vX.Y.Z"; if wrong, corrected via `gh pr edit --title`
 
-**After PR merge:** Post-merge workflow automatically creates tag, builds binaries, and publishes GitHub Release.
+**After PR merge:** Post-merge workflow automatically creates the tag and publishes the GitHub Release (plus any project-added build/artifact steps).
 
 ## Notes
 
@@ -132,6 +131,6 @@ Before declaring success, verify:
 - Tags are intentionally NOT created on PR branches
 - All release automation happens in post-merge workflow after PR merge
 - Push authentication uses the `report_progress` tool
-- Release completes automatically after PR merge (tag, builds, GitHub Release)
+- Release completes automatically after PR merge (tag + GitHub Release, plus any project-added build steps)
 - If any skill fails, stop immediately and report the error
 - For local releases with interactive approval, use `smaqit.release.local` agent instead

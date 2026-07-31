@@ -41,6 +41,14 @@ No. Worktree behavior is implemented by the canonical `smaqit.utils.worktree` sk
 
 ---
 
+**How do sequential child tasks share one feature branch and worktree?**
+
+Create and start a dedicated parent task, then create each sequential child with `task.create ... --parent NNN`. The child records its own status, criteria, and findings in the active parent worktree, inherits the parent mode, and never creates a branch or worktree. Child completion is bookkeeping only. Once every child is completed, the parent performs the single merge, worktree removal, branch deletion, and workspace refresh. Parent relationships are single-level; a child cannot itself own children.
+
+Feature workflows that create a deployment PR before later phases may write files must define their merge and post-merge write semantics before adopting this lifecycle.
+
+---
+
 ## Testing
 
 **How can the local installer be tested end to end?**
@@ -91,10 +99,8 @@ After replacing the executable, the update path launches the new binary as a sub
 
 ---
 
-**Why can `smaqit-extensions update` leave an untracked `.claude/` directory in this repository?**
+**How does this repository keep Claude Code assets from appearing as update-generated untracked files?**
 
-`update` intentionally re-runs initialization whenever it finds `.smaqit/` at the resolved Git root. The initializer deploys every supported platform target, including Claude Code agents, commands, and skills under `.claude/`.
-
-This repository tracks Copilot and Codex dogfooding mirrors but currently neither tracks nor ignores its generated Claude Code target, so the 74 installed Claude files appear as one untracked `.claude/` directory. The updater needs a source-repository policy: ignore this runtime-only target, or generate and track it as a dogfooding mirror. A regression should assert that updating this repository leaves Git status clean under the selected policy.
+The repository tracks its generated `.claude/` dogfooding mirror alongside the Copilot and Codex mirrors. `smaqit-extensions update` can therefore re-initialize all supported platform assets at the repository root without leaving the installed Claude agents, commands, and skills untracked.
 
 ---

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Release automation workflow bootstrap** — `smaqit-extensions init`/`update` now deploy a generic, project-agnostic `.github/workflows/post-merge-release.yml` (tag on merge + GitHub Release, no build step) create-if-absent, so `smaqit.release.pr` and `smaqit.release-git-local` have working post-merge automation out of the box instead of assuming a workflow the installer never shipped.
+
+### Fixed
+- **Release agent/skill accuracy** — `smaqit.release.pr`, `smaqit.release-git-pr`, and `smaqit.release-git-local` no longer claim guaranteed binary builds as part of post-merge automation; they describe the generic tag+release behavior the installed workflow actually provides and point to the workflow file for any project-added build steps.
+
 ## [1.10.0] - 2026-07-29
 
 ### Added

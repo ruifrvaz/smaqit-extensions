@@ -10,7 +10,7 @@ copilot:
   name: smaqit.release.pr
   description: Orchestrate a release process via pull request (CI/CD, Coding Agent)
   metadata:
-    version: "0.5.0"
+    version: "0.5.1"
 
 claude:
   name: smaqit-release-pr

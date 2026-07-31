@@ -2,7 +2,7 @@
 name: smaqit.release-git-pr
 description: Execute git operations for PR-based releases (commit, push, and enforce the post-merge automation PR title)
 metadata:
-  version: "0.3.0"
+  version: "0.3.1"
 ---
 
 # Release Git PR
@@ -82,10 +82,9 @@ gh pr edit --title "Prepare release vX.Y.Z"
 
 **Post-merge workflow automatically:**
 1. Creates and pushes git tag `vX.Y.Z`
-2. Builds binaries for all platforms
-3. Creates GitHub Release with binaries and changelog
+2. Creates a GitHub Release with the changelog excerpt as its notes
 
-**No manual intervention required!**
+**No manual intervention required for the tag/release steps.** `.github/workflows/post-merge-release.yml` is installed by `smaqit-extensions init`/`update` (create-if-absent) with no build step; if this project has added its own build or artifact-upload steps to that workflow, they run too — check the file directly rather than assuming its contents.
 
 Document in PR description:
 
@@ -95,8 +94,7 @@ Document in PR description:
 When this PR is merged to `main`, the post-merge workflow will automatically:
 
 ✅ Create git tag `vX.Y.Z`
-✅ Build binaries for Linux, macOS, Windows (amd64/arm64)
-✅ Publish GitHub Release with binaries and changelog
+✅ Publish GitHub Release with the changelog excerpt
 
 Workflow: `.github/workflows/post-merge-release.yml`
 ```
@@ -148,5 +146,5 @@ post_merge_automation: true
 - Complete release automation happens via post-merge workflow after PR merge
 - Push authentication is handled by {{PUSH_METHOD_SUMMARY}}
 - PR title must match pattern for post-merge automation to trigger
-- Release completes automatically after PR merge: tag, builds, GitHub Release
+- Release completes automatically after PR merge: tag + GitHub Release (plus any project-added build steps)
 - See `.github/workflows/post-merge-release.yml` for workflow details

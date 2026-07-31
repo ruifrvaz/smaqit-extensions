@@ -25,6 +25,9 @@ var skillFiles embed.FS
 //go:embed templates/*
 var templateFiles embed.FS
 
+//go:embed workflow-templates/*
+var workflowTemplateFiles embed.FS
+
 //go:embed agents-claude/*.md
 var claudeAgentFiles embed.FS
 
@@ -231,6 +234,7 @@ func printHelp() {
 	fmt.Println("  .codex/agents/      - 3 utility agents (Codex)")
 	fmt.Println("  .agents/skills/     - 29 workflow skills (Codex)")
 	fmt.Println("  .smaqit/templates/  - 3 canonical templates")
+	fmt.Println("  .github/workflows/  - post-merge-release.yml (create-if-absent)")
 }
 
 func cmdInstall(targetDir string) {
@@ -334,6 +338,43 @@ func cmdInstall(targetDir string) {
 		os.Exit(1)
 	}
 
+	// Install the release automation workflow (never overwrite an existing one)
+	githubWorkflowsDir := filepath.Join(targetDir, ".github", "workflows")
+	if err := os.MkdirAll(githubWorkflowsDir, 0755); err != nil {
+		fmt.Printf("Error creating workflows directory: %v\n", err)
+		os.Exit(1)
+	}
+
+	workflowCount := 0
+	if err := fs.WalkDir(workflowTemplateFiles, "workflow-templates", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			return nil
+		}
+
+		content, err := fs.ReadFile(workflowTemplateFiles, path)
+		if err != nil {
+			return fmt.Errorf("reading %s: %w", path, err)
+		}
+
+		filename := filepath.Base(path)
+		targetPath := filepath.Join(githubWorkflowsDir, filename)
+
+		if _, statErr := os.Stat(targetPath); statErr != nil {
+			workflowCount++
+		}
+		if err := writeFileIfMissing(targetPath, content, 0644); err != nil {
+			return fmt.Errorf("writing %s: %w", targetPath, err)
+		}
+
+		return nil
+	}); err != nil {
+		fmt.Printf("Error installing release workflow: %v\n", err)
+		os.Exit(1)
+	}
+
 	// Install agents
 	agentCount, err := installFlatFiles(copilotAgentFiles, "agents-copilot", agentsDir)
 	if err != nil {
@@ -429,6 +470,11 @@ func cmdInstall(targetDir string) {
 	fmt.Printf("✓ Installed %d skills to %s\n", claudeSkillCount, claudeSkillsDir)
 	fmt.Printf("✓ Installed %d agents to %s\n", codexAgentCount, codexAgentsDir)
 	fmt.Printf("✓ Installed %d skills to %s\n", codexSkillCount, codexSkillsDir)
+	if workflowCount > 0 {
+		fmt.Printf("✓ Installed %d release workflow(s) to %s\n", workflowCount, githubWorkflowsDir)
+	} else {
+		fmt.Printf("✓ Release workflow already present in %s (left unchanged)\n", githubWorkflowsDir)
+	}
 	fmt.Println()
 	fmt.Println("Extensions installed successfully!")
 	fmt.Println()

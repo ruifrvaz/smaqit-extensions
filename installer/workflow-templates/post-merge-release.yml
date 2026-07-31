@@ -1,0 +1,125 @@
+# Installed by smaqit-extensions (smaqit.release.pr / smaqit.release-git-local).
+# Deployed once, create-if-absent: `smaqit-extensions init` and `update` never
+# overwrite this file once it exists, so local edits are always preserved.
+#
+# Triggers on either a `vX.Y.Z` tag push (local release, smaqit.release-git-local)
+# or a merged PR titled "Prepare release vX.Y.Z" / "Release vX.Y.Z" (PR-based
+# release, smaqit.release-git-pr). Creates the tag when needed, then publishes
+# a GitHub Release with the matching CHANGELOG.md section as its notes.
+#
+# This template ships no build step — it only tags and publishes a Release.
+# Add your own build/artifact-upload steps to the `release` job below if your
+# project publishes binaries or other release assets.
+name: Post-Merge Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    name: Extract Version
+    if: |
+      github.event_name == 'push' ||
+      (github.event.pull_request.merged == true &&
+       (startsWith(github.event.pull_request.title, 'Prepare release') ||
+        startsWith(github.event.pull_request.title, 'prepare release') ||
+        startsWith(github.event.pull_request.title, 'Release v') ||
+        startsWith(github.event.pull_request.title, 'release v')))
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      skip_tag: ${{ steps.version.outputs.skip_tag }}
+    steps:
+      - name: Extract version
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            # Triggered by tag push (local release)
+            VERSION="${GITHUB_REF#refs/tags/v}"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "skip_tag=true" >> $GITHUB_OUTPUT
+            echo "✓ Extracted version from tag: $VERSION"
+          else
+            # Triggered by PR merge (PR-based release)
+            TITLE="${{ github.event.pull_request.title }}"
+            if [[ "$TITLE" =~ [Pp]repare[[:space:]]release[^v]*v([0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?) ]]; then
+              VERSION="${BASH_REMATCH[1]}"
+              echo "version=$VERSION" >> $GITHUB_OUTPUT
+              echo "skip_tag=false" >> $GITHUB_OUTPUT
+              echo "✓ Extracted version from PR title: $VERSION"
+            elif [[ "$TITLE" =~ [Rr]elease[[:space:]]v([0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?) ]]; then
+              VERSION="${BASH_REMATCH[1]}"
+              echo "version=$VERSION" >> $GITHUB_OUTPUT
+              echo "skip_tag=false" >> $GITHUB_OUTPUT
+              echo "✓ Extracted version from PR title: $VERSION"
+            else
+              echo "⚠️  Could not extract version from PR title: $TITLE"
+              echo "Expected format: 'Prepare release vX.Y.Z' or 'Release vX.Y.Z'"
+              exit 1
+            fi
+          fi
+
+  tag:
+    name: Create Tag
+    needs: prepare
+    if: needs.prepare.outputs.skip_tag == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create and push tag
+        run: |
+          VERSION="${{ needs.prepare.outputs.version }}"
+          if [[ -z "$VERSION" || "$VERSION" =~ ^[[:space:]]*$ ]]; then
+            echo "❌ Invalid version: empty or whitespace only"
+            exit 1
+          fi
+
+          echo "Creating tag v$VERSION..."
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v$VERSION" -m "Release v$VERSION"
+          git push origin "v$VERSION"
+          echo "✓ Successfully created and pushed tag v$VERSION"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  release:
+    name: Create GitHub Release
+    needs: [prepare, tag]
+    if: |
+      always() &&
+      needs.prepare.result == 'success' &&
+      (needs.tag.result == 'success' || needs.tag.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract changelog for this version
+        id: changelog
+        run: |
+          VERSION="${{ needs.prepare.outputs.version }}"
+          # Extract section between version header and next version or EOF
+          awk "/## \[${VERSION}\]/{flag=1;next}/## \[/{flag=0}flag" CHANGELOG.md > release_notes.md
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ needs.prepare.outputs.version }}
+          body_path: release_notes.md
+          draft: false
+          prerelease: ${{ contains(needs.prepare.outputs.version, '-') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

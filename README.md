@@ -89,6 +89,7 @@ The installer compiles the canonical root sources into platform-specific artifac
 - `.claude/skills/` - 29 workflow skills (same content as `.github/skills/`)
 - `.codex/agents/` - 3 project custom agents (standalone TOML)
 - `.agents/skills/` - 29 workflow skills (Codex repository discovery path)
+- `.github/workflows/post-merge-release.yml` - generic, project-agnostic release automation (tag + GitHub Release; no build step). Deployed create-if-absent: `init` and `update` never overwrite an existing copy, so local edits (e.g. adding a build/artifact-upload step) are always preserved.
 
 ## Usage
 
@@ -120,7 +121,7 @@ For commands without an explicit directory, the CLI detects the enclosing Git wo
 smaqit-extensions update
 ```
 
-Fetches the latest release from GitHub, downloads the new binary, and replaces the running binary atomically. If the detected project root contains `.smaqit/`, it automatically re-runs `init` there to deploy updated agents, skills, and templates without overwriting your project state (tasks, history, glossary).
+Fetches the latest release from GitHub, downloads the new binary, and replaces the running binary atomically. If the detected project root contains `.smaqit/`, it automatically re-runs `init` there to deploy updated agents, skills, and templates without overwriting your project state (tasks, history, glossary) or a pre-existing `.github/workflows/post-merge-release.yml`.
 
 > **Note:** Self-update is currently supported on Linux only.
 
@@ -166,7 +167,7 @@ On Codex, repository skills are discovered automatically from `.agents/skills/`;
 - GitHub Copilot with agent and skill support, Claude Code, or Codex
 - A git repository
 
-The installer writes files under `.github/{agents,skills}/`, `.claude/{agents,commands,skills}/`, `.codex/agents/`, and `.agents/skills/`, creating each folder if it doesn't exist.
+The installer writes files under `.github/{agents,skills,workflows}/`, `.claude/{agents,commands,skills}/`, `.codex/agents/`, and `.agents/skills/`, creating each folder if it doesn't exist.
 
 The installer also scaffolds the `.smaqit/` directory structure used by agents and skills:
 - `.smaqit/tasks/PLANNING.md` - Central task tracking file
@@ -174,6 +175,8 @@ The installer also scaffolds the `.smaqit/` directory structure used by agents a
 - `.smaqit/history/` - Session documentation
 - `.smaqit/user-testing/` - Test reports
 - `.smaqit/templates/` - Canonical task and planning templates
+
+`smaqit.release.pr` and `smaqit.release.local` depend on `.github/workflows/post-merge-release.yml` for the tag-and-release step after a release commit or PR merge; `init`/`update` deploy it automatically (create-if-absent), so it is present in any project that has run `smaqit-extensions init`.
 
 ## Development
 
@@ -218,6 +221,8 @@ Platform output shipped by `smaqit-extensions init` is generated, not hand-maint
 Running `make -C installer prepare` (or `python3 scripts/generate-targets.py` directly) compiles these, plus `agents/` and `skills/`, into gitignored `installer/{agents-copilot,agents-claude,agents-codex,commands-claude,skills,skills-claude,skills-codex}/` trees that the Go binary embeds. Root `.github/`, `.codex/`, and `.agents/` are dogfooding mirrors only and are never used as installer embed sources.
 
 ## Releases
+
+> **Note:** This section describes how *smaqit-extensions itself* is released — its `.github/workflows/post-merge-release.yml` also builds and publishes the Go binaries for every platform, which is specific to this repository. A project that installs smaqit-extensions gets a simpler, generic version of this workflow (tag + GitHub Release, no build step) deployed automatically by `init`/`update`; see [What Gets Installed](#what-gets-installed).
 
 Releases are fully automated via PR-based workflow:
 

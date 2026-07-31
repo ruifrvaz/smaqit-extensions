@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.11.0] - 2026-08-01
+
 ### Added
 - **Release automation workflow bootstrap** — `smaqit-extensions init`/`update` now deploy a generic, project-agnostic `.github/workflows/post-merge-release.yml` (tag on merge + GitHub Release, no build step) create-if-absent, so `smaqit.release.pr` and `smaqit.release-git-local` have working post-merge automation out of the box instead of assuming a workflow the installer never shipped.
 
@@ -580,7 +582,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.10.0...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.11.0...HEAD
+[1.11.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.10.0...v1.11.0
 [1.10.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.9.1...v1.10.0
 [1.9.1]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.9.0...v1.9.1
 [1.9.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.8.0...v1.9.0

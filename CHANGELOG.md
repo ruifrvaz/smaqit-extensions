@@ -11,7 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Dogfooding mirror drift guard** — `make sync` now also regenerates root `.claude/{agents,commands,skills}` from canonical source, and `make smoke-test` asserts this repo's own `.claude/` mirror matches the generated staging trees. Previously only `.github/` and `.agents/` were kept in sync automatically; `.claude/` could silently drift indefinitely with no error.
-- **Framework-scope gate in `smaqit.task-plan`** — a plan whose Relevant Files touch canonical `skills/`/`agents/` source or a generated platform mirror now surfaces a dedicated Framework Impact section (affected component, why it belongs there, application-owned alternative considered) as part of the single plan approval, instead of proceeding as if it were an ordinary application-local change.
 - Hermetic regression suite for `smaqit.project-research`'s `verify-urls.sh`, exercised against a local HTTP fixture server.
 
 ### Fixed

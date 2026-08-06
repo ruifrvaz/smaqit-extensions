@@ -2,7 +2,7 @@
 name: smaqit.task-plan
 description: Plans work before implementation or task creation. Given a task ID or a free-form idea, assesses complexity, resolves design gaps via discovery and Q&A, and produces an approved execution plan. Offers context-appropriate next steps: create a new task, start an existing one, or update the task file with resolved decisions.
 metadata:
-  version: "1.3.0"
+  version: "1.3.1"
 ---
 
 # Task Plan
@@ -88,18 +88,11 @@ The skill infers the operating mode from the user's input:
     **Decisions**
     - {Design decisions, assumptions, explicit scope inclusions and exclusions}
 
-    **Framework Impact** (only present when Step 11a finds a match)
-    - {Reusable skill(s)/agent(s)/mirror(s) affected, why the change belongs there rather than in application-owned code, the application-owned alternative considered and why it was or wasn't chosen}
-
     **Further Considerations** (optional, 1–3 items)
     1. {Clarifying point with trade-off or recommendation}
     ```
 
     Rules for the plan body: no code blocks — describe changes using symbol names and file links; every file in Relevant Files must be verified to exist via Discovery or prior codebase knowledge; Decisions must capture all choices made in Phase 3 Q&A.
-
-11a. **Framework-scope check** — after drafting Relevant Files, check whether any listed path falls under canonical `skills/`, `agents/`, `.smaqit/definitions/`, or a generated platform mirror (`.github/`, `.claude/`, `.agents/`, `.codex/`, `installer/`):
-    - **No match** → skip silently, continue to Step 12.
-    - **Match found** → this plan proposes a framework-level change affecting every project that uses these shared skills, not an application-local one. Add the **Framework Impact** section to the plan draft: name the affected reusable component(s), state explicitly why the change must happen there rather than in application-owned code, and record whether an application-owned alternative (a project-local script, config, or skill override) was considered and why it was or wasn't chosen. Never suggest hand-editing a generated mirror directly — only canonical `skills/`/`agents/` source, regenerated via the repository's own sync tooling.
 
 12. If a session-scoped memory/scratch-storage capability is available in this environment, save the plan to `/memories/session/plan.md` there (create or overwrite) as a durability backup. This step is optional — skip it silently if no such capability exists.
 
@@ -157,7 +150,6 @@ The skill infers the operating mode from the user's input:
 - Iterative Q&A to resolve design decisions and gaps
 - Writing and refining an execution plan
 - Updating Implementation Steps, Design Decisions, and ACs in the task file after explicit user confirmation (Mode B option 2)
-- Detecting when a plan's Relevant Files touch canonical skills/agents or a generated platform mirror, and surfacing that as an explicit framework-level scope decision before the plan is approved
 
 **Out of scope:**
 - Does not implement code or modify source files
@@ -209,7 +201,6 @@ The skill infers the operating mode from the user's input:
 - **Do not assume Implementation Steps in the task file are current.** Task files are written speculatively at creation time; Discovery may reveal stale steps that reference removed abstractions.
 - **Task file update requires field-by-field confirmation.** Never batch-replace the entire task file. Present exactly what will change and require explicit approval before writing.
 - **Mode A asks for approval exactly once.** The plan and the derived task-create fields are shown together in Step 13; approving either is approving both. Do not add a second confirmation before invoking `task.create` in Step 15 — the fields are mechanically derived from the plan the user already approved, so re-asking adds a round-trip with no new decision in it.
-- **Framework-scope impact is genuinely new information, not a restatement — it still gets its own section, just not its own round-trip.** Unlike the Mode A fields (mechanically derived from an already-approved plan), a plan touching canonical `skills/`/`agents/` or a generated mirror carries real, distinct risk the rest of the plan doesn't communicate on its own. Give it visible, dedicated space in the same plan message (the **Framework Impact** section) rather than dropping it into a Decisions bullet — but still resolve it within the plan's single approval, not a separate gate.
 
 ## Completion
 
@@ -238,5 +229,3 @@ The skill infers the operating mode from the user's input:
 | User approves trivial task without requesting full plan | Confirm `task.start [id]` is the right next step; do not produce an unnecessary plan |
 | Mode A idea too vague to plan | Ask for more detail before launching Discovery; do not proceed with an underspecified description |
 | User confirms task file update | Write only changed fields; confirm completion; do not modify any other section |
-| Relevant Files touches canonical `skills/`/`agents/` or a generated mirror | Add the **Framework Impact** section (Step 11a) before showing the plan; do not silently proceed as if it were an application-local change |
-| User declines the framework-level change during review | Treat as "changes requested" (Step 14) — revise the plan toward an application-owned alternative, or stop and let the user decide how to proceed; do not drop the Framework Impact section and continue as if it were approved |

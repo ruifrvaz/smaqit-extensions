@@ -3,6 +3,10 @@
     {
       "name": "main",
       "path": "."
+    },
+    {
+      "name": "task/022-isolate-task-state-to-main-worktree",
+      "path": "../smaqit-extensions-wt-task-022-isolate-task-state-to-main-worktree"
     }
   ],
   "settings": {

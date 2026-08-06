@@ -65,6 +65,7 @@ write_task "$PRIMARY_ROOT/.smaqit/tasks/102_development.md" 102 "Development" "N
 write_task "$PRIMARY_ROOT/.smaqit/tasks/103_self_parent.md" 103 "Self Parent" "Not Started" 103
 write_task "$PRIMARY_ROOT/.smaqit/tasks/104_invalid_parent.md" 104 "Invalid Parent" "Not Started"
 printf '**Parent:** invalid\n' >> "$PRIMARY_ROOT/.smaqit/tasks/104_invalid_parent.md"
+write_task "$PRIMARY_ROOT/.smaqit/tasks/bad_prefix_task.md" "n/a" "Bad Prefix Task" "Not Started"
 
 git -C "$PRIMARY_ROOT" init -b main >/dev/null
 git -C "$PRIMARY_ROOT" config user.email "test@example.invalid"
@@ -75,7 +76,7 @@ git -C "$PRIMARY_ROOT" commit -m "fixture: parent task files" >/dev/null
 assert_contains "$SOURCE_ROOT/.smaqit/templates/task.template.md" "**Parent:** NNN" "installed task template documents parent metadata"
 assert_contains "$SOURCE_ROOT/skills/smaqit.task-create/assets/TASK_TEMPLATE.md" "**Parent:** NNN" "creation task template documents parent metadata"
 assert_contains "$SOURCE_ROOT/skills/smaqit.task-start/SKILL.md" "9_resolve_task_lifecycle.sh" "task-start invokes lifecycle resolver"
-assert_contains "$SOURCE_ROOT/skills/smaqit.task-complete/SKILL.md" "**Child:** Report completion and stop" "task-complete exits before child cleanup"
+assert_contains "$SOURCE_ROOT/skills/smaqit.task-complete/SKILL.md" "Report completion and stop" "task-complete exits before child cleanup"
 assert_contains "$SOURCE_ROOT/skills/smaqit.task-list/SKILL.md" "shares the parent's branch/worktree" "task-list documents child ownership"
 
 git -C "$PRIMARY_ROOT" branch task/100-feature-cycle main
@@ -86,7 +87,12 @@ bash "$WORKTREE_SCRIPTS/7_build_workspace.sh" >/dev/null
 
 PARENT_ROOT="$FIXTURE_ROOT/project-wt-task-100-feature-cycle"
 [ -d "$PARENT_ROOT" ] || fail "parent worktree was not created"
-sed -i 's/^\*\*Status:\*\*.*/**Status:** In Progress/' "$PARENT_ROOT/.smaqit/tasks/100_feature_cycle.md"
+[ -e "$PARENT_ROOT/.smaqit/tasks" ] && fail ".smaqit/tasks/ was not excluded from the parent worktree"
+
+# Task state lives exclusively on primary — every mutation below targets
+# $PRIMARY_ROOT, never $PARENT_ROOT, since the linked worktree never has a
+# copy of .smaqit/tasks/ to write to.
+sed -i 's/^\*\*Status:\*\*.*/**Status:** In Progress/' "$PRIMARY_ROOT/.smaqit/tasks/100_feature_cycle.md"
 
 child_result="$(bash "$WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --task 101 --purpose start)"
 assert_eq "$(jq -r '.kind' <<< "$child_result")" "child" "child task is resolved as child"
@@ -94,6 +100,7 @@ assert_eq "$(jq -r '.parent' <<< "$child_result")" "100" "child parent is return
 assert_eq "$(jq -r '.branch' <<< "$child_result")" "task/100-feature-cycle" "child reuses parent branch"
 assert_eq "$(jq -r '.worktree' <<< "$child_result")" "$PARENT_ROOT" "child reuses parent worktree"
 assert_eq "$(jq -r '.mode' <<< "$child_result")" "Assisted" "child inherits parent mode"
+assert_eq "$(jq -r '.task_file' <<< "$child_result")" "$PRIMARY_ROOT/.smaqit/tasks/101_spec_revalidation.md" "child task file resolves on primary"
 
 parent_create_result="$(bash "$WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --parent 100)"
 assert_eq "$(jq -r '.kind' <<< "$parent_create_result")" "child" "child creation resolves active parent"
@@ -101,21 +108,28 @@ assert_fails "must inherit parent task 100 mode Assisted" bash "$WORKTREE_SCRIPT
 assert_fails "cannot declare itself as its parent" bash "$WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --task 103 --purpose start
 assert_fails "Invalid Parent metadata" bash "$WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --task 104 --purpose start
 assert_fails "Parent task 999 must be In Progress" bash "$WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --parent 999
-rm "$PARENT_ROOT/.smaqit/tasks/104_invalid_parent.md"
 
 assert_eq "$(git -C "$PRIMARY_ROOT" branch --format='%(refname:short)' | { rg '^task/' || true; } | wc -l | tr -d ' ')" "1" "no child branches were created"
 assert_eq "$(git -C "$PRIMARY_ROOT" worktree list --porcelain | rg '^worktree ' | wc -l | tr -d ' ')" "2" "only main and parent worktrees are registered"
 assert_eq "$(jq '.folders | length' "$PRIMARY_ROOT/project.code-workspace")" "2" "workspace contains main and parent only"
 
 assert_fails "cannot complete while child tasks remain unfinished" bash "$WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --task 100 --purpose complete
-sed -i 's/^\*\*Status:\*\*.*/**Status:** Completed/' "$PARENT_ROOT/.smaqit/tasks/101_spec_revalidation.md"
-sed -i 's/^\*\*Status:\*\*.*/**Status:** Completed/' "$PARENT_ROOT/.smaqit/tasks/102_development.md"
-owner_result="$(bash "$WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --task 100 --purpose complete)"
+sed -i 's/^\*\*Status:\*\*.*/**Status:** Completed/' "$PRIMARY_ROOT/.smaqit/tasks/101_spec_revalidation.md"
+sed -i 's/^\*\*Status:\*\*.*/**Status:** Completed/' "$PRIMARY_ROOT/.smaqit/tasks/102_development.md"
+
+# 104 (invalid Parent) and bad_prefix_task.md (non-NNN filename) stay in place
+# through completion — the child-scan loop must skip both with a warning
+# instead of aborting, which is why they were never deleted like the old
+# fixture did.
+complete_stderr="$FIXTURE_ROOT/complete.stderr"
+owner_result="$(bash "$WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --task 100 --purpose complete 2>"$complete_stderr")"
 assert_eq "$(jq -r '.kind' <<< "$owner_result")" "owner" "parent is lifecycle owner"
 assert_eq "$(jq -r '.worktree' <<< "$owner_result")" "$PARENT_ROOT" "parent completion uses registered worktree"
+assert_contains "$complete_stderr" "skipping malformed task filename" "child-scan warns instead of aborting on a non-NNN filename"
+assert_contains "$complete_stderr" "invalid Parent metadata" "child-scan warns instead of aborting on invalid Parent metadata"
 
-git -C "$PARENT_ROOT" add .smaqit/tasks
-git -C "$PARENT_ROOT" commit -m "test: complete child tasks" >/dev/null
+git -C "$PRIMARY_ROOT" add .smaqit/tasks
+git -C "$PRIMARY_ROOT" commit -m "test: complete parent task on primary" >/dev/null
 git -C "$PRIMARY_ROOT" merge task/100-feature-cycle --no-ff -m "merge: parent fixture" >/dev/null
 git -C "$PRIMARY_ROOT" worktree remove "$PARENT_ROOT"
 git -C "$PRIMARY_ROOT" branch -d task/100-feature-cycle >/dev/null

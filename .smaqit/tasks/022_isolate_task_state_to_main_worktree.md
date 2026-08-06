@@ -1,9 +1,10 @@
 # Isolate Task State to Main Worktree
 
-**Status:** In Progress
+**Status:** Completed
 **Created:** 2026-08-06
 **Mode:** Assisted
 **Started:** 2026-08-06
+**Completed:** 2026-08-06
 
 ## Description
 
@@ -50,31 +51,37 @@ Note: `git/git`'s GitHub mirror carries only mailing-list-driven development PRs
 
 ## Acceptance Criteria
 
-- [ ] `.smaqit/tasks/` excluded from task worktree sparse checkout
-- [ ] `task-start` updates task file status and PLANNING.md on main only
-- [ ] `task-start` surfaces concurrent in-progress tasks and uncommitted task-state changes on main (informational, non-blocking)
-- [ ] `task-complete` merges code first, then updates task file and PLANNING.md on main
-- [ ] `task-complete` verifies task is finalized on main post-completion (status=Completed, committed, PLANNING.md updated)
-- [ ] Resolver finds task files exclusively on main; maps branch→worktree from `git worktree list`
-- [ ] Child-scanning loop skips malformed files instead of aborting
-- [ ] Owner task merge never conflicts on PLANNING.md or task files
-- [ ] `make test` and `make smoke-test` pass
+- [x] `.smaqit/tasks/` excluded from task worktree sparse checkout
+- [x] `task-start` updates task file status and PLANNING.md on main only
+- [x] `task-start` surfaces concurrent in-progress tasks and uncommitted task-state changes on main (informational, non-blocking)
+- [x] `task-complete` merges code first, then updates task file and PLANNING.md on main
+- [x] `task-complete` verifies task is finalized on main post-completion (status=Completed, committed, PLANNING.md updated)
+- [x] Resolver finds task files exclusively on main; maps branch→worktree from `git worktree list`
+- [x] Child-scanning loop skips malformed files instead of aborting
+- [x] Owner task merge never conflicts on PLANNING.md or task files
+- [x] `make test` and `make smoke-test` pass
 
 ## Findings
 
-[Populated by smaqit.task-complete. Do not fill in manually before task is complete.]
-
 **Implementation approach:**
-- TBD
+- Excluded `.smaqit/tasks/` from task-worktree sparse checkout; rewrote the resolver's `find_active_task()` to search primary only and recompute branch ownership from each task's own title via the existing `task_branch_name()` helper, instead of scanning per-worktree file copies
+- Hardened the child-scan loop to warn-and-skip malformed files (bad NNN prefix, invalid Parent) instead of aborting
+- Moved `task-start`/`task-complete` writes to primary exclusively, added non-blocking task-awareness checks at start and completion, and reordered owner completion to merge-then-write
+- Extended scope mid-implementation to `task-create` and `task-list`, which had the same "task state lives in the current/parent worktree" assumption baked in and would have broken silently
+- Rewrote the `test-parent-task-lifecycle.sh` fixture for primary-only task state, adding real coverage for the skip-not-abort behavior that had no prior test
 
 **Decisions made:**
-- TBD
+- Branch↔worktree mapping recomputed from the task's title (reusing `task_branch_name()`) rather than a new stored `Branch:` field — no schema change, no migration
+- Merge-before-write reordering applies only to the owner completion path; children never merge, so their writes always go straight to primary
+- Implementation commits deferred to `task-complete` (not `task-start`), so Assisted-mode review sees a normal working-tree diff throughout
 
 **Blockers encountered:**
-- TBD
+- `rg` (ripgrep) wasn't installed in this dev environment, blocking the test suite; installed a user-local static binary to actually run and verify the fixture rather than guess
+- `.claude/skills/` mirrors for 7 skills (including `task-complete` and `task-start` themselves) had drifted from canonical — stale by one version each, with `utils.worktree`'s resolver script missing entirely — discovered while invoking `task-complete` for this task; resynced all 7 as a separate, unrelated fix before completing this task
 
 **Follow-up identified:**
-- TBD
+- Task 017 (Repair Skill Contract and Scope Inconsistencies) remains the most impactful open task from dogfooding
+- Consider a periodic or CI-enforced check that `.claude/skills/` stays in sync with canonical, since `make sync` doesn't cover it and this drift went undetected across multiple prior tasks
 
 ## Files to Create / Modify
 

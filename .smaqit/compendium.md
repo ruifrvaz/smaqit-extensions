@@ -9,7 +9,13 @@ Agent bodies (`agents/*.agent.md`) and skill bodies (`skills/*/SKILL.md`) are sh
 - **Per-platform agent metadata**: each agent's `.smaqit/definitions/agents/<name>.frontmatter.yaml` holds `copilot:`, `claude:`, and `codex:` sections. `scripts/generate-targets.py` combines each section with the shared body to produce YAML-frontmatter agents for Copilot and Claude Code plus standalone TOML custom agents for Codex.
 - **`{{PLACEHOLDER}}` tokens for genuinely divergent content**: for the small number of skills whose executable behavior differs by platform — such as `smaqit.release-git-pr` using Copilot's `report_progress` mechanism versus direct authenticated Git operations elsewhere — the shared `SKILL.md` contains named `{{TOKEN}}` placeholders resolved from `.smaqit/definitions/skills/<name>.placeholders.yaml`. This isolates only the actual inflection points; everything else stays identical.
 
-Both mechanisms are resolved once, at build time, by `scripts/generate-targets.py`; installed output contains no unresolved build-time tokens. Generated trees under `installer/` are ephemeral embed inputs. Root `.github/` and `.codex/` plus `.agents/` are workspace dogfooding mirrors, never installer sources.
+Both mechanisms are resolved once, at build time, by `scripts/generate-targets.py`; installed output contains no unresolved build-time tokens. Generated trees under `installer/` are ephemeral embed inputs, rebuilt from canonical `agents/`/`skills/` on every build. Root `.github/`, `.codex/`, `.agents/`, and `.claude/` are workspace dogfooding mirrors only — none of them are ever read as installer sources, so drift in any of them cannot affect what a consumer project receives from `smaqit-extensions init`. See also: Does `make sync` keep every dogfooding mirror synchronized with canonical source?
+
+---
+
+**Does `make sync` keep every dogfooding mirror synchronized with canonical source?**
+
+No. `make sync` regenerates `.github/{agents,skills}` and `.agents/skills` (Codex) from the compiled `installer/` staging trees, but it does not touch `.claude/skills/`. That mirror must be resynced manually after any change to a skill's canonical source (e.g. `rm -rf .claude/skills/<name> && cp -r skills/<name> .claude/skills/<name>`). If this step is skipped, `.claude/skills/` silently serves stale content indefinitely — an agent working in this repository via Claude Code would use outdated instructions with no error or warning, since `make smoke-test` only validates `installer/` output against canonical, never `.claude/` against canonical.
 
 ---
 
@@ -127,10 +133,24 @@ Task state (`.smaqit/tasks/PLANNING.md` and individual `NNN_*.md` files) lives e
 
 The design eliminates merge conflicts on `PLANNING.md`: when `task-start` and `task-complete` update task status, they write to main's copy directly rather than to the worktree's copy. The worktree is purely for source code changes. When `task-complete` merges the task branch into main, only code files are affected — task state never diverged, so there is nothing to conflict on.
 
-The lifecycle resolver (`9_resolve_task_lifecycle.sh`) finds task files exclusively on main and uses `git worktree list --porcelain` to map branch names to worktree paths for merge/cleanup operations.
+The lifecycle resolver (`9_resolve_task_lifecycle.sh`) finds task files exclusively on main and uses `git worktree list --porcelain` to map branch names to worktree paths for merge/cleanup operations. Branch ownership itself is recovered from the task's own title, not a stored field: `find_active_task()` reads the task file on main, and if its status is `In Progress`, recomputes the expected branch name via `task_branch_name()` — the same slug logic used when the branch was first created — then matches it against the registered worktree branches. Renaming an in-progress task's title after its branch exists breaks this recomputation, since the recomputed slug would no longer match the real branch.
 
 `task-start` also performs a task-awareness check before implementation: it scans main for other "In Progress" tasks and uncommitted task-state changes, surfacing them as an informational notice so agents in separate sessions are aware of concurrent work. `task-complete` verifies post-merge that the task is properly finalized on main (status=Completed, committed, PLANNING.md updated).
 
 The rest of `.smaqit/` (templates, references, definitions, user-testing) remains available in task worktrees — only the conflict-prone task-tracking state is isolated.
+
+Implementation changes in a task worktree are deliberately left uncommitted until `task-complete` runs: for an owner, immediately before the merge; for a child, immediately before its own completion commit to main. This is the only point in the lifecycle a task branch receives an implementation commit, so Assisted-mode review always sees a normal working-tree diff rather than already-committed history.
+
+---
+
+**How does an agent work across the primary checkout and a task worktree in the same session?**
+
+`git worktree list --porcelain` always lists the main worktree first, and every linked worktree shares the same `.git` object database — so any worktree can address any other via `git -C <path>` or an absolute file path, without changing directory. This matters because skill discovery only exists on the primary checkout: `.claude/skills/`, `.github/skills/`, and `.agents/skills/` are all excluded from task-worktree sparse checkout, so a session's tools are anchored at main while source edits are addressed to whichever worktree folder actually holds the file. The generated multi-root `.code-workspace` file (main plus every active task worktree) is what makes both trees visible to one IDE session at once.
+
+---
+
+**How many approvals does `task.plan` need before creating a new task (Mode A)?**
+
+Just one. The plan and the pre-populated task-create fields derived from it are shown together in the same message; approving either approves both, and `task.create` is invoked immediately afterward with no separate re-confirmation. Mode B (an existing task ID) is different — its post-approval prompt offers three genuinely distinct choices (start now, update the task file, or hold for later), which is not a restatement of the plan and is not collapsed.
 
 ---

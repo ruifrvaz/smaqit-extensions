@@ -1,7 +1,9 @@
 # Isolate Task State to Main Worktree
 
-**Status:** Not Started
+**Status:** In Progress
 **Created:** 2026-08-06
+**Mode:** Assisted
+**Started:** 2026-08-06
 
 ## Description
 
@@ -28,8 +30,23 @@ Task files and PLANNING.md currently duplicated across worktrees cause merge con
 9. Run `make test`, `make sync`, `make smoke-test`
 
 ## Known Issues Triage
+**Triaged:** 2026-08-06
+**Tools searched:** Git
+**Result:** Clear
 
-[Populated by smaqit.task-start via smaqit.utils.triage-issues. Do not edit manually.]
+### Blocking Issues
+None.
+
+### Advisory Issues
+None.
+
+### Historical (Closed)
+None.
+
+### Unresolvable Tools
+None.
+
+Note: `git/git`'s GitHub mirror carries only mailing-list-driven development PRs (labels like `next`/`seen`/`new user`), not a conventional bug tracker — no `bug`/`regression`-labeled issues exist there at all. Searches for `sparse-checkout` and `worktree` returned only internal Git codebase PRs, none describing a defect or limitation in `sparse-checkout --no-cone` exclusion or `worktree list --porcelain` parsing, the two Git mechanisms this task depends on.
 
 ## Acceptance Criteria
 
@@ -64,13 +81,18 @@ Task files and PLANNING.md currently duplicated across worktrees cause merge con
 | File | Action |
 |------|--------|
 | `skills/smaqit.utils.worktree/scripts/5_create_worktrees.sh` | Modify — add `'!.smaqit/tasks/'` to sparse-checkout |
-| `skills/smaqit.utils.worktree/scripts/9_resolve_task_lifecycle.sh` | Modify — primary-only search, branch→worktree mapping, hardened child scan |
-| `skills/smaqit.task-start/SKILL.md` | Modify — task-awareness check, main-only writes, version bump |
-| `skills/smaqit.task-complete/SKILL.md` | Modify — task-awareness verification, reorder merge-before-write, version bump |
-| `tests/skills/test-parent-task-lifecycle.sh` | Modify — fixture adjustments if needed |
+| `skills/smaqit.utils.worktree/scripts/9_resolve_task_lifecycle.sh` | Modify — primary-only search, branch→worktree mapping via recomputed `task_branch_name()`, hardened child scan |
+| `skills/smaqit.utils.worktree/SKILL.md` | Modify — sparse-layout note and Gotcha #11 now list `.smaqit/tasks/`; version bump `1.1.0` → `1.2.0` |
+| `skills/smaqit.task-start/SKILL.md` | Modify — task-awareness check (5a), primary-only writes + commit, corrected owner/child worktree language; version bump `0.9.0` → `0.10.0` |
+| `skills/smaqit.task-complete/SKILL.md` | Modify — child writes to primary + commits and stops; owner reordered to merge-then-write-then-commit; new task-awareness verification step; version bump `0.9.0` → `0.10.0` |
+| `skills/smaqit.task-create/SKILL.md` | Modify (discovered during implementation, not in original plan) — child task file/PLANNING.md write target moved from the parent's worktree to primary, which is where it actually breaks once `.smaqit/tasks/` is excluded; version bump `0.6.0` → `0.7.0` |
+| `skills/smaqit.task-list/SKILL.md` | Modify (discovered during implementation, not in original plan) — PLANNING.md read target moved from "current worktree" (no fallback, hard break) to primary; version bump `0.3.0` → `0.4.0` |
+| `tests/skills/test-parent-task-lifecycle.sh` | Modify — all task-state mutations redirected to primary; dropped now-invalid parent-worktree commit; added `.smaqit/tasks` absence assertion; replaced the delete-before-complete workaround with real coverage of the skip-not-abort behavior (invalid Parent + non-NNN filename), using a new `bad_prefix_task.md` fixture file |
 
 ## Notes
 
 - Existing task worktrees with stale `.smaqit/tasks/` copies are harmless — the resolver reads from main regardless.
-- `task-create` already writes to the primary checkout and needs no changes.
 - The task-awareness principle is a lightweight layer: two informational checks, no new mechanisms.
+- **Scope correction during implementation:** the assumption that "`task-create` already writes to the primary checkout and needs no changes" was wrong for child tasks — `task-create/SKILL.md` explicitly wrote child task files into the parent's worktree. Confirmed with the user before fixing (see session transcript); `task-list/SKILL.md`'s explicit "current worktree" read (no fallback) was found and fixed in the same pass, same root cause. Other PLANNING.md readers (`session-start`, `session-finish`, `task-refresh`, `project-diagnose`) already document graceful "skip silently"/"treat as missing" fallbacks and were left untouched — they degrade rather than break.
+- The branch→worktree mapping in `find_active_task()` now recomputes the branch name from the task file's own title via the existing `task_branch_name()` helper (same slug logic used when the branch was first created), rather than storing a new metadata field. Editing an in-progress task's title after its branch exists would break resolution — a pre-existing property of branch naming in this codebase, not a new risk, but worth remembering.
+- `git status --short -- .smaqit/tasks/` on primary should normally be clean between task-start/task-complete invocations, since both now commit their own task-state writes immediately; the task-awareness check treats leftover uncommitted changes there as a signal of an interrupted prior run.

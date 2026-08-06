@@ -2,7 +2,7 @@
 name: smaqit.task-complete
 description: Mark a task as completed by updating a task's status. Verify its acceptance criteria, record state in PLANNING.md, merge its task branch, and refresh the worktree workspace.
 metadata:
-  version: "0.9.0"
+  version: "0.10.0"
 ---
 
 # Task Complete
@@ -35,25 +35,35 @@ Mark a task as done with the format: `task.complete [id]`
    - Enforce findings quality: bullets only, no URLs, concise and useful statements
 6. **Verify all criteria are met** - Do NOT complete if any criteria remain unfinished
 7. Check off completed acceptance criteria (`- [x]`)
-8. Update the resolved task file status to "Completed" or "Abandoned" and add completion date
-9. Move the task from Active to the appropriate destination in the resolved worktree's `.smaqit/tasks/PLANNING.md`:
-   - **Completed** if successfully finished
-   - **Abandoned** if superseded, no longer relevant, or incorrect approach (include reason)
-10. **If a persistent, cross-session memory/notes capability is available in this environment**, use it to record task state (best-effort — `PLANNING.md` and the task file remain the source of truth regardless):
-   - `subject`: `"task state"`
-   - `fact`: `"[NNN] [Title] — [Completed|Abandoned] (YYYY-MM-DD)"` (≤ 200 chars)
-   - `citations`: path to the task file (e.g., `.smaqit/tasks/NNN_task_title.md`)
-   - `reason`: `"Ensures final task state is visible in any branch without reading files, supporting parallel agent workflows"`
-11. **Child exit or owner merge:**
-    - **Child:** Report completion and stop. Do not merge, remove a worktree, delete a branch, or rebuild the workspace. The parent owns all of those operations.
-    - **Owner:** merge the resolver's `branch` into `main` after checking that its registered `worktree` is clean. Resolve the primary repository path from `git worktree list --porcelain`; do not assume the current directory is primary.
-    - If the branch exists, merge it from the primary repository:
-      ```bash
-      git checkout main
-      git merge "<branch-name>" --no-ff -m "merge: task NNN — <summary>"
-      ```
-    - If merge conflicts occur, STOP and report conflicts to the user for manual resolution.
-    - If the branch does not exist, skip silently (already merged or task had no branch).
+8. **Child exit or owner merge-first:**
+   - **Child:** update the task file status to "Completed" or "Abandoned" (with completion date) and move the entry in `PLANNING.md`, both on the primary checkout. Commit them together:
+     ```bash
+     git add .smaqit/tasks/NNN_*.md .smaqit/tasks/PLANNING.md
+     git commit -m "chore: complete task NNN"
+     ```
+     Report completion and stop. Do not merge, remove a worktree, delete a branch, or rebuild the workspace — the parent owns those.
+   - **Owner:** do not touch status or `PLANNING.md` yet — proceed to Step 9 first. Writing "Completed" before the code merge succeeds would misrepresent state if the merge then conflicts.
+9. **Owner: merge branch into main** — merge the resolver's `branch` into `main` after checking that its registered `worktree` is clean. Resolve the primary repository path from `git worktree list --porcelain`; do not assume the current directory is primary.
+   - If the branch exists, merge it from the primary repository:
+     ```bash
+     git checkout main
+     git merge "<branch-name>" --no-ff -m "merge: task NNN — <summary>"
+     ```
+   - If merge conflicts occur, STOP and report conflicts to the user for manual resolution. Task status and `PLANNING.md` stay untouched until the merge succeeds.
+   - If the branch does not exist, skip silently (already merged or task had no branch) and continue.
+10. **Owner: update task state on primary** — now that the merge is safe, update the task file status to "Completed" or "Abandoned" (with completion date) and move the entry in the primary checkout's `PLANNING.md`:
+    - **Completed** if successfully finished
+    - **Abandoned** if superseded, no longer relevant, or incorrect approach (include reason)
+    Commit them together on primary:
+    ```bash
+    git add .smaqit/tasks/NNN_*.md .smaqit/tasks/PLANNING.md
+    git commit -m "chore: complete task NNN"
+    ```
+11. **If a persistent, cross-session memory/notes capability is available in this environment**, use it to record task state (best-effort — `PLANNING.md` and the task file remain the source of truth regardless):
+    - `subject`: `"task state"`
+    - `fact`: `"[NNN] [Title] — [Completed|Abandoned] (YYYY-MM-DD)"` (≤ 200 chars)
+    - `citations`: path to the task file (e.g., `.smaqit/tasks/NNN_task_title.md`)
+    - `reason`: `"Ensures final task state is visible in any branch without reading files, supporting parallel agent workflows"`
 
 12. **Remove owner worktree** — remove the resolver's registered owner worktree before deleting the branch:
     - Invoke the task-completion cleanup path of `smaqit.utils.worktree`.
@@ -69,6 +79,8 @@ Mark a task as done with the format: `task.complete [id]`
       ```
     - Use `-d` only; Git must refuse deletion if the branch is not fully merged.
     - If the branch does not exist, skip silently.
+
+14. **Task-awareness verification** (informational, non-blocking) — on the primary checkout, confirm the task file shows `Completed`/`Abandoned`, the change is committed (`git status --short -- .smaqit/tasks/` has nothing pending for this task), and `PLANNING.md` reflects the move. Surface a warning notice if any check fails; the task is already complete by this point, so this is a sanity check, not a gate.
 
 ## Mode-Aware Enforcement
 
@@ -134,4 +146,4 @@ Check the task file for mode metadata:
 
 ## Central Planning File
 
-**Remember:** `.smaqit/tasks/PLANNING.md` contains three sections (Active, Completed, Abandoned) and must be updated when completing or abandoning tasks.
+**Remember:** `.smaqit/tasks/PLANNING.md` lives exclusively on the primary checkout, contains three sections (Active, Completed, Abandoned), and must be updated there when completing or abandoning tasks — task worktrees never hold a copy.

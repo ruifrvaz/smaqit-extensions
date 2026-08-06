@@ -2,7 +2,7 @@
 name: smaqit.task-start
 description: Start working on a task by creating its task branch and worktree, updating the VS Code workspace, and setting assisted or autonomous workflow mode.
 metadata:
-  version: "0.9.0"
+  version: "0.10.0"
 ---
 
 # Task Start
@@ -63,11 +63,11 @@ task.start [id] --assisted         # Explicit assisted mode
    - Capture the JSON result: `kind`, `parent`, `branch`, `worktree`, `mode`, and `task_file`.
    - A task without `**Parent:** NNN` is an `owner`; it keeps the standalone lifecycle below.
    - A child requires an active registered parent worktree. The resolver rejects a missing, inactive, nested, self-referential, cyclic, or mode-conflicting relationship. Do not create a fallback child branch or worktree.
-   - Sparse task worktrees intentionally omit installed skills, so always invoke the resolver from the primary checkout. The returned worktree is the only location for child task state.
+   - Sparse task worktrees intentionally omit installed skills and `.smaqit/tasks/`, so always invoke the resolver from the primary checkout. Task state for both owner and child lives exclusively on primary — the returned worktree is for implementation only.
 
 3. **Set up the owner worktree or join the parent**:
-   - **Owner:** create or reuse the resolver's `branch` from `main`, then execute every documented `smaqit.utils.worktree` setup step in order. Capture its returned worktree and workspace paths. Resolve the task file inside that returned worktree before updating task state.
-   - **Child:** reuse the resolver's `branch`, `worktree`, and `task_file`. Do not invoke branch creation, worktree setup, orphan cleanup, or workspace rebuilding.
+   - **Owner:** create or reuse the resolver's `branch` from `main`, then execute every documented `smaqit.utils.worktree` setup step in order. Capture its returned worktree and workspace paths — implementation happens there, but task-state writes (Steps 6–8) always target the primary checkout's task file and `PLANNING.md`.
+   - **Child:** reuse the resolver's `branch`, `worktree`, and `task_file` (already resolved on primary). Do not invoke branch creation, worktree setup, orphan cleanup, or workspace rebuilding.
    - Inform the user of the resolved ownership and path. For an owner, say `Branch "<branch>" created with worktree at <worktree-path>.`; for a child, say `Task NNN joined parent task <parent> at <worktree-path>.` In both cases, remind them to open the root workspace with `code <workspace-path>` when it changed.
 
 4. **Research map verification** — check whether `.smaqit/references/project-research.md` exists:
@@ -85,12 +85,22 @@ task.start [id] --assisted         # Explicit assisted mode
 5. **Determine effective mode** from the resolver result.
    - Owners use the requested mode or Assisted by default.
    - Children inherit the active parent mode. A supplied conflicting child mode is an error, not an override.
-6. **Update the resolved task file status** to "In Progress"
-7. **Store the effective mode in the resolved task file** as metadata field:
+
+5a. **Task-awareness check** (informational, non-blocking) — on the primary checkout:
+   - Scan `PLANNING.md`/task files for other tasks already `In Progress`, and surface them as a notice so agents in separate sessions or worktrees are aware of concurrent work.
+   - Check for uncommitted changes under `.smaqit/tasks/` (e.g. `git status --short -- .smaqit/tasks/`) and surface them as a notice — this usually means another in-flight task-start/task-complete didn't finish committing.
+   - Never block or require confirmation on either finding; this step is visibility only.
+
+6. **Update the task file status** to "In Progress" on the primary checkout.
+7. **Store the effective mode in the task file** on the primary checkout as metadata field:
    ```markdown
    **Mode:** Autonomous | Assisted
    ```
-8. **Update the resolved worktree's PLANNING.md** to reflect "In Progress" status. Child state remains branch-local until the parent merge.
+8. **Update `PLANNING.md`** on the primary checkout to reflect "In Progress" status, then commit the status, mode, and `PLANNING.md` changes together on the primary checkout:
+   ```bash
+   git add .smaqit/tasks/NNN_*.md .smaqit/tasks/PLANNING.md
+   git commit -m "chore: start task NNN"
+   ```
 9. **If a persistent, cross-session memory/notes capability is available in this environment**, use it to record task state (best-effort — `PLANNING.md` and the task file remain the source of truth regardless):
    - `subject`: `"task state"`
    - `fact`: `"[NNN] [Title] — In Progress ([Assisted|Autonomous], started YYYY-MM-DD)"` (≤ 200 chars)

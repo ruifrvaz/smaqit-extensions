@@ -2,7 +2,7 @@
 name: smaqit.task-plan
 description: Plans work before implementation or task creation. Given a task ID or a free-form idea, assesses complexity, resolves design gaps via discovery and Q&A, and produces an approved execution plan. Offers context-appropriate next steps: create a new task, start an existing one, or update the task file with resolved decisions.
 metadata:
-  version: "1.2.0"
+  version: "1.3.1"
 ---
 
 # Task Plan

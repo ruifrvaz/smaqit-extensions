@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.13.0] - 2026-08-06
+
+### Added
+- **Dogfooding mirror drift guard** — `make sync` now also regenerates root `.claude/{agents,commands,skills}` from canonical source, and `make smoke-test` asserts this repo's own `.claude/` mirror matches the generated staging trees. Previously only `.github/` and `.agents/` were kept in sync automatically; `.claude/` could silently drift indefinitely with no error.
+- Hermetic regression suite for `smaqit.project-research`'s `verify-urls.sh`, exercised against a local HTTP fixture server.
+
+### Fixed
+- **`verify-urls.sh` four-column contract** — the script now actually parses the `TOOL/SECTION/URL/LAYER` format `smaqit.project-research/SKILL.md` has documented; previously `LAYER` was silently appended onto the URL with an embedded tab, corrupting every request. It now accepts any `2xx` status (not just literal `200`), falls back to a single bounded GET when HEAD is rejected, and preserves `LAYER` through to a five-field output.
+- **Assisted-mode completion semantics** — `smaqit.task-complete` and its `RULES.md` (synced identically across `task-start`, `task-complete`, and `task-list`) now consistently state that an agent may execute completion once the user explicitly requests it in chat, not only via the literal `/task.complete` command, while still prohibiting self-initiated completion.
+- **`smaqit.session-finish` compendium instructions** — removed instructions to maintain a `Sessions` counter and `Last Updated` field per compendium entry, which directly contradicted `COMPENDIUM_FORMAT.md`'s explicit prohibition on per-entry dates and session counters.
+
 ## [1.12.0] - 2026-08-06
 
 ### Added
@@ -592,7 +603,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.12.0...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.13.0...HEAD
+[1.13.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.12.0...v1.13.0
 [1.12.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.10.0...v1.11.0
 [1.10.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.9.1...v1.10.0

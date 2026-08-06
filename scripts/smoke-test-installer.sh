@@ -98,6 +98,11 @@ assert_tree_matches "$repo_root/installer/skills-codex" "$smoke_root/.agents/ski
 assert_tree_matches "$repo_root/installer/templates" "$smoke_root/.smaqit/templates" "smaqit templates"
 assert_tree_matches "$repo_root/installer/workflow-templates" "$smoke_root/.github/workflows" "release automation workflow"
 
+echo "[CHECK] Root .claude/ dogfooding mirror matches canonical (this repo's own copy, not the temp project's)"
+assert_tree_matches "$repo_root/installer/agents-claude" "$repo_root/.claude/agents" "root .claude agents (dogfooding mirror)"
+assert_tree_matches "$repo_root/installer/commands-claude" "$repo_root/.claude/commands" "root .claude commands (dogfooding mirror)"
+assert_tree_matches "$repo_root/installer/skills-claude" "$repo_root/.claude/skills" "root .claude skills (dogfooding mirror)"
+
 echo "[CHECK] Re-running init preserves a customized release workflow"
 echo "# locally customized — must survive re-init" >> "$smoke_root/.github/workflows/post-merge-release.yml"
 (

@@ -1,6 +1,6 @@
 # Task Workflow Rules
 
-**Version:** 0.2.0  
+**Version:** 0.2.1  
 **Purpose:** Enforce proper task completion gates and workflow modes
 
 This document defines the rules for task workflow execution. These rules are loaded into context when working with tasks to ensure proper approval gates and autonomous/assisted mode behavior.
@@ -74,12 +74,12 @@ This document defines the rules for task workflow execution. These rules are loa
 When task mode is "Assisted":
 - Agent MUST read task file before attempting completion
 - Agent MUST check mode metadata
-- Agent MUST NOT invoke `task-complete`
-- Agent MUST explain completion is user-gated
+- Agent MUST NOT self-initiate `task-complete` — completion always requires an explicit user request first, whether via the literal `/task.complete [id]` command or a direct chat request ("you can complete this," "go ahead and finish it")
+- Agent MUST explain that completion is user-gated when no such request has been made yet
 - Agent MUST provide clear summary for user review
 
-**Example Response:**
-> "Implementation complete. This is an assisted-mode task requiring your approval. Please review the changes and run `/task.complete 003` when ready."
+**Example Response (before any request):**
+> "Implementation complete. This is an assisted-mode task requiring your approval. Please review the changes and run `/task.complete 003`, or tell me to go ahead, when ready."
 
 ### Rule 3: Self-Completion (Autonomous Mode)
 
@@ -142,6 +142,8 @@ For skills that interact with tasks:
 - [ ] Load RULES.md into context
 - [ ] Display task mode indicators in output
 - [ ] Remind agent of workflow constraints
+
+---
 
 ### Rule 5: Implementation Step Idempotency
 

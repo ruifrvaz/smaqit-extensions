@@ -1,7 +1,9 @@
 # Repair Skill Contract and Scope Inconsistencies
 
-**Status:** Not Started
+**Status:** In Progress
 **Created:** 2026-07-24
+**Mode:** Assisted
+**Started:** 2026-08-06
 
 ## Description
 
@@ -68,8 +70,23 @@ decision.
     generated targets match canonical source and contain no unresolved placeholders.
 
 ## Known Issues Triage
+**Triaged:** 2026-08-06
+**Tools searched:** curl
+**Result:** Clear
 
-[Populated by smaqit.task-start via smaqit.utils.triage-issues. Do not edit manually.]
+### Blocking Issues
+None.
+
+### Advisory Issues
+None.
+
+### Historical (Closed)
+None.
+
+### Unresolvable Tools
+None.
+
+Note: Searched `curl/curl` for open/closed issues on HEAD-request rejection, redirect handling, and HEAD-to-GET fallback semantics (directly relevant to this task's Step 4: bounded HEAD-then-GET fallback). No open bug/regression matches either query. Closed-issue search surfaced six unrelated items (FTP response codes, POST-redirect method changes, TLS/timeout issues) — none describe a limitation in plain HEAD/GET fallback behavior that would affect this task's approach.
 
 ## Acceptance Criteria
 

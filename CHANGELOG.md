@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.13.0] - 2026-08-06
+
 ### Added
 - **Dogfooding mirror drift guard** — `make sync` now also regenerates root `.claude/{agents,commands,skills}` from canonical source, and `make smoke-test` asserts this repo's own `.claude/` mirror matches the generated staging trees. Previously only `.github/` and `.agents/` were kept in sync automatically; `.claude/` could silently drift indefinitely with no error.
 - **Framework-scope gate in `smaqit.task-plan`** — a plan whose Relevant Files touch canonical `skills/`/`agents/` source or a generated platform mirror now surfaces a dedicated Framework Impact section (affected component, why it belongs there, application-owned alternative considered) as part of the single plan approval, instead of proceeding as if it were an ordinary application-local change.
@@ -602,7 +604,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.12.0...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.13.0...HEAD
+[1.13.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.12.0...v1.13.0
 [1.12.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.10.0...v1.11.0
 [1.10.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.9.1...v1.10.0

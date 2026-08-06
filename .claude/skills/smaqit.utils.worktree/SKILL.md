@@ -16,7 +16,7 @@ When called by `smaqit.task-start` for a lifecycle-owner task, use the supplied 
 Run the branch info script to gather all local and remote branches with tracking data:
 
 ```bash
-bash [SMAQIT_SKILLS_DIR]/smaqit.utils.worktree/scripts/1_present_branches.sh
+bash .claude/skills/smaqit.utils.worktree/scripts/1_present_branches.sh
 ```
 
 It outputs a JSON structure like:
@@ -47,7 +47,7 @@ Parse the response into a list of branch names. This list, or the task branch su
 Run the validation script — checks that `git`, `jq` are on PATH and the current directory is a Git repository:
 
 ```bash
-bash [SMAQIT_SKILLS_DIR]/smaqit.utils.worktree/scripts/2_validate_prereqs.sh
+bash .claude/skills/smaqit.utils.worktree/scripts/2_validate_prereqs.sh
 ```
 
 If the script exits non-zero, report the error message and stop.
@@ -57,7 +57,7 @@ If the script exits non-zero, report the error message and stop.
 Pass the selected branch names to the slug-computation script. It outputs a JSON mapping of `branch → slug` to stdout:
 
 ```bash
-bash [SMAQIT_SKILLS_DIR]/smaqit.utils.worktree/scripts/3_compute_slugs.sh feat/hindsight demo/user-identity
+bash .claude/skills/smaqit.utils.worktree/scripts/3_compute_slugs.sh feat/hindsight demo/user-identity
 ```
 
 Output example:
@@ -78,7 +78,7 @@ Slug rules (also documented in the script):
 Run the enumeration script — it outputs a JSON map of `branch → worktree_path` for all non-main worktrees:
 
 ```bash
-bash [SMAQIT_SKILLS_DIR]/smaqit.utils.worktree/scripts/4_enumerate_worktrees.sh
+bash .claude/skills/smaqit.utils.worktree/scripts/4_enumerate_worktrees.sh
 ```
 
 Output example:
@@ -94,7 +94,7 @@ Pipe the branch→slug JSON (from Step 3) into the creation script, passing the 
 
 ```bash
 echo '<branch-slug-json>' \
-  | bash [SMAQIT_SKILLS_DIR]/smaqit.utils.worktree/scripts/5_create_worktrees.sh \
+  | bash .claude/skills/smaqit.utils.worktree/scripts/5_create_worktrees.sh \
       --existing '<existing-json>'
 ```
 
@@ -116,7 +116,7 @@ The script outputs a JSON summary:
 Run the orphan detection script — it checks all registered worktrees against `git branch --list` and removes any whose branch has been deleted:
 
 ```bash
-bash [SMAQIT_SKILLS_DIR]/smaqit.utils.worktree/scripts/6_detect_orphans.sh
+bash .claude/skills/smaqit.utils.worktree/scripts/6_detect_orphans.sh
 ```
 
 Output:
@@ -131,7 +131,7 @@ Output:
 Run the workspace build script. It reads the current Git worktree state directly (no stdin needed) and writes an existing root `.code-workspace` file or creates `<project>.code-workspace` with `main` plus all active worktrees:
 
 ```bash
-bash [SMAQIT_SKILLS_DIR]/smaqit.utils.worktree/scripts/7_build_workspace.sh
+bash .claude/skills/smaqit.utils.worktree/scripts/7_build_workspace.sh
 ```
 
 The script is self-contained — it re-enumerates worktrees from `git worktree list` on every invocation, so the workspace file always reflects actual disk state regardless of earlier steps. Idempotent: same Git state always produces the same output.
@@ -147,14 +147,14 @@ The generated workspace excludes only build output (`bin/` and `obj/`). Do not a
 Run this operation from the primary checkout whenever `task.create`, `task.start`, or `task.complete` needs to determine whether a task owns Git resources or joins an active parent:
 
 ```bash
-bash [SMAQIT_SKILLS_DIR]/smaqit.utils.worktree/scripts/9_resolve_task_lifecycle.sh \
+bash .claude/skills/smaqit.utils.worktree/scripts/9_resolve_task_lifecycle.sh \
   --task NNN --purpose start|complete
 ```
 
 For child creation, validate the parent before writing the task file:
 
 ```bash
-bash [SMAQIT_SKILLS_DIR]/smaqit.utils.worktree/scripts/9_resolve_task_lifecycle.sh \
+bash .claude/skills/smaqit.utils.worktree/scripts/9_resolve_task_lifecycle.sh \
   --parent NNN
 ```
 
@@ -177,7 +177,7 @@ Print a structured summary listing created worktrees, removed orphans, skipped e
 Run:
 
 ```bash
-bash [SMAQIT_SKILLS_DIR]/smaqit.utils.worktree/scripts/8_migrate_sessions.sh
+bash .claude/skills/smaqit.utils.worktree/scripts/8_migrate_sessions.sh
 ```
 
 The script auto-detects the project name and workspace file from the Git repository. It migrates:

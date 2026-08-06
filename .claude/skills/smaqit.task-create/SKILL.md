@@ -13,7 +13,7 @@ Create a new task with the format: `task.create [title]`, `task.create [title] -
 
 1. Parse an optional `--parent NNN` argument.
    - Without it, create a standalone task, writing it on the primary checkout regardless of which directory the skill was invoked from.
-   - With it, run `bash [SMAQIT_SKILLS_DIR]/smaqit.utils.worktree/scripts/9_resolve_task_lifecycle.sh --parent NNN` from the primary checkout before writing anything.
+   - With it, run `bash .claude/skills/smaqit.utils.worktree/scripts/9_resolve_task_lifecycle.sh --parent NNN` from the primary checkout before writing anything.
    - Require the resolver to return an active parent worktree. Reject missing, inactive, nested, or invalid parents; never create a fallback standalone child.
    - Write the child task file and `PLANNING.md` entry on the primary checkout too — task state lives there exclusively for every task, owner and child alike. The parent's worktree never holds a copy of `.smaqit/tasks/`, so writing there would silently fail.
 2. Create the new task file in `.smaqit/tasks/` on the primary checkout

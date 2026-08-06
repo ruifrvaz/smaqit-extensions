@@ -7,13 +7,13 @@ metadata:
 
 # Release Git PR
 
-Execute git operations required for PR-based releases: stage changes, commit to PR branch, and push via {{PUSH_METHOD_SUMMARY}}.
+Execute git operations required for PR-based releases: stage changes, commit to PR branch, and push via `git push` directly (using the current environment's git/gh credentials).
 
 ## When to use this skill
 
 Use this skill for **PR-based releases** (running in CI/CD or agent workflow) after all files have been prepared. This skill:
 - Commits release preparation changes to PR branch
-- Pushes changes using {{PUSH_METHOD_SUMMARY}}
+- Pushes changes using `git push` directly (using the current environment's git/gh credentials)
 - Documents post-merge tag creation instructions
 
 **Do NOT use this skill for local releases** - use `release-git-local` instead.
@@ -53,7 +53,17 @@ git commit -m "Prepare release vX.Y.Z"
 git --no-pager log -1 --oneline
 ```
 
-{{PUSH_STEP}}
+### Step 3: Push via git
+
+Push the commit directly to the PR branch:
+
+```bash
+git push origin <branch-name>
+```
+
+**Do NOT:**
+- Create git tags at this stage (tags must be created after merge to main)
+- Push to `main` directly — this workflow is PR-based
 
 ### Step 4: Verify and Enforce PR Title for Post-Merge Automation
 
@@ -125,7 +135,7 @@ post_merge_automation: true
 | Error | Likely Cause | Suggested Action |
 |-------|--------------|------------------|
 | `nothing to commit` | Files unchanged or not staged | Verify changes were made and staged correctly |
-| {{PUSH_FAILURE_ROW}} |
+| `git push` fails | Network issue, auth failure, or diverged branch | Check `git status`/`gh auth status`, resolve, and retry |
 | Already on main branch | Wrong workflow used | Use `release-git-local` skill for local releases |
 
 ## Critical Differences from release-git-local
@@ -135,8 +145,8 @@ post_merge_automation: true
 | **Branch** | main | Feature/PR branch |
 | **Commit message** | "Release vX.Y.Z" | "Prepare release vX.Y.Z" |
 | **Tag creation** | ✅ Yes, immediately | ❌ No, after merge to main |
-| **Push method** | `git push` directly | {{PUSH_METHOD_SUMMARY}} |
-| **Git credentials** | User's local credentials | {{PUSH_CREDENTIAL_SOURCE}} |
+| **Push method** | `git push` directly | `git push` directly (using the current environment's git/gh credentials) |
+| **Git credentials** | User's local credentials | User's local/agent git credentials |
 | **When to use** | Developer's local machine | CI/CD or agent workflow |
 
 ## Notes
@@ -144,7 +154,7 @@ post_merge_automation: true
 - This skill is for **PR-based release workflows only**
 - Tags are intentionally NOT created on PR branches
 - Complete release automation happens via post-merge workflow after PR merge
-- Push authentication is handled by {{PUSH_METHOD_SUMMARY}}
+- Push authentication is handled by `git push` directly (using the current environment's git/gh credentials)
 - PR title must match pattern for post-merge automation to trigger
 - Release completes automatically after PR merge: tag + GitHub Release (plus any project-added build steps)
 - See `.github/workflows/post-merge-release.yml` for workflow details

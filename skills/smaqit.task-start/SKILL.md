@@ -2,7 +2,7 @@
 name: smaqit.task-start
 description: Start working on a task by creating its task branch and worktree, updating the VS Code workspace, and setting assisted or autonomous workflow mode.
 metadata:
-  version: "0.10.0"
+  version: "0.10.1"
 ---
 
 # Task Start
@@ -107,7 +107,7 @@ task.start [id] --assisted         # Explicit assisted mode
    - `citations`: path to the task file (e.g., `.smaqit/tasks/NNN_task_title.md`)
    - `reason`: `"Ensures in-progress task and mode are visible in any branch, supporting parallel agent workflows"`
 10. **Load workflow rules** by reading [references/RULES.md](references/RULES.md) from the primary checkout when the target worktree is sparse.
-11. **Begin implementation** in the task worktree following task requirements
+11. **Begin implementation** in the task worktree following task requirements. Leave implementation changes **uncommitted** in the task worktree — do not commit them here or at any point during implementation. `task-complete` commits them (its Step 9 for an owner, Step 8 for a child) right before the merge, specifically so Assisted-mode review sees a normal working-tree diff instead of already-committed history in the meantime.
 
 ## Task File Format
 

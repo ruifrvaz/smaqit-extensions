@@ -2,7 +2,7 @@
 name: smaqit.task-complete
 description: Mark a task as completed by updating a task's status. Verify its acceptance criteria, record state in PLANNING.md, merge its task branch, and refresh the worktree workspace.
 metadata:
-  version: "0.10.0"
+  version: "0.10.1"
 ---
 
 # Task Complete
@@ -36,15 +36,27 @@ Mark a task as done with the format: `task.complete [id]`
 6. **Verify all criteria are met** - Do NOT complete if any criteria remain unfinished
 7. Check off completed acceptance criteria (`- [x]`)
 8. **Child exit or owner merge-first:**
-   - **Child:** update the task file status to "Completed" or "Abandoned" (with completion date) and move the entry in `PLANNING.md`, both on the primary checkout. Commit them together:
+   - **Child:** commit its own implementation changes in the shared parent worktree first — implementation is deliberately left uncommitted until this step (see Step 9's note), so commit it here the same way:
+     ```bash
+     git -C "<parent-worktree>" add -A
+     git -C "<parent-worktree>" commit -m "feat: implement task NNN — <summary>"
+     ```
+     Skip silently if the worktree has nothing uncommitted (e.g., re-running after a partial prior completion). Then update the task file status to "Completed" or "Abandoned" (with completion date) and move the entry in `PLANNING.md`, both on the primary checkout. Commit them together:
      ```bash
      git add .smaqit/tasks/NNN_*.md .smaqit/tasks/PLANNING.md
      git commit -m "chore: complete task NNN"
      ```
      Report completion and stop. Do not merge, remove a worktree, delete a branch, or rebuild the workspace — the parent owns those.
    - **Owner:** do not touch status or `PLANNING.md` yet — proceed to Step 9 first. Writing "Completed" before the code merge succeeds would misrepresent state if the merge then conflicts.
-9. **Owner: merge branch into main** — merge the resolver's `branch` into `main` after checking that its registered `worktree` is clean. Resolve the primary repository path from `git worktree list --porcelain`; do not assume the current directory is primary.
-   - If the branch exists, merge it from the primary repository:
+9. **Owner: commit implementation, then merge branch into main.**
+   - Implementation changes are deliberately left **uncommitted** in the task worktree through the entire Assisted-mode review (`task-start` never commits them — see its Step 11). This is the first point in the lifecycle where they get committed, specifically so the user reviews a normal working-tree diff rather than already-committed history in the meantime.
+   - Check the registered `worktree` for uncommitted changes (`git -C "<worktree>" status --porcelain`). If anything is uncommitted, stage and commit it there:
+     ```bash
+     git -C "<worktree>" add -A
+     git -C "<worktree>" commit -m "feat: implement task NNN — <summary>"
+     ```
+     Skip silently if there's nothing to commit (e.g., re-running after a partial prior completion).
+   - Merge the resolver's `branch` into `main`. Resolve the primary repository path from `git worktree list --porcelain`; do not assume the current directory is primary.
      ```bash
      git checkout main
      git merge "<branch-name>" --no-ff -m "merge: task NNN — <summary>"

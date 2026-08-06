@@ -1,8 +1,8 @@
 ---
 name: smaqit.session-start
-description: Start a new chat with full project context. Use when beginning a session to load README, recent history, and task planning.
+description: Start a new chat with full project context. Invoked when the user says `new session`, `start session`, or `session start` — loads README, recent history, and task planning.
 metadata:
-  version: "0.8.1"
+  version: "0.8.2"
 ---
 
 # Session Start

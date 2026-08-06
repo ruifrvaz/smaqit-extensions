@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Dogfooding mirror drift guard** — `make sync` now also regenerates root `.claude/{agents,commands,skills}` from canonical source, and `make smoke-test` asserts this repo's own `.claude/` mirror matches the generated staging trees. Previously only `.github/` and `.agents/` were kept in sync automatically; `.claude/` could silently drift indefinitely with no error.
+- **Framework-scope gate in `smaqit.task-plan`** — a plan whose Relevant Files touch canonical `skills/`/`agents/` source or a generated platform mirror now surfaces a dedicated Framework Impact section (affected component, why it belongs there, application-owned alternative considered) as part of the single plan approval, instead of proceeding as if it were an ordinary application-local change.
+- Hermetic regression suite for `smaqit.project-research`'s `verify-urls.sh`, exercised against a local HTTP fixture server.
+
+### Fixed
+- **`verify-urls.sh` four-column contract** — the script now actually parses the `TOOL/SECTION/URL/LAYER` format `smaqit.project-research/SKILL.md` has documented; previously `LAYER` was silently appended onto the URL with an embedded tab, corrupting every request. It now accepts any `2xx` status (not just literal `200`), falls back to a single bounded GET when HEAD is rejected, and preserves `LAYER` through to a five-field output.
+- **Assisted-mode completion semantics** — `smaqit.task-complete` and its `RULES.md` (synced identically across `task-start`, `task-complete`, and `task-list`) now consistently state that an agent may execute completion once the user explicitly requests it in chat, not only via the literal `/task.complete` command, while still prohibiting self-initiated completion.
+- **`smaqit.session-finish` compendium instructions** — removed instructions to maintain a `Sessions` counter and `Last Updated` field per compendium entry, which directly contradicted `COMPENDIUM_FORMAT.md`'s explicit prohibition on per-entry dates and session counters.
+
 ## [1.12.0] - 2026-08-06
 
 ### Added

@@ -2,7 +2,7 @@
 name: smaqit.task-complete
 description: Mark a task as completed by updating a task's status. Verify its acceptance criteria, record state in PLANNING.md, merge its task branch, and refresh the worktree workspace.
 metadata:
-  version: "0.10.1"
+  version: "0.10.2"
 ---
 
 # Task Complete
@@ -98,16 +98,20 @@ Mark a task as done with the format: `task.complete [id]`
 
 ### Assisted Mode Tasks
 
-**CRITICAL:** Assisted-mode tasks require user approval before completion.
+**CRITICAL:** Assisted-mode tasks require an explicit user request before completion — the agent must never self-initiate it.
 
 **Agent behavior:**
-- ⛔ **Agent MUST NOT invoke task-complete for assisted tasks**
-- ✅ Agent implements the solution
-- ✅ Agent provides completion summary
-- ✅ Agent instructs user to run `/task.complete [id]` when ready
+- ⛔ **Agent MUST NOT self-initiate `task-complete` for assisted tasks** — finishing implementation and stopping is not itself a request to complete
+- ✅ Agent implements the solution, then stops and hands back to the user
+- ✅ Agent provides a completion summary
+- ✅ Agent proceeds with `task-complete` once the user explicitly requests it — either by running `/task.complete [id]` themselves, or by asking for it directly in chat (e.g. "you can complete task 003," "go ahead and finish this up")
 
-**Example agent response:**
-> "Implementation complete. This is an assisted-mode task requiring your approval. Please review the changes and run `/task.complete 003` when satisfied."
+**Example agent response (before any request):**
+> "Implementation complete. This is an assisted-mode task requiring your approval. Please review the changes and run `/task.complete 003`, or just tell me to go ahead, when you're satisfied."
+
+**Example agent response (after an explicit chat request):**
+> User: "looks good, you can complete task 003"
+> Agent: [invokes `task-complete 003` — the user explicitly requested it, even though they didn't type the slash command]
 
 ### Autonomous Mode Tasks
 

@@ -2,7 +2,7 @@
 name: smaqit.project-research
 description: Builds and maintains a documentation topology map for the current project, identifying the full tech stack and discovering section-level documentation URLs across multiple platforms (GitHub, official docs, ReadTheDocs, pkg.go.dev, npm, PyPI, and more). Writes a persistent map to `.smaqit/references/project-research.md`; adds task-specific annotation when a task is active. Invoke when the user asks to research project dependencies, build or refresh the documentation map, or find documentation for project tools and libraries.
 metadata:
-  version: "1.3.1"
+  version: "1.4.0"
 ---
 
 # smaqit.project-research
@@ -91,7 +91,7 @@ Write the candidate list to a temporary file with one tab-separated line per ent
 <skill-install-dir>/scripts/verify-urls.sh <temp-file>
 ```
 
-The script outputs one tab-separated line per live URL: `TOOL\tSECTION\tFINAL_URL\tSTATUS_CODE`. Discard any entry where the final status is 4xx or 5xx.
+The script tries a HEAD request first and falls back to a single bounded GET (body discarded) when HEAD does not return a 2xx status, then outputs one tab-separated line per live URL: `TOOL\tSECTION\tFINAL_URL\tSTATUS_CODE\tLAYER`. It only ever prints entries with a final 2xx status — no separate 4xx/5xx filtering is needed on the caller's side. `LAYER` on each output line is exactly the `LAYER` from the corresponding input line, so Step 5 can split entries into the project and task tables without re-deriving layer membership.
 
 ### Step 5 — Write research map
 

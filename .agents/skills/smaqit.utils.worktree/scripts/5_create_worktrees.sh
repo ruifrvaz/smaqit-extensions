@@ -46,10 +46,13 @@ for branch in $(echo "$input_json" | jq -r 'keys[]'); do
 
   # Create the worktree and capture stderr for branch-specific reporting.
   if err_output="$(git -C "$REPO_ROOT" worktree add --checkout "$wt_path" "$branch" 2>&1)"; then
-    # Exclude only generated mirror subdirectories from linked task worktrees.
-    # Project-owned configuration, including .github/workflows/, stays available.
-    # `set` enables worktree-specific sparse config itself, so no separate init
-    # can leave a transient root-only checkout behind.
+    # Exclude generated mirror subdirectories, plus .smaqit/tasks/, from linked
+    # task worktrees. Project-owned configuration, including .github/workflows/,
+    # stays available. Task state (PLANNING.md and individual task files) lives
+    # exclusively on the primary checkout — see 9_resolve_task_lifecycle.sh —
+    # so worktrees never carry a mutable copy that could diverge and conflict
+    # on merge. `set` enables worktree-specific sparse config itself, so no
+    # separate init can leave a transient root-only checkout behind.
     if sparse_error="$(git -C "$wt_path" sparse-checkout set --no-cone \
       '/*' \
       '!.github/agents/' \
@@ -59,6 +62,7 @@ for branch in $(echo "$input_json" | jq -r 'keys[]'); do
       '!.claude/skills/' \
       '!.agents/skills/' \
       '!.codex/agents/' \
+      '!.smaqit/tasks/' \
       2>&1)"; then
       created="$(echo "$created" | jq --arg b "$branch" --arg p "$wt_path" '. + {($b): $p}')"
     else

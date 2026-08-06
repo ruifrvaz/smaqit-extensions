@@ -31,6 +31,7 @@ Central task tracking and planning for smaqit-extensions.
 | 019 | Repair Worktree Visibility and Sparse Checkout | Completed | 2026-07-27 | 2026-07-29 |
 | 020 | Add Parent-Owned Subtask Worktree Lifecycle | Completed | 2026-07-29 | 2026-07-29 |
 | 021 | Ship Release Automation Workflow Bootstrap for Consumer Projects | Completed | 2026-07-31 | 2026-07-31 |
+| 022 | Isolate Task State to Main Worktree | Completed | 2026-08-06 | 2026-08-06 |
 
 ## Notes
 

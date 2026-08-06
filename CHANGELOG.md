@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.12.0] - 2026-08-06
+
+### Added
+- **Task state isolation to main worktree** — task worktrees now exclude `.smaqit/tasks/` via sparse checkout. `smaqit.task-start` and `smaqit.task-complete` read and write task state (PLANNING.md + task files) exclusively on main, eliminating merge conflicts on PLANNING.md across parallel worktrees. The lifecycle resolver maps branches to worktrees via `git worktree list`. Task-awareness checks at start surface concurrent in-progress work; completion verifies finalization on main.
+
+### Fixed
+- Collapse redundant double-approval in `smaqit.task-plan` Mode A.
+- Resync `.claude/` skill mirrors that drifted from canonical source — `smaqit.release-git-local` and `smaqit.release-git-pr` now match their canonical `skills/` counterparts.
+- Install `ripgrep` in CI integration workflow before running the smoke test suite.
+
 ## [1.11.0] - 2026-08-01
 
 ### Added
@@ -582,7 +592,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.11.0...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.12.0...HEAD
+[1.12.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.10.0...v1.11.0
 [1.10.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.9.1...v1.10.0
 [1.9.1]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.9.0...v1.9.1

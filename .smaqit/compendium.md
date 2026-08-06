@@ -57,6 +57,12 @@ Run `make smoke-test` from the repository root or `make -C installer smoke-test`
 
 ---
 
+**What system dependencies does the hermetic test suite (`make test`) require beyond git and jq?**
+
+`tests/skills/test-parent-task-lifecycle.sh` requires `ripgrep` (`rg`) on `PATH` for its content assertions. `.github/workflows/test-integration.yml` installs it explicitly (`apt-get install -y ripgrep`) before running `make smoke-test`; a local dev environment without `rg` installed will fail that suite with `rg: command not found` even though `make -C installer test` and the rest of the installer smoke test pass fine.
+
+---
+
 **How does `smaqit.test-create` derive build, test, deploy, and health-check commands?**
 
 `task.test-create [id]` generates an E2E test playbook for a task under `.smaqit/user-testing/tests/`. Instead of assuming a specific toolchain (.NET, Discord, orchestrator), the skill probes the project the same way `smaqit.session-start` does: it checks Makefile, package.json, pyproject.toml, go.mod, Cargo.toml, *.sln, AGENTS.md/CLAUDE.md, and specs/stack/*.md for build, test, deploy, and health-check commands. Live-service E2E is included only if the task touches a live/running service, and verification methods are derived from the project's actual interfaces (HTTP, WebSocket, bot, event-driven) rather than a fixed service enum. The playbook template at `references/playbook-template.md` uses `{placeholder}` tokens for all commands.
@@ -102,5 +108,29 @@ After replacing the executable, the update path launches the new binary as a sub
 **How does this repository keep Claude Code assets from appearing as update-generated untracked files?**
 
 The repository tracks its generated `.claude/` dogfooding mirror alongside the Copilot and Codex mirrors. `smaqit-extensions update` can therefore re-initialize all supported platform assets at the repository root without leaving the installed Claude agents, commands, and skills untracked.
+
+---
+
+**How does a project get post-merge release automation (tag + GitHub Release) after installing smaqit-extensions?**
+
+`smaqit-extensions init`/`update` deploy `.github/workflows/post-merge-release.yml` automatically, create-if-absent — the installer never overwrites an existing copy, so a project-customized workflow is always preserved. The installed workflow is generic and project-agnostic: on a `vX.Y.Z` tag push or a merged PR titled "Prepare release vX.Y.Z"/"Release vX.Y.Z", it creates the tag (if needed) and publishes a GitHub Release with the matching `CHANGELOG.md` section as its notes. It ships with **no build step** — a project that wants binaries or other release artifacts attached must add those steps to its own copy of the file.
+
+This is distinct from `smaqit-extensions`' own `.github/workflows/post-merge-release.yml`, which additionally builds and uploads Go binaries for every platform — that behavior is specific to this repository's own dogfooded release process and is not part of what gets installed elsewhere. `smaqit.release.pr` and `smaqit.release-git-local` describe only the generic tag+release behavior; they point to the installed workflow file itself rather than assuming what it contains, since a project may have extended it.
+
+---
+
+## Task Management
+
+**Why are task files and PLANNING.md excluded from task worktrees?**
+
+Task state (`.smaqit/tasks/PLANNING.md` and individual `NNN_*.md` files) lives exclusively on the main branch. Task worktrees exclude `.smaqit/tasks/` via sparse checkout so no worktree ever has a local copy of task state.
+
+The design eliminates merge conflicts on `PLANNING.md`: when `task-start` and `task-complete` update task status, they write to main's copy directly rather than to the worktree's copy. The worktree is purely for source code changes. When `task-complete` merges the task branch into main, only code files are affected — task state never diverged, so there is nothing to conflict on.
+
+The lifecycle resolver (`9_resolve_task_lifecycle.sh`) finds task files exclusively on main and uses `git worktree list --porcelain` to map branch names to worktree paths for merge/cleanup operations.
+
+`task-start` also performs a task-awareness check before implementation: it scans main for other "In Progress" tasks and uncommitted task-state changes, surfacing them as an informational notice so agents in separate sessions are aware of concurrent work. `task-complete` verifies post-merge that the task is properly finalized on main (status=Completed, committed, PLANNING.md updated).
+
+The rest of `.smaqit/` (templates, references, definitions, user-testing) remains available in task worktrees — only the conflict-prone task-tracking state is isolated.
 
 ---

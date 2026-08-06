@@ -2,6 +2,7 @@
 
 **Status:** Not Started
 **Created:** YYYY-MM-DD
+<!-- **Parent:** NNN (optional; omit for a standalone or lifecycle-owner task) -->
 
 ## Description
 
@@ -49,3 +50,5 @@
 ## Notes
 
 [Optional. Free-form context, constraints, open questions, or references that don't fit the above sections. May be left empty.]
+
+Child tasks inherit their active parent's branch, worktree, and workflow mode. Only a standalone or parent task owns Git lifecycle cleanup.

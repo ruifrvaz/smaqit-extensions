@@ -1,9 +1,10 @@
 # Repair Skill Contract and Scope Inconsistencies
 
-**Status:** In Progress
+**Status:** Completed
 **Created:** 2026-07-24
 **Mode:** Assisted
 **Started:** 2026-08-06
+**Completed:** 2026-08-06
 
 ## Description
 
@@ -90,35 +91,41 @@ Note: Searched `curl/curl` for open/closed issues on HEAD-request rejection, red
 
 ## Acceptance Criteria
 
-- [ ] `smaqit.project-research` documents one unambiguous four-field input and five-field output contract
-- [ ] `verify-urls.sh` parses `LAYER` separately and preserves it through redirects and successful output
-- [ ] `verify-urls.sh` is executable and its documented invocation works without an explicit shell prefix
-- [ ] Every final `2xx` response is classified as live
-- [ ] HEAD rejection or inconclusive transport status triggers one bounded GET fallback without retaining the body
-- [ ] Malformed TSV records fail with a clear diagnostic and do not produce corrupted URL requests
-- [ ] Hermetic tests cover project/task layers, 200, non-200 `2xx`, redirect, HEAD-to-GET fallback, 4xx, unreachable, malformed, and label-spacing cases
-- [ ] `smaqit.session-finish` contains no instruction to create or update compendium metadata prohibited by `COMPENDIUM_FORMAT.md`
-- [ ] `smaqit.task-complete` and `RULES.md` consistently allow user-invoked assisted completion while prohibiting agent self-completion
-- [ ] `smaqit.task-plan` requires explicit approval and an application-owned alternative assessment before reusable project skills are modified
-- [ ] Canonical skill versions and `CHANGELOG.md` reflect the contract and behavior changes
-- [ ] `make sync` regenerates all supported platform targets; canonical and generated copies are consistent
-- [ ] New regression tests and existing installer/smoke tests pass
+- [x] `smaqit.project-research` documents one unambiguous four-field input and five-field output contract
+- [x] `verify-urls.sh` parses `LAYER` separately and preserves it through redirects and successful output
+- [x] `verify-urls.sh` is executable and its documented invocation works without an explicit shell prefix
+- [x] Every final `2xx` response is classified as live
+- [x] HEAD rejection or inconclusive transport status triggers one bounded GET fallback without retaining the body
+- [x] Malformed TSV records fail with a clear diagnostic and do not produce corrupted URL requests
+- [x] Hermetic tests cover project/task layers, 200, non-200 `2xx`, redirect, HEAD-to-GET fallback, 4xx, unreachable, malformed, and label-spacing cases
+- [x] `smaqit.session-finish` contains no instruction to create or update compendium metadata prohibited by `COMPENDIUM_FORMAT.md`
+- [x] `smaqit.task-complete` and `RULES.md` consistently allow user-invoked assisted completion while prohibiting agent self-completion
+- [x] `smaqit.task-plan` requires explicit approval and an application-owned alternative assessment before reusable project skills are modified
+- [x] Canonical skill versions and `CHANGELOG.md` reflect the contract and behavior changes
+- [x] `make sync` regenerates all supported platform targets; canonical and generated copies are consistent
+- [x] New regression tests and existing installer/smoke tests pass
 
 ## Findings
 
-[Populated by smaqit.task-complete. Do not fill in manually before task is complete.]
-
 **Implementation approach:**
-- TBD
+- Verified all claimed defects against current file state via Discovery before implementing — three of five (session-finish, task-complete/RULES.md, task-plan) had been touched by other work since this task was written, and one AC (executable bit) turned out already-fixed
+- Rewrote `verify-urls.sh` to parse 4 tab-separated fields with explicit malformed-record rejection, accept any `2xx`, and fall back from HEAD to a single bounded GET
+- Built a hermetic regression suite against a local Python HTTP fixture server (10 scenarios) rather than public sites, per the task's own design decision
+- Reconciled assisted-completion wording in `task-complete/SKILL.md` and `RULES.md`, then discovered `RULES.md` is independently triplicated across `task-start`/`task-complete`/`task-list` (not a shared file) and synced all three
+- Added a framework-scope check to `task-plan/SKILL.md` Phase 4 (new step 11a) that surfaces a dedicated Framework Impact section within the same single-approval plan message, rather than a separate gate
+- Absorbed the `.claude/` dogfooding-mirror drift-guard scope: extended `make sync` to cover `.claude/{agents,commands,skills}` (root-cause fix) and added independent `assert_tree_matches` checks to `scripts/smoke-test-installer.sh` (detection guard)
 
 **Decisions made:**
-- TBD
+- Malformed TSV records (invalid LAYER value, or missing LAYER field) are rejected with a clear diagnostic and no request is attempted — matches the same skip-not-abort philosophy Task 022 established for the task-lifecycle resolver
+- Framework Impact gets dedicated visible space in the plan's single approval message rather than a separate confirmation round-trip, consistent with this session's earlier fix collapsing task-plan's redundant double-approval — the two are different in kind (new information vs. mechanical restatement), not in resolution mechanism
+- `.claude/` drift guard implemented as both a root-cause fix (extend `sync`) and an independent detection check (smoke-test assertion), since the whole category of bug this task addresses is "the contract says one thing, the mechanism does another"
 
 **Blockers encountered:**
-- TBD
+- None
 
 **Follow-up identified:**
-- TBD
+- Task 002, 007, 010 remain open and unprioritized
+- Consider whether `RULES.md` triplication (task-start/task-complete/task-list) should become a single shared reference instead of three independently-maintained copies, to prevent this exact class of drift recurring
 
 ## Files to Create / Modify
 
@@ -131,8 +138,11 @@ Note: Searched `curl/curl` for open/closed issues on HEAD-request rejection, red
 | `skills/smaqit.project-compendium/references/COMPENDIUM_FORMAT.md` | Verify or clarify as the canonical compendium contract |
 | `skills/smaqit.task-complete/SKILL.md` | Modify — clarify user-invoked assisted completion |
 | `skills/smaqit.task-complete/references/RULES.md` | Modify — align assisted-mode rules and examples |
+| `skills/smaqit.task-start/references/RULES.md` | Modify (discovered during implementation, not in original plan) — RULES.md is independently duplicated across task-start/task-complete/task-list, not shared; synced to match |
+| `skills/smaqit.task-list/references/RULES.md` | Modify (discovered during implementation, not in original plan) — same duplication as above |
 | `skills/smaqit.task-plan/SKILL.md` | Modify — add reusable-skill/framework scope gate |
-| `Makefile` | Modify if needed — expose the hermetic skill regression suite |
+| `Makefile` | Modify — expose the hermetic skill regression suite; extend `sync` target to cover `.claude/{agents,commands,skills}` (absorbed drift-guard scope) |
+| `scripts/smoke-test-installer.sh` | Modify (absorbed drift-guard scope) — assert root `.claude/` mirror matches canonical, independent of the `sync` fix |
 | `CHANGELOG.md` | Modify — document repaired skill contracts |
 | Generated platform targets | Regenerate with `make sync`; do not edit manually |
 

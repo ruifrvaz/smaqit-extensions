@@ -2,7 +2,7 @@
 name: smaqit.task-plan
 description: Plans work before implementation or task creation. Given a task ID or a free-form idea, assesses complexity, resolves design gaps via discovery and Q&A, and produces an approved execution plan. Offers context-appropriate next steps: create a new task, start an existing one, or update the task file with resolved decisions.
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
 ---
 
 # Task Plan
@@ -11,7 +11,7 @@ metadata:
 
 The skill infers the operating mode from the user's input:
 
-- **Mode A — Pre-create**: No task ID provided. User has an idea, feature, or problem to plan. Produces an execution plan, then presents pre-populated task fields for the user to confirm before invoking `task.create`.
+- **Mode A — Pre-create**: No task ID provided. User has an idea, feature, or problem to plan. Produces an execution plan with the exact task fields it will create, and asks for a single approval covering both before invoking `task.create`.
 - **Mode B — Pre-start / Update**: A task ID is provided and the task file exists. Reads the task, fills design gaps, produces a plan, then offers three next steps: start the task, update the task file in place, or keep the plan for a future session.
 
 ## Steps
@@ -97,30 +97,30 @@ The skill infers the operating mode from the user's input:
 12. If a session-scoped memory/scratch-storage capability is available in this environment, save the plan to `/memories/session/plan.md` there (create or overwrite) as a durability backup. This step is optional — skip it silently if no such capability exists.
 
 13. **Show the full plan to the user.** This is the authoritative record regardless of whether Step 12 was available or succeeded — do not substitute the memory file for presenting the plan in chat.
+    - **Mode A:** append the pre-populated task fields directly beneath the plan, in the same message:
+      ```
+      Title: {derived from plan title}
+      Description: {1–3 sentence summary from TL;DR}
+      Acceptance Criteria:
+        - {AC derived from plan}
+      Implementation Steps:
+        - {Step derived from plan}
+      Design Decisions:
+        - {resolved decision from Phase 3}
+      ```
+      These are exactly what Step 15 passes to `task.create` on approval. Showing them here means the single approval in Step 14 covers both the plan and the fields, instead of asking twice over nearly the same content.
 
 ### Phase 5 — Refinement and Next Steps
 
 14. Await user feedback and iterate:
-    - **Changes requested** → revise plan, re-save to `/memories/session/plan.md` if that capability is available, re-show updated plan
+    - **Changes requested** → revise plan (and Mode A's fields, if they changed), re-save to `/memories/session/plan.md` if that capability is available, re-show updated plan
     - **Questions asked** → clarify inline; ask the user follow-up questions if needed
     - **Alternatives wanted** → loop back to Phase 2 with a new Explore subagent targeting the alternative
-    - **Explicit approval given** → present context-appropriate next steps (step 15)
+    - **Explicit approval given** → act on context-appropriate next steps (step 15)
 
-15. On approval, offer next steps based on mode:
+15. On approval, act on next steps based on mode:
 
-    **Mode A:**
-    Present pre-populated task fields derived from the plan:
-    ```
-    Title: {derived from plan title}
-    Description: {1–3 sentence summary from TL;DR}
-    Acceptance Criteria:
-      - {AC derived from plan}
-    Implementation Steps:
-      - {Step derived from plan}
-    Design Decisions:
-      - {resolved decision from Phase 3}
-    ```
-    Ask the user to confirm. On confirmation, invoke `task.create` with these fields.
+    **Mode A:** invoke `task.create` immediately with the fields already shown and approved in Step 13. Do not re-present them or ask for a second confirmation — that would just repeat the approval the user already gave.
 
     **Mode B:**
     Offer three options:
@@ -138,7 +138,7 @@ The skill infers the operating mode from the user's input:
 
 - `/memories/session/plan.md` — approved execution plan, if a session-scoped memory capability is available; session-scoped, never committed to git. The plan shown in chat (always produced) is authoritative regardless.
 - Complexity verdict and gap list (Mode B) — surfaced in chat, not persisted
-- Mode A: pre-populated task fields confirmed before `task.create`
+- Mode A: pre-populated task fields shown alongside the plan and approved together, before `task.create` is invoked
 - Mode B option 2: task file updated with confirmed field changes
 
 ## Scope
@@ -167,8 +167,8 @@ The skill infers the operating mode from the user's input:
 - No task ID — Mode A
 - Phase 2: Explore subagents — (a) existing notification or event patterns in the codebase; (b) task completion workflow and trigger points
 - Phase 3: Q&A on delivery mechanism (SMTP vs webhook) and failure handling
-- Phase 4: Plan written and approved; pre-populated fields presented
-- User confirms → `task.create` invoked with Title, Description, ACs, Implementation Steps, and resolved Design Decisions
+- Phase 4: Plan and pre-populated task fields shown together in one message
+- User approves once → `task.create` invoked immediately with Title, Description, ACs, Implementation Steps, and resolved Design Decisions
 
 ### Example 2 — Mode B (pre-start, complex task)
 
@@ -200,6 +200,7 @@ The skill infers the operating mode from the user's input:
 - **Show the plan in chat — do not just mention the file.** The memory file, when available, is for persistence and handoff, not a substitute for presenting the plan.
 - **Do not assume Implementation Steps in the task file are current.** Task files are written speculatively at creation time; Discovery may reveal stale steps that reference removed abstractions.
 - **Task file update requires field-by-field confirmation.** Never batch-replace the entire task file. Present exactly what will change and require explicit approval before writing.
+- **Mode A asks for approval exactly once.** The plan and the derived task-create fields are shown together in Step 13; approving either is approving both. Do not add a second confirmation before invoking `task.create` in Step 15 — the fields are mechanically derived from the plan the user already approved, so re-asking adds a round-trip with no new decision in it.
 
 ## Completion
 

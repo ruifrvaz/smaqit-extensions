@@ -276,8 +276,37 @@ func main() {
 			runUpdate()
 			return
 		case "init":
-			fmt.Fprintln(os.Stderr, "Warning: 'init' is deprecated. Use 'install --scope project' instead.")
-			cmdInstall([]string{"--scope", "project"})
+			fmt.Fprintln(os.Stderr, "Warning: 'init' is deprecated. Agents and skills are now installed globally by default — run 'smaqit-extensions install' once, then use 'init' only to scaffold project tracking.")
+			targetDir := resolveDefaultProjectDir(".")
+			if len(os.Args) > 2 {
+				targetDir = os.Args[2]
+			}
+			scaffoldSmaqit(targetDir)
+			// Also deploy the release automation workflow (create-if-absent).
+			githubWorkflowsDir := filepath.Join(targetDir, ".github", "workflows")
+			if err := os.MkdirAll(githubWorkflowsDir, 0755); err != nil {
+				fmt.Printf("Error creating workflows directory: %v\n", err)
+				os.Exit(1)
+			}
+			if err := fs.WalkDir(workflowTemplateFiles, "workflow-templates", func(path string, d fs.DirEntry, err error) error {
+				if err != nil || d.IsDir() {
+					return err
+				}
+				content, err := fs.ReadFile(workflowTemplateFiles, path)
+				if err != nil {
+					return fmt.Errorf("reading %s: %w", path, err)
+				}
+				targetPath := filepath.Join(githubWorkflowsDir, filepath.Base(path))
+				if err := writeFileIfMissing(targetPath, content, 0644); err != nil {
+					return fmt.Errorf("writing %s: %w", targetPath, err)
+				}
+				return nil
+			}); err != nil {
+				fmt.Printf("Error installing release workflow: %v\n", err)
+				os.Exit(1)
+			}
+			fmt.Println("✓ Project scaffolding complete")
+			fmt.Println("  Run 'smaqit-extensions install' separately to install agents and skills globally.")
 			return
 		}
 	}

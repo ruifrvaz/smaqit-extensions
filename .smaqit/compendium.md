@@ -9,7 +9,7 @@ Agent bodies (`agents/*.agent.md`) and skill bodies (`skills/*/SKILL.md`) are sh
 - **Per-platform agent metadata**: each agent's `.smaqit/definitions/agents/<name>.frontmatter.yaml` holds `copilot:`, `claude:`, and `codex:` sections. `scripts/generate-targets.py` combines each section with the shared body to produce YAML-frontmatter agents for Copilot and Claude Code plus standalone TOML custom agents for Codex.
 - **`{{PLACEHOLDER}}` tokens for genuinely divergent content**: for the small number of skills whose executable behavior differs by platform — such as `smaqit.release-git-pr` using Copilot's `report_progress` mechanism versus direct authenticated Git operations elsewhere — the shared `SKILL.md` contains named `{{TOKEN}}` placeholders resolved from `.smaqit/definitions/skills/<name>.placeholders.yaml`. This isolates only the actual inflection points; everything else stays identical.
 
-Both mechanisms are resolved once, at build time, by `scripts/generate-targets.py`; installed output contains no unresolved build-time tokens. Generated trees under `installer/` are ephemeral embed inputs, rebuilt from canonical `agents/`/`skills/` on every build. Root `.github/`, `.codex/`, `.agents/`, and `.claude/` are workspace dogfooding mirrors only — none of them are ever read as installer sources, so drift in any of them cannot affect what a consumer project receives from `smaqit-extensions init`. See also: Does `make sync` keep every dogfooding mirror synchronized with canonical source?
+Both mechanisms are resolved once, at build time, by `scripts/generate-targets.py`; installed output contains no unresolved build-time tokens. Generated trees under `installer/` are ephemeral embed inputs, rebuilt from canonical `agents/`/`skills/` on every build. Root `.github/`, `.codex/`, `.agents/`, and `.claude/` are workspace dogfooding mirrors only — none of them are ever read as installer sources, so drift in any of them cannot affect what a consumer project receives from `smaqit-extensions install`. See also: Does `make sync` keep every dogfooding mirror synchronized with canonical source?
 
 ---
 
@@ -35,7 +35,7 @@ Repeated initialization is expected to be idempotent. Claude Code may fail to re
 
 **How does the installer's `[SMAQIT_SKILLS_DIR]` placeholder work?**
 
-A handful of skills reference their own install path in usage comments or example commands (e.g. `smaqit.project-diagnose`, `smaqit.utils.read-pdf`). Since a skill's install root differs by platform (`.github/skills` for Copilot, `.claude/skills` for Claude Code, `.agents/skills` for Codex), any such self-reference is written in source using the literal placeholder `[SMAQIT_SKILLS_DIR]`. `scripts/generate-targets.py` resolves it when compiling each platform's ephemeral installer tree. The root `Makefile` copies from those compiled outputs, so dogfooding mirrors never contain the literal placeholder either.
+A handful of skills reference their own install path in usage comments or example commands (e.g. `smaqit.project-diagnose`, `smaqit.utils.read-pdf`). Since a skill's install root differs by platform (`~/.agents/skills` for Copilot and Codex under the default global install, `~/.claude/skills` for Claude Code; `.github/skills`/`.agents/skills`/`.claude/skills` respectively under `--scope project`), any such self-reference is written in source using the literal placeholder `[SMAQIT_SKILLS_DIR]`. `scripts/generate-targets.py` resolves it when compiling each platform's ephemeral installer tree. The root `Makefile` copies from those compiled outputs, so dogfooding mirrors never contain the literal placeholder either.
 
 ---
 
@@ -85,11 +85,11 @@ They used to, inconsistently — three different, mutually incompatible conventi
 
 ## Installation
 
-**How does the CLI choose a project root for implicit commands?**
+**How does the CLI choose an installation target?**
 
-Bare `init`, `update`, and `uninstall` commands first use the enclosing Git worktree root. Outside Git they use the nearest ancestor containing `.smaqit`; if neither exists, they fall back to the current directory for a new standalone project. An explicit `init <dir>` always honors that exact directory.
+`smaqit-extensions install` (no flags) installs globally to user-level paths (`~/.agents/skills/`, `~/.copilot/agents/`, `~/.claude/`, `~/.codex/agents/`), with `COPILOT_HOME`/`CLAUDE_CONFIG_DIR`/`CODEX_HOME` env vars overriding the defaults. `install --scope project` (and its optional trailing `<dir>` argument) installs into a specific project instead: it first uses the enclosing Git worktree root, then outside Git the nearest ancestor containing `.smaqit`, then falls back to the current directory for a new standalone project. `update` always refreshes the global installation, and additionally re-scaffolds `.smaqit/` templates in the current project if one is already present. `uninstall` defaults to global scope; pass `--scope project` to remove a project installation instead. `init` is a deprecated alias for `install --scope project`.
 
-Git-root precedence prevents an accidental nested installation such as `scripts/.smaqit` from trapping later implicit commands in the wrong directory.
+Git-root precedence (for `--scope project`) prevents an accidental nested installation such as `scripts/.smaqit` from trapping later commands in the wrong directory.
 
 ---
 
@@ -119,7 +119,7 @@ The repository tracks its generated `.claude/` dogfooding mirror alongside the C
 
 **How does a project get post-merge release automation (tag + GitHub Release) after installing smaqit-extensions?**
 
-`smaqit-extensions init`/`update` deploy `.github/workflows/post-merge-release.yml` automatically, create-if-absent — the installer never overwrites an existing copy, so a project-customized workflow is always preserved. The installed workflow is generic and project-agnostic: on a `vX.Y.Z` tag push or a merged PR titled "Prepare release vX.Y.Z"/"Release vX.Y.Z", it creates the tag (if needed) and publishes a GitHub Release with the matching `CHANGELOG.md` section as its notes. It ships with **no build step** — a project that wants binaries or other release artifacts attached must add those steps to its own copy of the file.
+`smaqit-extensions install --scope project`/`update` deploy `.github/workflows/post-merge-release.yml` automatically, create-if-absent — the installer never overwrites an existing copy, so a project-customized workflow is always preserved. The installed workflow is generic and project-agnostic: on a `vX.Y.Z` tag push or a merged PR titled "Prepare release vX.Y.Z"/"Release vX.Y.Z", it creates the tag (if needed) and publishes a GitHub Release with the matching `CHANGELOG.md` section as its notes. It ships with **no build step** — a project that wants binaries or other release artifacts attached must add those steps to its own copy of the file.
 
 This is distinct from `smaqit-extensions`' own `.github/workflows/post-merge-release.yml`, which additionally builds and uploads Go binaries for every platform — that behavior is specific to this repository's own dogfooded release process and is not part of what gets installed elsewhere. `smaqit.release.pr` and `smaqit.release-git-local` describe only the generic tag+release behavior; they point to the installed workflow file itself rather than assuming what it contains, since a project may have extended it.
 
@@ -145,7 +145,7 @@ Implementation changes in a task worktree are deliberately left uncommitted unti
 
 **How does an agent work across the primary checkout and a task worktree in the same session?**
 
-`git worktree list --porcelain` always lists the main worktree first, and every linked worktree shares the same `.git` object database — so any worktree can address any other via `git -C <path>` or an absolute file path, without changing directory. This matters because skill discovery only exists on the primary checkout: `.claude/skills/`, `.github/skills/`, and `.agents/skills/` are all excluded from task-worktree sparse checkout, so a session's tools are anchored at main while source edits are addressed to whichever worktree folder actually holds the file. The generated multi-root `.code-workspace` file (main plus every active task worktree) is what makes both trees visible to one IDE session at once.
+`git worktree list --porcelain` always lists the main worktree first, and every linked worktree shares the same `.git` object database — so any worktree can address any other via `git -C <path>` or an absolute file path, without changing directory. In this repository, skill discovery happens through the committed dogfooding mirrors (`.github/skills/`, `.claude/skills/`, `.agents/skills/`), which are excluded from task-worktree sparse checkout — so a session's tools are anchored at main while source edits are addressed to whichever worktree folder actually holds the file. Under the default global install a consumer project has no such directories at all (agents/skills live at `~/.copilot/`, `~/.claude/`, `~/.codex/`, `~/.agents/skills/`, entirely outside the repo), so this sparse-checkout exclusion has nothing to exclude there. The generated multi-root `.code-workspace` file (main plus every active task worktree) is what makes both trees visible to one IDE session at once.
 
 ---
 

@@ -191,9 +191,9 @@ main() {
     info "Installation complete!"
     echo ""
     echo "Get started:"
-    echo "  cd your-project"
-    echo "  smaqit-extensions init      # Install extensions in current project"
-    echo "  smaqit-extensions --help    # View available options"
+    echo "  smaqit-extensions install             # Install agents/skills globally (default)"
+    echo "  smaqit-extensions install --scope project  # Install into current project instead"
+    echo "  smaqit-extensions --help              # View available options"
     echo ""
 }
 

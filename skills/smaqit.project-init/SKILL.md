@@ -25,7 +25,7 @@ The synchronized topology is:
 2. **Read the template**
    - Read `.smaqit/templates/copilot-instructions.template.md` in full.
    - If it does not exist, stop and inform the user:
-     > Template not found at `.smaqit/templates/copilot-instructions.template.md`. Run `smaqit-extensions init` to install the required scaffolding files.
+     > Template not found at `.smaqit/templates/copilot-instructions.template.md`. Run `smaqit-extensions install --scope project` to scaffold the required project files.
 
 3. **Read every existing instruction source before writing**
    - Inspect `AGENTS.md`, `CLAUDE.md`, and `.github/copilot-instructions.md` when present.

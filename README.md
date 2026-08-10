@@ -10,7 +10,7 @@ Enhance your agentic development with streamlined session management, task track
 | Claude Code | ✅ Supported |
 | Codex | ✅ Supported |
 
-A single `smaqit-extensions init` installs all three targets. Each platform receives artifacts compiled from the same canonical `agents/` and `skills/` sources.
+A single `smaqit-extensions install` installs all three targets globally by default. Each platform receives artifacts compiled from the same canonical `agents/` and `skills/` sources.
 
 ## What's Included
 
@@ -76,20 +76,39 @@ curl -fsSL https://raw.githubusercontent.com/ruifrvaz/smaqit-extensions/main/ins
 
 1. Download the latest release from [Releases](https://github.com/ruifrvaz/smaqit-extensions/releases)
 2. Extract the binary
-3. Run: `./smaqit-extensions init`
+3. Run: `./smaqit-extensions install`
 
 ### What Gets Installed
 
-The installer compiles the canonical root sources into platform-specific artifacts, then installs:
+The installer compiles the canonical root sources into platform-specific artifacts, then installs.
 
-- `.github/agents/` - 3 utility agents (release local, release PR, user-testing)
-- `.github/skills/` - 29 workflow skills (complete implementations)
-- `.claude/agents/` - 3 utility subagents (same 3, Claude Code format)
-- `.claude/commands/` - 3 slash commands, one per subagent
-- `.claude/skills/` - 29 workflow skills (same content as `.github/skills/`)
-- `.codex/agents/` - 3 project custom agents (standalone TOML)
-- `.agents/skills/` - 29 workflow skills (Codex repository discovery path)
-- `.github/workflows/post-merge-release.yml` - generic, project-agnostic release automation (tag + GitHub Release; no build step). Deployed create-if-absent: `init` and `update` never overwrite an existing copy, so local edits (e.g. adding a build/artifact-upload step) are always preserved.
+**Global installation (default):**
+
+- `~/.agents/skills/` - 29 workflow skills (shared by GitHub Copilot + Codex)
+- `~/.copilot/agents/` - 3 utility agents (GitHub Copilot)
+- `~/.claude/agents/` - 3 utility subagents (Claude Code)
+- `~/.claude/commands/` - 3 slash commands, one per subagent
+- `~/.claude/skills/` - 29 workflow skills (Claude Code)
+- `~/.codex/agents/` - 3 project custom agents (standalone TOML)
+
+**Project-scoped installation (`--scope project`):**
+
+- `.agents/skills/` - 29 workflow skills (Codex)
+- `.github/agents/` - 3 utility agents (GitHub Copilot)
+- `.claude/agents/` - 3 utility subagents (Claude Code)
+- `.claude/commands/` - 3 slash commands (Claude Code)
+- `.claude/skills/` - 29 workflow skills (Claude Code)
+- `.codex/agents/` - 3 project custom agents (Codex)
+- `.smaqit/` scaffolding (tasks, history, templates)
+- `.github/workflows/post-merge-release.yml` - generic, project-agnostic release automation (tag + GitHub Release; no build step). Deployed create-if-absent: `install --scope project` and `update` never overwrite an existing copy, so local edits (e.g. adding a build/artifact-upload step) are always preserved.
+
+**Environment overrides:**
+
+| Variable | Default | Overrides |
+|----------|---------|-----------|
+| `COPILOT_HOME` | `~/.copilot` | Copilot agent install root |
+| `CLAUDE_CONFIG_DIR` | `~/.claude` | Claude agent/skill/command install root |
+| `CODEX_HOME` | `~/.codex` | Codex agent install root |
 
 ## Usage
 
@@ -106,11 +125,15 @@ User: smaqit.session-finish
 The `smaqit-extensions` binary also accepts CLI commands:
 
 ```bash
-smaqit-extensions init           # Install extensions in the detected project root
-smaqit-extensions init <dir>     # Install extensions in exactly the specified directory
-smaqit-extensions update         # Update binary and refresh the detected project root
-smaqit-extensions uninstall      # Remove extensions from the detected project root
-smaqit-extensions version        # Show version
+smaqit-extensions install                     # Install extensions globally (default)
+smaqit-extensions install --agent copilot     # Install only Copilot agents + skills
+smaqit-extensions install --agent claude      # Install only Claude agents + skills
+smaqit-extensions install --agent codex       # Install only Codex agents + skills
+smaqit-extensions install --scope project     # Install into current project directory
+smaqit-extensions update                      # Update binary and refresh global install
+smaqit-extensions uninstall                   # Remove extensions from global paths
+smaqit-extensions uninstall --scope project   # Remove extensions from project directory
+smaqit-extensions version                     # Show version
 ```
 
 For commands without an explicit directory, the CLI detects the enclosing Git worktree root. Outside Git, it uses the nearest ancestor containing `.smaqit`, then falls back to the current directory for a new standalone project. This makes invocation from nested directories such as `scripts/` safe.
@@ -121,7 +144,7 @@ For commands without an explicit directory, the CLI detects the enclosing Git wo
 smaqit-extensions update
 ```
 
-Fetches the latest release from GitHub, downloads the new binary, and replaces the running binary atomically. If the detected project root contains `.smaqit/`, it automatically re-runs `init` there to deploy updated agents, skills, and templates without overwriting your project state (tasks, history, glossary) or a pre-existing `.github/workflows/post-merge-release.yml`.
+Fetches the latest release from GitHub, downloads the new binary, and replaces the running binary atomically. Refreshes the global installation automatically. If the detected project root contains `.smaqit/`, it also re-scaffolds project templates without overwriting your project state (tasks, history, glossary) or a pre-existing `.github/workflows/post-merge-release.yml`.
 
 > **Note:** Self-update is currently supported on Linux only.
 
@@ -165,9 +188,9 @@ On Codex, repository skills are discovered automatically from `.agents/skills/`;
 ## Requirements
 
 - GitHub Copilot with agent and skill support, Claude Code, or Codex
-- A git repository
+- A git repository (for project-scoped installation)
 
-The installer writes files under `.github/{agents,skills,workflows}/`, `.claude/{agents,commands,skills}/`, `.codex/agents/`, and `.agents/skills/`, creating each folder if it doesn't exist.
+The installer writes skills and agents to global user-level paths by default (`~/.agents/skills/`, `~/.copilot/agents/`, `~/.claude/`, `~/.codex/agents/`). Use `--scope project` to install into a repository's `.github/`, `.claude/`, `.codex/`, and `.agents/` directories instead.
 
 The installer also scaffolds the `.smaqit/` directory structure used by agents and skills:
 - `.smaqit/tasks/PLANNING.md` - Central task tracking file
@@ -176,7 +199,7 @@ The installer also scaffolds the `.smaqit/` directory structure used by agents a
 - `.smaqit/user-testing/` - Test reports
 - `.smaqit/templates/` - Canonical task and planning templates
 
-`smaqit.release.pr` and `smaqit.release.local` depend on `.github/workflows/post-merge-release.yml` for the tag-and-release step after a release commit or PR merge; `init`/`update` deploy it automatically (create-if-absent), so it is present in any project that has run `smaqit-extensions init`.
+`smaqit.release.pr` and `smaqit.release.local` depend on `.github/workflows/post-merge-release.yml` for the tag-and-release step after a release commit or PR merge; `install --scope project`/`update` deploy it automatically (create-if-absent), so it is present in any project that has run `smaqit-extensions install --scope project`.
 
 ## Development
 
@@ -212,13 +235,13 @@ This compiles updated files into the gitignored `installer/` staging trees, then
 
 ### Multi-Platform Build Pipeline
 
-Platform output shipped by `smaqit-extensions init` is generated, not hand-maintained. Additional source locations feed it:
+Platform output shipped by `smaqit-extensions install` is generated, not hand-maintained. Additional source locations feed it:
 
 - `commands/` - Claude Code slash-command wrappers, one per agent
 - `.smaqit/definitions/agents/*.frontmatter.yaml` - per-platform agent metadata for Copilot, Claude Code, and Codex; agent bodies are reused from `agents/`
 - `.smaqit/definitions/skills/*.placeholders.yaml` - per-platform values for skill instructions that genuinely differ by platform
 
-Running `make -C installer prepare` (or `python3 scripts/generate-targets.py` directly) compiles these, plus `agents/` and `skills/`, into gitignored `installer/{agents-copilot,agents-claude,agents-codex,commands-claude,skills,skills-claude,skills-codex}/` trees that the Go binary embeds. Root `.github/`, `.codex/`, and `.agents/` are dogfooding mirrors only and are never used as installer embed sources.
+Running `make -C installer prepare` (or `python3 scripts/generate-targets.py` directly) compiles these, plus `agents/` and `skills/`, into gitignored `installer/{agents-copilot,agents-claude,agents-codex,commands-claude,skills,skills-claude}/` trees that the Go binary embeds. Root `.github/`, `.codex/`, and `.agents/` are dogfooding mirrors only and are never used as installer embed sources.
 
 ## Releases
 

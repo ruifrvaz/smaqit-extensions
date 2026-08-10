@@ -79,7 +79,7 @@ mkdir -p "$smoke_root/.git" "$smoke_root/scripts/.smaqit"
 touch "$smoke_root/scripts/.smaqit/accidental-nested-project"
 (
   cd "$smoke_root/scripts"
-  "$binary" init
+  "$binary" install --scope project
 )
 
 assert_empty_or_missing "$smoke_root/scripts/.github" "nested GitHub target"
@@ -94,7 +94,7 @@ assert_tree_matches "$repo_root/installer/agents-claude" "$smoke_root/.claude/ag
 assert_tree_matches "$repo_root/installer/commands-claude" "$smoke_root/.claude/commands" "Claude Code commands"
 assert_tree_matches "$repo_root/installer/skills-claude" "$smoke_root/.claude/skills" "Claude Code skills"
 assert_tree_matches "$repo_root/installer/agents-codex" "$smoke_root/.codex/agents" "Codex agents"
-assert_tree_matches "$repo_root/installer/skills-codex" "$smoke_root/.agents/skills" "Codex skills"
+assert_tree_matches "$repo_root/installer/skills" "$smoke_root/.agents/skills" "Codex skills (shared skills tree)"
 assert_tree_matches "$repo_root/installer/templates" "$smoke_root/.smaqit/templates" "smaqit templates"
 assert_tree_matches "$repo_root/installer/workflow-templates" "$smoke_root/.github/workflows" "release automation workflow"
 
@@ -107,7 +107,7 @@ echo "[CHECK] Re-running init preserves a customized release workflow"
 echo "# locally customized — must survive re-init" >> "$smoke_root/.github/workflows/post-merge-release.yml"
 (
   cd "$smoke_root/scripts"
-  "$binary" init
+  "$binary" install --scope project
 )
 assert_contains "$smoke_root/.github/workflows/post-merge-release.yml" "locally customized — must survive re-init" "release workflow create-if-absent idempotency"
 

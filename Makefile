@@ -27,7 +27,7 @@ sync:
 		rm -rf .github/skills/$$skill; \
 		cp -rL installer/skills/$$skill .github/skills/$$skill; \
 		rm -rf .agents/skills/$$skill; \
-		cp -rL installer/skills-codex/$$skill .agents/skills/$$skill; \
+		cp -rL installer/skills/$$skill .agents/skills/$$skill; \
 		rm -rf .claude/skills/$$skill; \
 		cp -rL installer/skills-claude/$$skill .claude/skills/$$skill; \
 	done

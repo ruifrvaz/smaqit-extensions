@@ -95,7 +95,7 @@ gh pr edit --title "Prepare release vX.Y.Z"
 1. Creates and pushes git tag `vX.Y.Z`
 2. Creates a GitHub Release with the changelog excerpt as its notes
 
-**No manual intervention required for the tag/release steps.** `.github/workflows/post-merge-release.yml` is installed by `smaqit-extensions init`/`update` (create-if-absent) with no build step; if this project has added its own build or artifact-upload steps to that workflow, they run too — check the file directly rather than assuming its contents.
+**No manual intervention required for the tag/release steps.** `.github/workflows/post-merge-release.yml` is installed by `smaqit-extensions install --scope project` / `update` (create-if-absent) with no build step; if this project has added its own build or artifact-upload steps to that workflow, they run too — check the file directly rather than assuming its contents.
 
 Document in PR description:
 

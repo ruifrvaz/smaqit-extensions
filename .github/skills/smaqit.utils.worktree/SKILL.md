@@ -16,7 +16,7 @@ When called by `smaqit.task-start` for a lifecycle-owner task, use the supplied 
 Run the branch info script to gather all local and remote branches with tracking data:
 
 ```bash
-bash .github/skills/smaqit.utils.worktree/scripts/1_present_branches.sh
+bash ~/.agents/skills/smaqit.utils.worktree/scripts/1_present_branches.sh
 ```
 
 It outputs a JSON structure like:
@@ -47,7 +47,7 @@ Parse the response into a list of branch names. This list, or the task branch su
 Run the validation script — checks that `git`, `jq` are on PATH and the current directory is a Git repository:
 
 ```bash
-bash .github/skills/smaqit.utils.worktree/scripts/2_validate_prereqs.sh
+bash ~/.agents/skills/smaqit.utils.worktree/scripts/2_validate_prereqs.sh
 ```
 
 If the script exits non-zero, report the error message and stop.
@@ -57,7 +57,7 @@ If the script exits non-zero, report the error message and stop.
 Pass the selected branch names to the slug-computation script. It outputs a JSON mapping of `branch → slug` to stdout:
 
 ```bash
-bash .github/skills/smaqit.utils.worktree/scripts/3_compute_slugs.sh feat/hindsight demo/user-identity
+bash ~/.agents/skills/smaqit.utils.worktree/scripts/3_compute_slugs.sh feat/hindsight demo/user-identity
 ```
 
 Output example:
@@ -78,7 +78,7 @@ Slug rules (also documented in the script):
 Run the enumeration script — it outputs a JSON map of `branch → worktree_path` for all non-main worktrees:
 
 ```bash
-bash .github/skills/smaqit.utils.worktree/scripts/4_enumerate_worktrees.sh
+bash ~/.agents/skills/smaqit.utils.worktree/scripts/4_enumerate_worktrees.sh
 ```
 
 Output example:
@@ -94,7 +94,7 @@ Pipe the branch→slug JSON (from Step 3) into the creation script, passing the 
 
 ```bash
 echo '<branch-slug-json>' \
-  | bash .github/skills/smaqit.utils.worktree/scripts/5_create_worktrees.sh \
+  | bash ~/.agents/skills/smaqit.utils.worktree/scripts/5_create_worktrees.sh \
       --existing '<existing-json>'
 ```
 
@@ -107,7 +107,7 @@ The script outputs a JSON summary:
 }
 ```
 
-**Sparse layout.** Task worktrees retain project-owned paths, including `.github/workflows/`. To avoid duplicate agent and skill discovery, generated mirror subdirectories are excluded: `.github/agents/`, `.github/skills/`, `.claude/agents/`, `.claude/commands/`, `.claude/skills/`, `.agents/skills/`, and `.codex/agents/`. `.smaqit/tasks/` is also excluded — task state (`PLANNING.md` and individual task files) lives exclusively on the primary checkout, so no worktree ever holds a mutable copy that could diverge and conflict on merge. The rest of `.smaqit/` (templates, references, definitions, user-testing) remains available.
+**Sparse layout.** Task worktrees retain project-owned paths, including `.github/workflows/`. Under the default (global) installation, a project contains none of `.github/agents/`, `.github/skills/`, `.claude/agents/`, `.claude/commands/`, `.claude/skills/`, `.agents/skills/`, or `.codex/agents/` at all — agents and skills live outside the repository at `~/.copilot/`, `~/.claude/`, `~/.codex/`, and `~/.agents/skills/`. The sparse-checkout list still excludes those paths defensively, but only a project that explicitly used `install --scope project`, or this repository's own dogfooding mirrors, ever populates them. `.smaqit/tasks/` is also excluded — task state (`PLANNING.md` and individual task files) lives exclusively on the primary checkout, so no worktree ever holds a mutable copy that could diverge and conflict on merge. The rest of `.smaqit/` (templates, references, definitions, user-testing) remains available.
 
 **Error handling** is built into the script — it logs per-branch errors and continues. If sparse configuration fails after worktree creation, the script disables sparse checkout in that worktree and reports the error, leaving a usable full checkout. Report any errors to the user after the script completes.
 
@@ -116,7 +116,7 @@ The script outputs a JSON summary:
 Run the orphan detection script — it checks all registered worktrees against `git branch --list` and removes any whose branch has been deleted:
 
 ```bash
-bash .github/skills/smaqit.utils.worktree/scripts/6_detect_orphans.sh
+bash ~/.agents/skills/smaqit.utils.worktree/scripts/6_detect_orphans.sh
 ```
 
 Output:
@@ -131,7 +131,7 @@ Output:
 Run the workspace build script. It reads the current Git worktree state directly (no stdin needed) and writes an existing root `.code-workspace` file or creates `<project>.code-workspace` with `main` plus all active worktrees:
 
 ```bash
-bash .github/skills/smaqit.utils.worktree/scripts/7_build_workspace.sh
+bash ~/.agents/skills/smaqit.utils.worktree/scripts/7_build_workspace.sh
 ```
 
 The script is self-contained — it re-enumerates worktrees from `git worktree list` on every invocation, so the workspace file always reflects actual disk state regardless of earlier steps. Idempotent: same Git state always produces the same output.
@@ -147,14 +147,14 @@ The generated workspace excludes only build output (`bin/` and `obj/`). Do not a
 Run this operation from the primary checkout whenever `task.create`, `task.start`, or `task.complete` needs to determine whether a task owns Git resources or joins an active parent:
 
 ```bash
-bash .github/skills/smaqit.utils.worktree/scripts/9_resolve_task_lifecycle.sh \
+bash ~/.agents/skills/smaqit.utils.worktree/scripts/9_resolve_task_lifecycle.sh \
   --task NNN --purpose start|complete
 ```
 
 For child creation, validate the parent before writing the task file:
 
 ```bash
-bash .github/skills/smaqit.utils.worktree/scripts/9_resolve_task_lifecycle.sh \
+bash ~/.agents/skills/smaqit.utils.worktree/scripts/9_resolve_task_lifecycle.sh \
   --parent NNN
 ```
 
@@ -177,7 +177,7 @@ Print a structured summary listing created worktrees, removed orphans, skipped e
 Run:
 
 ```bash
-bash .github/skills/smaqit.utils.worktree/scripts/8_migrate_sessions.sh
+bash ~/.agents/skills/smaqit.utils.worktree/scripts/8_migrate_sessions.sh
 ```
 
 The script auto-detects the project name and workspace file from the Git repository. It migrates:
@@ -254,7 +254,7 @@ For a child task, none of this cleanup runs. Child completion records criteria, 
 8. **The workspace file is Git-committed.** Commit the updated workspace with other changes to keep it versioned.
 9. **VS Code must be reopened** with the root workspace file after it is created or updated for the new folder layout to appear.
 10. **Session migration when switching workspaces.** Switching to a multi-root workspace creates a new VS Code storage entry. Invoke `worktree.migrate-sessions` explicitly if existing chat sessions should be copied.
-11. **Generated mirrors and task state are excluded from task worktrees.** Sparse checkout excludes `.github/agents/`, `.github/skills/`, `.claude/agents/`, `.claude/commands/`, `.claude/skills/`, `.agents/skills/`, and `.codex/agents/` to prevent duplicate discovery, plus `.smaqit/tasks/` to keep task state single-sourced on primary. Project-owned paths such as `.github/workflows/` and the rest of `.smaqit/` remain available.
+11. **Generated mirrors and task state are excluded from task worktrees.** Sparse checkout excludes `.github/agents/`, `.github/skills/`, `.claude/agents/`, `.claude/commands/`, `.claude/skills/`, `.agents/skills/`, and `.codex/agents/` defensively, plus `.smaqit/tasks/` to keep task state single-sourced on primary. Under the default global install, a project has none of those agent/skill paths at all — they only exist for a project that ran `install --scope project`, or for this repository's own dogfooding mirrors. Project-owned paths such as `.github/workflows/` and the rest of `.smaqit/` remain available.
 12. **Task branches modify canonical source, not generated mirrors.** Regenerate platform mirrors from canonical sources during the normal synchronization step.
 13. **Existing unregistered directories are preserved.** Report the conflict for user review; do not remove the directory automatically.
 14. **Parent tasks own Git resources.** A child task joins its active parent's registered branch/worktree and inherits its mode. Only a standalone or parent task can merge, remove a worktree, delete a branch, or rebuild the workspace.

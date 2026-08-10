@@ -72,7 +72,7 @@ flowchart LR
     Source["Source\nagents/ skills/"] --> Sync["make sync"]
     Sync --> GitHub[".github/\n(Copilot uses)"]
     Sync --> Binary["installer binary\n(Go embed)"]
-    Binary --> Init["smaqit-extensions init"]
+    Binary --> Init["smaqit-extensions install"]
     Init --> Project[".github/ in target project"]
 ```
 ```

@@ -204,7 +204,7 @@ echo "[OK] Project-init synchronization contract is shared across platforms"
 echo "[CHECK] Uninstalling from temporary project"
 (
   cd "$smoke_root/scripts"
-  "$binary" uninstall
+  "$binary" uninstall --scope project
 )
 
 assert_empty_or_missing "$smoke_root/.github/agents" "GitHub Copilot agents"

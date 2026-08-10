@@ -60,7 +60,7 @@ DIAG_VENDOR_EXCLUDES="<vendor_excludes>" \
 DIAG_LOG_FILE="<log_file>" \
 DIAG_COMPOSE_FILE="<compose_file>" \
 DIAG_BACKUP_SCRIPT="<backup_script>" \
-bash .github/skills/smaqit.project-diagnose/scripts/diagnose-inventory.sh
+bash ~/.agents/skills/smaqit.project-diagnose/scripts/diagnose-inventory.sh
 ```
 
 Captures: test file counts, test config presence, non-smaqit CI workflows, log handler type/class, log volume mount, container service logging and healthcheck status, backup script path value, systemd unit presence, env keys, secrets tool config.

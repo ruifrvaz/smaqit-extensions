@@ -103,7 +103,7 @@ gh pr edit --title "Prepare release vX.Y.Z"
 
 ### Automated Post-Merge Workflow
 
-`smaqit-extensions init`/`update` deploy `.github/workflows/post-merge-release.yml` automatically (create-if-absent, never overwriting a project-customized copy). When a PR with title matching "Prepare release vX.Y.Z" or "Release vX.Y.Z" is merged to `main`, it automatically:
+`smaqit-extensions install --scope project`/`update` deploy `.github/workflows/post-merge-release.yml` automatically (create-if-absent, never overwriting a project-customized copy). When a PR with title matching "Prepare release vX.Y.Z" or "Release vX.Y.Z" is merged to `main`, it automatically:
 
 1. Creates and pushes git tag `vX.Y.Z`
 2. Creates a GitHub Release with the matching CHANGELOG.md section as its notes

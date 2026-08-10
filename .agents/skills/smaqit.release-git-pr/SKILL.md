@@ -7,13 +7,13 @@ metadata:
 
 # Release Git PR
 
-Execute git operations required for PR-based releases: stage changes, commit to PR branch, and push via `git push` directly (using the current environment's git/gh credentials).
+Execute git operations required for PR-based releases: stage changes, commit to PR branch, and push via `report_progress` tool (handles credentials internally).
 
 ## When to use this skill
 
 Use this skill for **PR-based releases** (running in CI/CD or agent workflow) after all files have been prepared. This skill:
 - Commits release preparation changes to PR branch
-- Pushes changes using `git push` directly (using the current environment's git/gh credentials)
+- Pushes changes using `report_progress` tool (handles credentials internally)
 - Documents post-merge tag creation instructions
 
 **Do NOT use this skill for local releases** - use `release-git-local` instead.
@@ -53,17 +53,18 @@ git commit -m "Prepare release vX.Y.Z"
 git --no-pager log -1 --oneline
 ```
 
-### Step 3: Push via git
+### Step 3: Push via report_progress
 
-Push the commit directly to the PR branch:
+Use the `report_progress` tool to push changes to the PR branch:
 
-```bash
-git push origin <branch-name>
-```
+**This tool:**
+- Handles git credentials internally (no manual credential configuration needed)
+- Automatically runs `git push`
+- Updates the PR description with progress
 
 **Do NOT:**
+- Use `git push` directly (credentials not available in agent environment)
 - Create git tags at this stage (tags must be created after merge to main)
-- Push to `main` directly — this workflow is PR-based
 
 ### Step 4: Verify and Enforce PR Title for Post-Merge Automation
 
@@ -94,7 +95,7 @@ gh pr edit --title "Prepare release vX.Y.Z"
 1. Creates and pushes git tag `vX.Y.Z`
 2. Creates a GitHub Release with the changelog excerpt as its notes
 
-**No manual intervention required for the tag/release steps.** `.github/workflows/post-merge-release.yml` is installed by `smaqit-extensions init`/`update` (create-if-absent) with no build step; if this project has added its own build or artifact-upload steps to that workflow, they run too — check the file directly rather than assuming its contents.
+**No manual intervention required for the tag/release steps.** `.github/workflows/post-merge-release.yml` is installed by `smaqit-extensions install --scope project` / `update` (create-if-absent) with no build step; if this project has added its own build or artifact-upload steps to that workflow, they run too — check the file directly rather than assuming its contents.
 
 Document in PR description:
 
@@ -135,7 +136,7 @@ post_merge_automation: true
 | Error | Likely Cause | Suggested Action |
 |-------|--------------|------------------|
 | `nothing to commit` | Files unchanged or not staged | Verify changes were made and staged correctly |
-| `git push` fails | Network issue, auth failure, or diverged branch | Check `git status`/`gh auth status`, resolve, and retry |
+| `report_progress` fails | PR update failed | Check PR status and retry |
 | Already on main branch | Wrong workflow used | Use `release-git-local` skill for local releases |
 
 ## Critical Differences from release-git-local
@@ -145,8 +146,8 @@ post_merge_automation: true
 | **Branch** | main | Feature/PR branch |
 | **Commit message** | "Release vX.Y.Z" | "Prepare release vX.Y.Z" |
 | **Tag creation** | ✅ Yes, immediately | ❌ No, after merge to main |
-| **Push method** | `git push` directly | `git push` directly (using the current environment's git/gh credentials) |
-| **Git credentials** | User's local credentials | User's local/agent git credentials |
+| **Push method** | `git push` directly | `report_progress` tool (handles credentials internally) |
+| **Git credentials** | User's local credentials | Handled by report_progress |
 | **When to use** | Developer's local machine | CI/CD or agent workflow |
 
 ## Notes
@@ -154,7 +155,7 @@ post_merge_automation: true
 - This skill is for **PR-based release workflows only**
 - Tags are intentionally NOT created on PR branches
 - Complete release automation happens via post-merge workflow after PR merge
-- Push authentication is handled by `git push` directly (using the current environment's git/gh credentials)
+- Push authentication is handled by `report_progress` tool (handles credentials internally)
 - PR title must match pattern for post-merge automation to trigger
 - Release completes automatically after PR merge: tag + GitHub Release (plus any project-added build steps)
 - See `.github/workflows/post-merge-release.yml` for workflow details

@@ -57,7 +57,7 @@ task.start [id] --assisted         # Explicit assisted mode
 
 2. **Resolve lifecycle ownership** — run from the primary checkout, before creating any branch or worktree:
    ```bash
-   bash .github/skills/smaqit.utils.worktree/scripts/9_resolve_task_lifecycle.sh \
+   bash ~/.agents/skills/smaqit.utils.worktree/scripts/9_resolve_task_lifecycle.sh \
      --task NNN --purpose start [--requested-mode assisted|autonomous]
    ```
    - Capture the JSON result: `kind`, `parent`, `branch`, `worktree`, `mode`, and `task_file`.

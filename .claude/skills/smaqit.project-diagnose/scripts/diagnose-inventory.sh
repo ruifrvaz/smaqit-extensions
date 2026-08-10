@@ -2,7 +2,7 @@
 # diagnose-inventory.sh — stack-agnostic workspace inventory for smaqit.project-diagnose
 #
 # Run from workspace root:
-#   bash .claude/skills/smaqit.project-diagnose/scripts/diagnose-inventory.sh
+#   bash ~/.claude/skills/smaqit.project-diagnose/scripts/diagnose-inventory.sh
 #
 # The agent sets StackProfile fields as environment variables before calling this script.
 # All variables have auto-detection fallbacks so the script is always runnable stand-alone.

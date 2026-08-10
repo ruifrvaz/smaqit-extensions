@@ -14,7 +14,7 @@ Mark a task as done with the format: `task.complete [id]`
 1. **Load workflow rules** by reading [references/RULES.md](references/RULES.md)
 2. Resolve lifecycle ownership from the primary checkout before reading or changing task state:
    ```bash
-   bash .claude/skills/smaqit.utils.worktree/scripts/9_resolve_task_lifecycle.sh \
+   bash ~/.claude/skills/smaqit.utils.worktree/scripts/9_resolve_task_lifecycle.sh \
      --task NNN --purpose complete
    ```
    - Capture `kind`, `parent`, `branch`, `worktree`, `mode`, and `task_file` from the JSON output.

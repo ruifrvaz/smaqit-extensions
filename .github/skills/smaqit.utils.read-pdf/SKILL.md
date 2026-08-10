@@ -21,7 +21,7 @@ metadata:
 Run `scripts/extract.sh <pdf-path>` via terminal:
 
 ```bash
-bash .github/skills/smaqit.utils.read-pdf/scripts/extract.sh "<pdf-path>"
+bash ~/.agents/skills/smaqit.utils.read-pdf/scripts/extract.sh "<pdf-path>"
 ```
 
 - If `pdftotext` is not installed, the script prints `sudo apt install poppler-utils` and exits 1. Surface this instruction to the user and stop.

@@ -7,7 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.13.0] - 2026-08-06
+## [1.14.0] - 2026-08-10
+
+### Added
+- **Global user-level installation (default)** — new `install` subcommand installs agents and skills to platform-specific global paths: `~/.agents/skills/` (shared by Copilot + Codex), `~/.claude/skills/` (Claude), `~/.copilot/agents/` (Copilot), `~/.claude/agents/` (Claude), `~/.codex/agents/` (Codex). Skills are always installed; agents are gated by `--agent copilot|claude|codex|all`.
+- **`--scope project` flag** — `install --scope project` preserves legacy per-project behavior; `--scope user` (default) installs globally. `--agent` and `--scope` compose arbitrarily.
+- **Environment variable overrides** — `COPILOT_HOME`, `CLAUDE_CONFIG_DIR`, `CODEX_HOME` override the default global install roots for their respective agents.
+- **Unit tests** — new coverage for `resolveGlobalDir`, `parseAgentFilter`, `parseScope`, `parsePositionalDir`, and env-var resolution.
+
+### Changed
+- **`skills-codex/` embed retired** — Codex and Copilot share identical skill content at `~/.agents/skills/`. The generator no longer produces a separate `skills-codex/` output tree; the Go binary no longer embeds or installs it.
+- **`[SMAQIT_SKILLS_DIR]` resolves to global paths** — `~/.agents/skills` (Copilot/Codex) and `~/.claude/skills` (Claude) at build time, reflecting the new default installation layout.
+- **`smaqit-extensions update`** now refreshes the global installation, then re-scaffolds `.smaqit/` templates in the current project if one is present.
+- **`smaqit-extensions uninstall`** defaults to global scope; `--scope project` removes a project installation.
+- **Skills, agents, templates, compendium, install.sh, and README** updated across 16 files for the global-install model.
+
+### Deprecated
+- **`smaqit-extensions init`** prints a deprecation warning and delegates to `install --scope project`. The alias is retained for backward compatibility.
+
+### Fixed
+- **`smaqit.task-plan` double-approval** — collapsed redundant approval gate in Mode A into a single confirmation.
+- **`smaqit.session-start` description** — added trigger phrases ("new session", "start session", "session start") so it auto-invokes correctly.
 
 ### Added
 - **Dogfooding mirror drift guard** — `make sync` now also regenerates root `.claude/{agents,commands,skills}` from canonical source, and `make smoke-test` asserts this repo's own `.claude/` mirror matches the generated staging trees. Previously only `.github/` and `.agents/` were kept in sync automatically; `.claude/` could silently drift indefinitely with no error.

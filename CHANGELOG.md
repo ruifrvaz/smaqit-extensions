@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.14.2] - 2026-08-10
+
+### Fixed
+- **`install.sh` never actually ran global installation** — the script referenced `$target`, a variable `local` to `install_binary()`/`verify_installation()` and out of scope in `main()`, causing the `--install-global` step to silently fail with `command not found`. v1.14.1's curl-pipe installer downloaded the binary successfully but never installed any agents or skills. Verified end-to-end with a real `curl | bash` run against a sandboxed `$HOME`.
+
 ## [1.14.1] - 2026-08-10
 
 ### Fixed

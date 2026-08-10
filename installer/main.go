@@ -40,9 +40,6 @@ var skillFilesClaude embed.FS
 //go:embed agents-codex/*.toml
 var codexAgentFiles embed.FS
 
-//go:embed skills-codex
-var skillFilesCodex embed.FS
-
 // Version is set via ldflags during build: -X main.Version=$(VERSION)
 var Version = "1.13.0"
 
@@ -183,6 +180,83 @@ func installSkillTree(fsys fs.FS, srcRoot, destDir string) (int, error) {
 	return len(seen), err
 }
 
+// resolveGlobalDir returns the global installation directory for a given agent,
+// respecting environment variable overrides. The special value "skills" returns
+// the shared skills directory (~/.agents/skills).
+func resolveGlobalDir(agent string) string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error resolving home directory: %v\n", err)
+		os.Exit(1)
+	}
+
+	switch agent {
+	case "copilot":
+		if d := os.Getenv("COPILOT_HOME"); d != "" {
+			return filepath.Join(d, "agents")
+		}
+		return filepath.Join(home, ".copilot", "agents")
+	case "claude":
+		if d := os.Getenv("CLAUDE_CONFIG_DIR"); d != "" {
+			return filepath.Join(d, "agents")
+		}
+		return filepath.Join(home, ".claude", "agents")
+	case "codex":
+		if d := os.Getenv("CODEX_HOME"); d != "" {
+			return filepath.Join(d, "agents")
+		}
+		return filepath.Join(home, ".codex", "agents")
+	case "skills":
+		return filepath.Join(home, ".agents", "skills")
+	case "skills-claude":
+		if d := os.Getenv("CLAUDE_CONFIG_DIR"); d != "" {
+			return filepath.Join(d, "skills")
+		}
+		return filepath.Join(home, ".claude", "skills")
+	case "commands":
+		if d := os.Getenv("CLAUDE_CONFIG_DIR"); d != "" {
+			return filepath.Join(d, "commands")
+		}
+		return filepath.Join(home, ".claude", "commands")
+	default:
+		fmt.Fprintf(os.Stderr, "Unknown agent: %s\n", agent)
+		os.Exit(1)
+		return ""
+	}
+}
+
+// parseAgentFilter extracts the --agent flag value and returns the set of
+// agents to install. Returns all agents if --agent is absent or "all".
+func parseAgentFilter(args []string) map[string]bool {
+	all := map[string]bool{"copilot": true, "claude": true, "codex": true}
+	for i, a := range args {
+		if a == "--agent" && i+1 < len(args) {
+			val := args[i+1]
+			switch val {
+			case "all":
+				return all
+			case "copilot":
+				return map[string]bool{"copilot": true}
+			case "claude":
+				return map[string]bool{"claude": true}
+			case "codex":
+				return map[string]bool{"codex": true}
+			}
+		}
+	}
+	return all
+}
+
+// parseScope extracts the --scope flag value. Returns "user" by default.
+func parseScope(args []string) string {
+	for i, a := range args {
+		if a == "--scope" && i+1 < len(args) {
+			return args[i+1]
+		}
+	}
+	return "user"
+}
+
 func main() {
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
@@ -192,18 +266,18 @@ func main() {
 		case "help", "--help", "-h":
 			printHelp()
 			return
+		case "install":
+			cmdInstall(os.Args[2:])
+			return
 		case "uninstall":
-			cmdUninstall(resolveDefaultProjectDir("."))
+			cmdUninstallArgs(os.Args[2:])
 			return
 		case "update":
 			runUpdate()
 			return
 		case "init":
-			targetDir := resolveDefaultProjectDir(".")
-			if len(os.Args) > 2 {
-				targetDir = os.Args[2]
-			}
-			cmdInstall(targetDir)
+			fmt.Fprintln(os.Stderr, "Warning: 'init' is deprecated. Use 'install --scope project' instead.")
+			cmdInstall([]string{"--scope", "project"})
 			return
 		}
 	}
@@ -218,26 +292,206 @@ func printHelp() {
 	fmt.Println("Usage: smaqit-extensions <command> [args]")
 	fmt.Println()
 	fmt.Println("Commands:")
-	fmt.Println("  smaqit-extensions init           Install extensions in detected project root")
-	fmt.Println("  smaqit-extensions init <dir>     Install extensions in specified directory")
-	fmt.Println("  smaqit-extensions update         Update binary and detected project root")
-	fmt.Println("  smaqit-extensions uninstall      Remove extensions from detected project root")
-	fmt.Println("  smaqit-extensions version        Show version")
-	fmt.Println("  smaqit-extensions --help         Show this help message")
+	fmt.Println("  smaqit-extensions install                     Install extensions globally (default)")
+	fmt.Println("  smaqit-extensions install --agent <agent>     Install for specific agent (copilot|claude|codex|all)")
+	fmt.Println("  smaqit-extensions install --scope project     Install into current project directory")
+	fmt.Println("  smaqit-extensions update                      Update binary and refresh global install")
+	fmt.Println("  smaqit-extensions uninstall                   Remove extensions from global paths")
+	fmt.Println("  smaqit-extensions uninstall --scope project   Remove extensions from current project")
+	fmt.Println("  smaqit-extensions version                     Show version")
+	fmt.Println("  smaqit-extensions --help                      Show this help message")
 	fmt.Println()
-	fmt.Println("What gets installed:")
-	fmt.Println("  .github/agents/     - 3 utility agents (GitHub Copilot)")
-	fmt.Println("  .github/skills/     - 29 workflow skills (GitHub Copilot)")
-	fmt.Println("  .claude/agents/     - 3 utility agents (Claude Code)")
-	fmt.Println("  .claude/commands/   - 3 slash commands (Claude Code)")
-	fmt.Println("  .claude/skills/     - 29 workflow skills (Claude Code)")
-	fmt.Println("  .codex/agents/      - 3 utility agents (Codex)")
-	fmt.Println("  .agents/skills/     - 29 workflow skills (Codex)")
-	fmt.Println("  .smaqit/templates/  - 3 canonical templates")
-	fmt.Println("  .github/workflows/  - post-merge-release.yml (create-if-absent)")
+	fmt.Println("Global installation paths:")
+	fmt.Println("  ~/.agents/skills/     - Shared skills (GitHub Copilot + Codex)")
+	fmt.Println("  ~/.copilot/agents/    - GitHub Copilot custom agents")
+	fmt.Println("  ~/.claude/agents/     - Claude Code subagents")
+	fmt.Println("  ~/.claude/commands/   - Claude Code slash commands")
+	fmt.Println("  ~/.claude/skills/     - Claude Code skills")
+	fmt.Println("  ~/.codex/agents/      - Codex custom agents")
+	fmt.Println()
+	fmt.Println("Environment overrides:")
+	fmt.Println("  COPILOT_HOME          Override Copilot install root (default: ~/.copilot)")
+	fmt.Println("  CLAUDE_CONFIG_DIR     Override Claude install root (default: ~/.claude)")
+	fmt.Println("  CODEX_HOME            Override Codex install root (default: ~/.codex)")
+	fmt.Println()
+	fmt.Println("Project-scope install (--scope project) also scaffolds:")
+	fmt.Println("  .smaqit/tasks/        - Task tracking")
+	fmt.Println("  .smaqit/history/      - Session history")
+	fmt.Println("  .smaqit/templates/    - Canonical templates")
+	fmt.Println("  .github/workflows/    - post-merge-release.yml (create-if-absent)")
 }
 
-func cmdInstall(targetDir string) {
+// cmdInstall is the entry point for the "install" subcommand.
+// It routes to global or project installation based on --scope.
+func cmdInstall(args []string) {
+	agents := parseAgentFilter(args)
+	scope := parseScope(args)
+
+	switch scope {
+	case "project":
+		targetDir := resolveDefaultProjectDir(".")
+		if dir := parsePositionalDir(args); dir != "" {
+			targetDir = dir
+		}
+		installProject(targetDir, agents)
+	default:
+		installGlobal(agents)
+	}
+}
+
+// parsePositionalDir scans args for a single non-flag positional argument
+// (the optional target directory), correctly skipping known flags and their
+// values (--scope <value>, --agent <value>). Returns "" if none is found.
+func parsePositionalDir(args []string) string {
+	dir := ""
+	i := 0
+	for i < len(args) {
+		a := args[i]
+		if a == "--scope" || a == "--agent" {
+			i += 2 // skip flag and its value
+			continue
+		}
+		if !strings.HasPrefix(a, "-") {
+			dir = a
+		}
+		i++
+	}
+	return dir
+}
+
+// installGlobal installs agents and skills to global user-level paths.
+// Skills are always installed (shared infrastructure). Agents are gated
+// by the agents filter.
+func installGlobal(agents map[string]bool) {
+	skillCount := 0
+
+	// Skills → ~/.agents/skills/ (shared by Copilot and Codex)
+	skillsDir := resolveGlobalDir("skills")
+	if err := os.MkdirAll(skillsDir, 0755); err != nil {
+		fmt.Printf("Error creating skills directory: %v\n", err)
+		os.Exit(1)
+	}
+	seenSkillDirs := make(map[string]bool)
+	if err := fs.WalkDir(skillFiles, "skills", func(path string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return err
+		}
+		content, err := fs.ReadFile(skillFiles, path)
+		if err != nil {
+			return fmt.Errorf("reading %s: %w", path, err)
+		}
+		relPath := filepath.ToSlash(path)
+		if !strings.HasPrefix(relPath, "skills/") {
+			return nil
+		}
+		skillRelPath := strings.TrimPrefix(relPath, "skills/")
+		skillName := strings.SplitN(skillRelPath, "/", 2)[0]
+		seenSkillDirs[skillName] = true
+
+		targetPath := filepath.Join(skillsDir, skillRelPath)
+		if err := os.MkdirAll(filepath.Dir(targetPath), 0755); err != nil {
+			return fmt.Errorf("creating directory %s: %w", filepath.Dir(targetPath), err)
+		}
+		if err := os.WriteFile(targetPath, content, 0644); err != nil {
+			return fmt.Errorf("writing %s: %w", targetPath, err)
+		}
+		return nil
+	}); err != nil {
+		fmt.Printf("Error installing skills: %v\n", err)
+		os.Exit(1)
+	}
+	skillCount = len(seenSkillDirs)
+	fmt.Printf("✓ Installed %d skills to %s\n", skillCount, skillsDir)
+
+	// Claude skills → ~/.claude/skills/
+	claudeSkillsDir := resolveGlobalDir("skills-claude")
+	if err := os.MkdirAll(claudeSkillsDir, 0755); err != nil {
+		fmt.Printf("Error creating Claude skills directory: %v\n", err)
+		os.Exit(1)
+	}
+	claudeSkillCount, err := installSkillTree(skillFilesClaude, "skills-claude", claudeSkillsDir)
+	if err != nil {
+		fmt.Printf("Error installing Claude skills: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Printf("✓ Installed %d skills to %s\n", claudeSkillCount, claudeSkillsDir)
+
+	// Copilot agents → ~/.copilot/agents/
+	if agents["copilot"] {
+		copilotAgentsDir := resolveGlobalDir("copilot")
+		if err := os.MkdirAll(copilotAgentsDir, 0755); err != nil {
+			fmt.Printf("Error creating Copilot agents directory: %v\n", err)
+			os.Exit(1)
+		}
+		copilotAgentCount, err := installFlatFiles(copilotAgentFiles, "agents-copilot", copilotAgentsDir)
+		if err != nil {
+			fmt.Printf("Error installing Copilot agents: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("✓ Installed %d agents to %s\n", copilotAgentCount, copilotAgentsDir)
+	}
+
+	// Claude agents and commands → ~/.claude/
+	if agents["claude"] {
+		claudeAgentsDir := resolveGlobalDir("claude")
+		if err := os.MkdirAll(claudeAgentsDir, 0755); err != nil {
+			fmt.Printf("Error creating Claude agents directory: %v\n", err)
+			os.Exit(1)
+		}
+		claudeAgentCount, err := installFlatFiles(claudeAgentFiles, "agents-claude", claudeAgentsDir)
+		if err != nil {
+			fmt.Printf("Error installing Claude agents: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("✓ Installed %d agents to %s\n", claudeAgentCount, claudeAgentsDir)
+
+		claudeCommandsDir := resolveGlobalDir("commands")
+		if err := os.MkdirAll(claudeCommandsDir, 0755); err != nil {
+			fmt.Printf("Error creating Claude commands directory: %v\n", err)
+			os.Exit(1)
+		}
+		claudeCommandCount, err := installFlatFiles(claudeCommandFiles, "commands-claude", claudeCommandsDir)
+		if err != nil {
+			fmt.Printf("Error installing Claude commands: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("✓ Installed %d commands to %s\n", claudeCommandCount, claudeCommandsDir)
+	}
+
+	// Codex agents → ~/.codex/agents/
+	if agents["codex"] {
+		codexAgentsDir := resolveGlobalDir("codex")
+		if err := os.MkdirAll(codexAgentsDir, 0755); err != nil {
+			fmt.Printf("Error creating Codex agents directory: %v\n", err)
+			os.Exit(1)
+		}
+		codexAgentCount, err := installFlatFiles(codexAgentFiles, "agents-codex", codexAgentsDir)
+		if err != nil {
+			fmt.Printf("Error installing Codex agents: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("✓ Installed %d agents to %s\n", codexAgentCount, codexAgentsDir)
+	}
+
+	fmt.Println()
+	fmt.Println("Extensions installed globally!")
+	fmt.Println()
+	fmt.Println("Get started:")
+	fmt.Println("  GitHub Copilot — agents: @smaqit.release.local, @smaqit.release.pr, @smaqit.user-testing")
+	fmt.Println("  GitHub Copilot — skills: available via direct invocation")
+	fmt.Println("  Claude Code — agents: /smaqit.release.local, /smaqit.release.pr, /smaqit.user-testing")
+	fmt.Println("  Claude Code — skills: available via direct invocation")
+	fmt.Println("  Codex — agents: ask Codex to spawn smaqit.release.local, smaqit.release.pr, or smaqit.user-testing")
+	fmt.Println("  Codex — skills: invoke with $, or select with /skills")
+	fmt.Println()
+	fmt.Println("To scaffold project tracking, run: smaqit-extensions install --scope project")
+}
+
+// installProject installs agents and skills into a project directory.
+// This is the --scope project path and the legacy init behavior.
+// Skills go to .agents/skills/ (Codex), Copilot agents go to .github/agents/,
+// Claude goes to .claude/, Codex agents go to .codex/agents/.
+func installProject(targetDir string, agents map[string]bool) {
 	// Create target directories
 	agentsDir := filepath.Join(targetDir, ".github", "agents")
 	skillsDir := filepath.Join(targetDir, ".github", "skills")
@@ -375,11 +629,14 @@ func cmdInstall(targetDir string) {
 		os.Exit(1)
 	}
 
-	// Install agents
-	agentCount, err := installFlatFiles(copilotAgentFiles, "agents-copilot", agentsDir)
-	if err != nil {
-		fmt.Printf("Error installing agents: %v\n", err)
-		os.Exit(1)
+	// Install Copilot agents (project: .github/agents/)
+	if agents["copilot"] {
+		agentCount, err := installFlatFiles(copilotAgentFiles, "agents-copilot", agentsDir)
+		if err != nil {
+			fmt.Printf("Error installing agents: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("✓ Installed %d agents to %s\n", agentCount, agentsDir)
 	}
 
 	// Install skills
@@ -430,46 +687,49 @@ func cmdInstall(targetDir string) {
 		os.Exit(1)
 	}
 	skillCount := len(seenSkillDirs)
-
-	// Install Claude Code agents, commands, and skills alongside the GitHub Copilot output.
-	claudeAgentCount, err := installFlatFiles(claudeAgentFiles, "agents-claude", claudeAgentsDir)
-	if err != nil {
-		fmt.Printf("Error installing Claude agents: %v\n", err)
-		os.Exit(1)
-	}
-
-	claudeCommandCount, err := installFlatFiles(claudeCommandFiles, "commands-claude", claudeCommandsDir)
-	if err != nil {
-		fmt.Printf("Error installing Claude commands: %v\n", err)
-		os.Exit(1)
-	}
-
-	claudeSkillCount, err := installSkillTree(skillFilesClaude, "skills-claude", claudeSkillsDir)
-	if err != nil {
-		fmt.Printf("Error installing Claude skills: %v\n", err)
-		os.Exit(1)
-	}
-
-	// Install Codex agents and skills from generated, platform-resolved artifacts.
-	codexAgentCount, err := installFlatFiles(codexAgentFiles, "agents-codex", codexAgentsDir)
-	if err != nil {
-		fmt.Printf("Error installing Codex agents: %v\n", err)
-		os.Exit(1)
-	}
-
-	codexSkillCount, err := installSkillTree(skillFilesCodex, "skills-codex", codexSkillsDir)
-	if err != nil {
-		fmt.Printf("Error installing Codex skills: %v\n", err)
-		os.Exit(1)
-	}
-
-	fmt.Printf("✓ Installed %d agents to %s\n", agentCount, agentsDir)
 	fmt.Printf("✓ Installed %d skills to %s\n", skillCount, skillsDir)
-	fmt.Printf("✓ Installed %d agents to %s\n", claudeAgentCount, claudeAgentsDir)
-	fmt.Printf("✓ Installed %d commands to %s\n", claudeCommandCount, claudeCommandsDir)
-	fmt.Printf("✓ Installed %d skills to %s\n", claudeSkillCount, claudeSkillsDir)
-	fmt.Printf("✓ Installed %d agents to %s\n", codexAgentCount, codexAgentsDir)
-	fmt.Printf("✓ Installed %d skills to %s\n", codexSkillCount, codexSkillsDir)
+
+	// Install Claude Code agents, commands, and skills.
+	if agents["claude"] {
+		claudeAgentCount, err := installFlatFiles(claudeAgentFiles, "agents-claude", claudeAgentsDir)
+		if err != nil {
+			fmt.Printf("Error installing Claude agents: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("✓ Installed %d agents to %s\n", claudeAgentCount, claudeAgentsDir)
+
+		claudeCommandCount, err := installFlatFiles(claudeCommandFiles, "commands-claude", claudeCommandsDir)
+		if err != nil {
+			fmt.Printf("Error installing Claude commands: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("✓ Installed %d commands to %s\n", claudeCommandCount, claudeCommandsDir)
+
+		claudeSkillCount, err := installSkillTree(skillFilesClaude, "skills-claude", claudeSkillsDir)
+		if err != nil {
+			fmt.Printf("Error installing Claude skills: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("✓ Installed %d skills to %s\n", claudeSkillCount, claudeSkillsDir)
+	}
+
+	// Install Codex agents (project: .codex/agents/).
+	// Codex skills are the same content as Copilot skills, installed to .agents/skills/.
+	if agents["codex"] {
+		codexAgentCount, err := installFlatFiles(codexAgentFiles, "agents-codex", codexAgentsDir)
+		if err != nil {
+			fmt.Printf("Error installing Codex agents: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("✓ Installed %d agents to %s\n", codexAgentCount, codexAgentsDir)
+
+		codexSkillCount, err := installSkillTree(skillFiles, "skills", codexSkillsDir)
+		if err != nil {
+			fmt.Printf("Error installing Codex skills: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("✓ Installed %d skills to %s\n", codexSkillCount, codexSkillsDir)
+	}
 	if workflowCount > 0 {
 		fmt.Printf("✓ Installed %d release workflow(s) to %s\n", workflowCount, githubWorkflowsDir)
 	} else {
@@ -487,26 +747,26 @@ func cmdInstall(targetDir string) {
 	fmt.Println("  Codex — skills: invoke with $, or select with /skills")
 }
 
-func cmdUninstall(targetDir string) {
-	agentsDir := filepath.Join(targetDir, ".github", "agents")
-	skillsDir := filepath.Join(targetDir, ".github", "skills")
-	claudeAgentsDir := filepath.Join(targetDir, ".claude", "agents")
-	claudeCommandsDir := filepath.Join(targetDir, ".claude", "commands")
-	claudeSkillsDir := filepath.Join(targetDir, ".claude", "skills")
-	codexAgentsDir := filepath.Join(targetDir, ".codex", "agents")
-	codexSkillsDir := filepath.Join(targetDir, ".agents", "skills")
+// cmdUninstallArgs routes uninstall to global or project paths based on --scope.
+func cmdUninstallArgs(args []string) {
+	scope := parseScope(args)
+	agents := parseAgentFilter(args)
 
+	switch scope {
+	case "project":
+		targetDir := resolveDefaultProjectDir(".")
+		cmdUninstallProject(targetDir, agents)
+	default:
+		cmdUninstallGlobal(agents)
+	}
+}
+
+// cmdUninstallGlobal removes agents and skills from global user-level paths.
+func cmdUninstallGlobal(agents map[string]bool) {
 	removedCount := 0
 
-	// Remove agents: discover from embedded FS
-	agentRemoved, err := removeFlatFiles(copilotAgentFiles, "agents-copilot", agentsDir)
-	if err != nil {
-		fmt.Printf("Error enumerating agents: %v\n", err)
-		os.Exit(1)
-	}
-	removedCount += agentRemoved
-
-	// Remove skills: discover top-level skill directories from embedded FS
+	// Skills from ~/.agents/skills/
+	skillsDir := resolveGlobalDir("skills")
 	entries, err := skillFiles.ReadDir("skills")
 	if err != nil {
 		fmt.Printf("Error enumerating skills: %v\n", err)
@@ -524,21 +784,8 @@ func cmdUninstall(targetDir string) {
 		}
 	}
 
-	// Remove Claude Code agents, commands, and skills alongside the GitHub Copilot output.
-	claudeAgentRemoved, err := removeFlatFiles(claudeAgentFiles, "agents-claude", claudeAgentsDir)
-	if err != nil {
-		fmt.Printf("Error enumerating Claude agents: %v\n", err)
-		os.Exit(1)
-	}
-	removedCount += claudeAgentRemoved
-
-	claudeCommandRemoved, err := removeFlatFiles(claudeCommandFiles, "commands-claude", claudeCommandsDir)
-	if err != nil {
-		fmt.Printf("Error enumerating Claude commands: %v\n", err)
-		os.Exit(1)
-	}
-	removedCount += claudeCommandRemoved
-
+	// Claude skills from ~/.claude/skills/
+	claudeSkillsDir := resolveGlobalDir("skills-claude")
 	claudeSkillRemoved, err := removeSkillTree(skillFilesClaude, "skills-claude", claudeSkillsDir)
 	if err != nil {
 		fmt.Printf("Error enumerating Claude skills: %v\n", err)
@@ -546,20 +793,135 @@ func cmdUninstall(targetDir string) {
 	}
 	removedCount += claudeSkillRemoved
 
-	// Remove only the Codex artifacts represented in the embedded filesystem.
-	codexAgentRemoved, err := removeFlatFiles(codexAgentFiles, "agents-codex", codexAgentsDir)
-	if err != nil {
-		fmt.Printf("Error enumerating Codex agents: %v\n", err)
-		os.Exit(1)
+	// Copilot agents
+	if agents["copilot"] {
+		copilotAgentsDir := resolveGlobalDir("copilot")
+		copilotRemoved, err := removeFlatFiles(copilotAgentFiles, "agents-copilot", copilotAgentsDir)
+		if err != nil {
+			fmt.Printf("Error enumerating Copilot agents: %v\n", err)
+			os.Exit(1)
+		}
+		removedCount += copilotRemoved
 	}
-	removedCount += codexAgentRemoved
 
-	codexSkillRemoved, err := removeSkillTree(skillFilesCodex, "skills-codex", codexSkillsDir)
+	// Claude agents and commands
+	if agents["claude"] {
+		claudeAgentsDir := resolveGlobalDir("claude")
+		claudeAgentRemoved, err := removeFlatFiles(claudeAgentFiles, "agents-claude", claudeAgentsDir)
+		if err != nil {
+			fmt.Printf("Error enumerating Claude agents: %v\n", err)
+			os.Exit(1)
+		}
+		removedCount += claudeAgentRemoved
+
+		claudeCommandsDir := resolveGlobalDir("commands")
+		claudeCommandRemoved, err := removeFlatFiles(claudeCommandFiles, "commands-claude", claudeCommandsDir)
+		if err != nil {
+			fmt.Printf("Error enumerating Claude commands: %v\n", err)
+			os.Exit(1)
+		}
+		removedCount += claudeCommandRemoved
+	}
+
+	// Codex agents
+	if agents["codex"] {
+		codexAgentsDir := resolveGlobalDir("codex")
+		codexAgentRemoved, err := removeFlatFiles(codexAgentFiles, "agents-codex", codexAgentsDir)
+		if err != nil {
+			fmt.Printf("Error enumerating Codex agents: %v\n", err)
+			os.Exit(1)
+		}
+		removedCount += codexAgentRemoved
+	}
+
+	if removedCount > 0 {
+		fmt.Printf("✓ Removed %d extension files from global paths\n", removedCount)
+		fmt.Println("Extensions uninstalled successfully!")
+	} else {
+		fmt.Println("No extension files found to remove from global paths")
+	}
+}
+
+// cmdUninstallProject removes agents and skills from a project directory.
+func cmdUninstallProject(targetDir string, agents map[string]bool) {
+	agentsDir := filepath.Join(targetDir, ".github", "agents")
+	skillsDir := filepath.Join(targetDir, ".github", "skills")
+	claudeAgentsDir := filepath.Join(targetDir, ".claude", "agents")
+	claudeCommandsDir := filepath.Join(targetDir, ".claude", "commands")
+	claudeSkillsDir := filepath.Join(targetDir, ".claude", "skills")
+	codexAgentsDir := filepath.Join(targetDir, ".codex", "agents")
+	codexSkillsDir := filepath.Join(targetDir, ".agents", "skills")
+
+	removedCount := 0
+
+	// Remove Copilot agents
+	if agents["copilot"] {
+		agentRemoved, err := removeFlatFiles(copilotAgentFiles, "agents-copilot", agentsDir)
+		if err != nil {
+			fmt.Printf("Error enumerating agents: %v\n", err)
+			os.Exit(1)
+		}
+		removedCount += agentRemoved
+	}
+
+	// Remove skills (shared, always removed)
+	entries, err := skillFiles.ReadDir("skills")
 	if err != nil {
-		fmt.Printf("Error enumerating Codex skills: %v\n", err)
+		fmt.Printf("Error enumerating skills: %v\n", err)
 		os.Exit(1)
 	}
-	removedCount += codexSkillRemoved
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		skillPath := filepath.Join(skillsDir, entry.Name())
+		if _, statErr := os.Stat(skillPath); statErr == nil {
+			if removeErr := os.RemoveAll(skillPath); removeErr == nil {
+				removedCount++
+			}
+		}
+	}
+
+	// Remove Claude Code agents, commands, and skills.
+	if agents["claude"] {
+		claudeAgentRemoved, err := removeFlatFiles(claudeAgentFiles, "agents-claude", claudeAgentsDir)
+		if err != nil {
+			fmt.Printf("Error enumerating Claude agents: %v\n", err)
+			os.Exit(1)
+		}
+		removedCount += claudeAgentRemoved
+
+		claudeCommandRemoved, err := removeFlatFiles(claudeCommandFiles, "commands-claude", claudeCommandsDir)
+		if err != nil {
+			fmt.Printf("Error enumerating Claude commands: %v\n", err)
+			os.Exit(1)
+		}
+		removedCount += claudeCommandRemoved
+
+		claudeSkillRemoved, err := removeSkillTree(skillFilesClaude, "skills-claude", claudeSkillsDir)
+		if err != nil {
+			fmt.Printf("Error enumerating Claude skills: %v\n", err)
+			os.Exit(1)
+		}
+		removedCount += claudeSkillRemoved
+	}
+
+	// Remove Codex agents and skills.
+	if agents["codex"] {
+		codexAgentRemoved, err := removeFlatFiles(codexAgentFiles, "agents-codex", codexAgentsDir)
+		if err != nil {
+			fmt.Printf("Error enumerating Codex agents: %v\n", err)
+			os.Exit(1)
+		}
+		removedCount += codexAgentRemoved
+
+		codexSkillRemoved, err := removeSkillTree(skillFiles, "skills", codexSkillsDir)
+		if err != nil {
+			fmt.Printf("Error enumerating Codex skills: %v\n", err)
+			os.Exit(1)
+		}
+		removedCount += codexSkillRemoved
+	}
 
 	if removedCount > 0 {
 		fmt.Printf("✓ Removed %d extension files\n", removedCount)
@@ -864,41 +1226,101 @@ func copyFile(src, dst string) error {
 	return nil
 }
 
-// checkAndReInit checks whether dir contains a .smaqit/ directory. If so it
-// re-runs the init command to deploy updated agents, skills, and templates.
+// checkAndReInit refreshes the global installation and, if the current
+// directory contains a .smaqit/ directory, re-scaffolds project templates.
 func checkAndReInit(dir string) {
+	// Always refresh the global install.
+	fmt.Println("Refreshing global installation...")
+	installGlobal(parseAgentFilter(nil))
+
 	smaqitPath := filepath.Join(dir, ".smaqit")
 	if _, err := os.Stat(smaqitPath); err != nil {
-		// .smaqit/ not present — skip auto-init
-		fmt.Println("Run `smaqit-extensions init` to update your project assets")
+		fmt.Println("Run `smaqit-extensions install --scope project` to scaffold project tracking")
 		return
 	}
 
-	fmt.Println("Detected .smaqit/ — re-initializing project assets...")
-	cmdInstall(dir)
-	fmt.Println("Re-initialized .github/, .claude/, .codex/, and .agents/ with updated assets")
+	fmt.Println("Detected .smaqit/ — re-scaffolding project templates...")
+	scaffoldSmaqit(dir)
+	fmt.Println("Re-scaffolded .smaqit/templates/")
 }
 
-// checkAndReInitWithBinary re-initializes project assets in a fresh process.
-// It is used after self-update because replacing the executable on disk does
-// not replace the currently running process or its compile-time embedded data.
+// checkAndReInitWithBinary re-initializes in a fresh process after self-update.
 func checkAndReInitWithBinary(dir, binaryPath string) error {
-	smaqitPath := filepath.Join(dir, ".smaqit")
-	if _, err := os.Stat(smaqitPath); err != nil {
-		// .smaqit/ not present — skip auto-init
-		fmt.Println("Run `smaqit-extensions init` to update your project assets")
-		return nil
-	}
-
-	fmt.Println("Detected .smaqit/ — re-initializing project assets with updated binary...")
-	cmd := exec.Command(binaryPath, "init", dir)
+	// Always refresh the global install with the new binary.
+	cmd := exec.Command(binaryPath, "install")
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("running %s init: %w", binaryPath, err)
+		return fmt.Errorf("running %s install: %w", binaryPath, err)
 	}
 
-	fmt.Println("Re-initialized .github/, .claude/, .codex/, and .agents/ with updated assets")
+	smaqitPath := filepath.Join(dir, ".smaqit")
+	if _, err := os.Stat(smaqitPath); err != nil {
+		fmt.Println("Run `smaqit-extensions install --scope project` to scaffold project tracking")
+		return nil
+	}
+
+	fmt.Println("Detected .smaqit/ — re-scaffolding project templates with updated binary...")
+	cmd2 := exec.Command(binaryPath, "install", "--scope", "project", dir)
+	cmd2.Stdin = os.Stdin
+	cmd2.Stdout = os.Stdout
+	cmd2.Stderr = os.Stderr
+	if err := cmd2.Run(); err != nil {
+		return fmt.Errorf("running %s install --scope project: %w", binaryPath, err)
+	}
 	return nil
+}
+
+// scaffoldSmaqit creates the .smaqit/ directory structure and templates
+// in the given project directory (create-if-absent for existing files).
+func scaffoldSmaqit(targetDir string) {
+	smaqitDir := filepath.Join(targetDir, ".smaqit")
+	tasksDir := filepath.Join(smaqitDir, "tasks")
+	historyDir := filepath.Join(smaqitDir, "history")
+	userTestingDir := filepath.Join(smaqitDir, "user-testing")
+	templatesDir := filepath.Join(smaqitDir, "templates")
+
+	if err := os.MkdirAll(tasksDir, 0755); err != nil {
+		fmt.Printf("Error creating tasks directory: %v\n", err)
+		os.Exit(1)
+	}
+	if err := os.MkdirAll(historyDir, 0755); err != nil {
+		fmt.Printf("Error creating history directory: %v\n", err)
+		os.Exit(1)
+	}
+	if err := os.MkdirAll(userTestingDir, 0755); err != nil {
+		fmt.Printf("Error creating user-testing directory: %v\n", err)
+		os.Exit(1)
+	}
+	if err := os.MkdirAll(templatesDir, 0755); err != nil {
+		fmt.Printf("Error creating templates directory: %v\n", err)
+		os.Exit(1)
+	}
+
+	planningPath := filepath.Join(tasksDir, "PLANNING.md")
+	if err := writeFileIfMissing(planningPath, []byte(planningTemplate), 0644); err != nil {
+		fmt.Printf("Error creating planning file: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Install template files (never overwrite existing ones)
+	if err := fs.WalkDir(templateFiles, "templates", func(path string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return err
+		}
+		content, err := fs.ReadFile(templateFiles, path)
+		if err != nil {
+			return fmt.Errorf("reading %s: %w", path, err)
+		}
+		filename := filepath.Base(path)
+		targetPath := filepath.Join(templatesDir, filename)
+		if err := writeFileIfMissing(targetPath, content, 0644); err != nil {
+			return fmt.Errorf("writing %s: %w", targetPath, err)
+		}
+		return nil
+	}); err != nil {
+		fmt.Printf("Error installing templates: %v\n", err)
+		os.Exit(1)
+	}
 }

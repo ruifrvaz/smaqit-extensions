@@ -76,14 +76,16 @@ COMMANDS_OUT_DIR = ROOT / "installer" / "commands-claude"
 SKILLS_SRC_DIR = ROOT / "skills"
 SKILLS_DEFS_DIR = ROOT / ".smaqit" / "definitions" / "skills"
 SKILLS_OUT_DIR_BY_PLATFORM = {
-    "copilot": ROOT / "installer" / "skills",  # existing embed path, unchanged
+    "copilot": ROOT / "installer" / "skills",
     "claude": ROOT / "installer" / "skills-claude",
-    "codex": ROOT / "installer" / "skills-codex",
+    # Codex skills share the same content as Copilot skills; no separate
+    # skills-codex/ tree is generated. Both platforms read from the same
+    # global ~/.agents/skills/ directory at install time.
 }
 SKILLS_DIR_BY_PLATFORM = {
-    "copilot": ".github/skills",
-    "claude": ".claude/skills",
-    "codex": ".agents/skills",
+    "copilot": "~/.agents/skills",
+    "claude": "~/.claude/skills",
+    "codex": "~/.agents/skills",
 }
 
 AGENT_SUFFIX = ".agent.md"

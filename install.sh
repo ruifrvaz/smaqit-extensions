@@ -196,7 +196,7 @@ main() {
     echo ""
     echo "Get started:"
     echo "  cd your-project"
-    echo "  smaqit-extensions           # Scaffold .smaqit/ project tracking"
+    echo "  smaqit-extensions init      # Scaffold .smaqit/ project tracking"
     echo "  smaqit-extensions --help    # View available options"
     echo ""
 }

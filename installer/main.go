@@ -315,14 +315,15 @@ func main() {
 		case "init":
 			if len(os.Args) > 2 {
 				scaffoldProject(os.Args[2])
-				return
+			} else {
+				scaffoldProject(resolveDefaultProjectDir("."))
 			}
-			// Fall through to default scaffold below.
+			return
 		}
 	}
 
-	// Default: scaffold .smaqit/ tracking in the current directory.
-	scaffoldProject(resolveDefaultProjectDir("."))
+	// Default: show help
+	printHelp()
 }
 
 func printHelp() {
@@ -331,9 +332,9 @@ func printHelp() {
 	fmt.Println("Usage: smaqit-extensions <command> [args]")
 	fmt.Println()
 	fmt.Println("Commands:")
-	fmt.Println("  smaqit-extensions                 Scaffold .smaqit/ tracking in current project")
-	fmt.Println("  smaqit-extensions <dir>           Scaffold .smaqit/ tracking in specified directory")
-	fmt.Println("  smaqit-extensions update          Update binary and refresh global install")
+	fmt.Println("  smaqit-extensions init             Scaffold .smaqit/ tracking in current project")
+	fmt.Println("  smaqit-extensions init <dir>       Scaffold .smaqit/ tracking in specified directory")
+	fmt.Println("  smaqit-extensions update           Update binary and refresh global install")
 	fmt.Println("  smaqit-extensions uninstall       Remove extensions from global paths")
 	fmt.Println("  smaqit-extensions uninstall --scope project  Remove extensions from project directory")
 	fmt.Println("  smaqit-extensions version         Show version")
@@ -529,7 +530,7 @@ func installGlobal(agents map[string]bool) {
 	fmt.Println("  Codex — agents: ask Codex to spawn smaqit.release.local, smaqit.release.pr, or smaqit.user-testing")
 	fmt.Println("  Codex — skills: invoke with $, or select with /skills")
 	fmt.Println()
-	fmt.Println("To scaffold project tracking, run: smaqit-extensions")
+	fmt.Println("To scaffold project tracking, run: smaqit-extensions init")
 }
 
 // installProject installs agents and skills into a project directory.

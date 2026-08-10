@@ -125,12 +125,12 @@ User: smaqit.session-finish
 The `smaqit-extensions` binary also accepts CLI commands:
 
 ```bash
-smaqit-extensions                        # Scaffold .smaqit/ tracking in current project
-smaqit-extensions <dir>                  # Scaffold .smaqit/ tracking in specified directory
-smaqit-extensions update                 # Update binary and refresh global install
-smaqit-extensions uninstall              # Remove extensions from global paths
+smaqit-extensions init                    # Scaffold .smaqit/ tracking in current project
+smaqit-extensions init <dir>              # Scaffold .smaqit/ tracking in specified directory
+smaqit-extensions update                  # Update binary and refresh global install
+smaqit-extensions uninstall               # Remove extensions from global paths
 smaqit-extensions uninstall --scope project  # Remove extensions from project directory
-smaqit-extensions version                # Show version
+smaqit-extensions version                 # Show version
 ```
 
 For commands without an explicit directory, the CLI detects the enclosing Git worktree root. Outside Git, it uses the nearest ancestor containing `.smaqit`, then falls back to the current directory for a new standalone project. This makes invocation from nested directories such as `scripts/` safe.

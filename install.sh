@@ -186,14 +186,18 @@ main() {
     install_binary
     verify_installation
     check_path
-    
+
+    # Install agents and skills globally.
+    info "Installing agents and skills globally..."
+    "$target" --install-global
+
     echo ""
     info "Installation complete!"
     echo ""
     echo "Get started:"
-    echo "  smaqit-extensions install             # Install agents/skills globally (default)"
-    echo "  smaqit-extensions install --scope project  # Install into current project instead"
-    echo "  smaqit-extensions --help              # View available options"
+    echo "  cd your-project"
+    echo "  smaqit-extensions           # Scaffold .smaqit/ project tracking"
+    echo "  smaqit-extensions --help    # View available options"
     echo ""
 }
 

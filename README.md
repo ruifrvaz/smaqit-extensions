@@ -76,7 +76,7 @@ curl -fsSL https://raw.githubusercontent.com/ruifrvaz/smaqit-extensions/main/ins
 
 1. Download the latest release from [Releases](https://github.com/ruifrvaz/smaqit-extensions/releases)
 2. Extract the binary
-3. Run: `./smaqit-extensions install`
+3. Run: `./smaqit-extensions --install-global`
 
 ### What Gets Installed
 
@@ -125,15 +125,12 @@ User: smaqit.session-finish
 The `smaqit-extensions` binary also accepts CLI commands:
 
 ```bash
-smaqit-extensions install                     # Install extensions globally (default)
-smaqit-extensions install --agent copilot     # Install only Copilot agents + skills
-smaqit-extensions install --agent claude      # Install only Claude agents + skills
-smaqit-extensions install --agent codex       # Install only Codex agents + skills
-smaqit-extensions install --scope project     # Install into current project directory
-smaqit-extensions update                      # Update binary and refresh global install
-smaqit-extensions uninstall                   # Remove extensions from global paths
-smaqit-extensions uninstall --scope project   # Remove extensions from project directory
-smaqit-extensions version                     # Show version
+smaqit-extensions                        # Scaffold .smaqit/ tracking in current project
+smaqit-extensions <dir>                  # Scaffold .smaqit/ tracking in specified directory
+smaqit-extensions update                 # Update binary and refresh global install
+smaqit-extensions uninstall              # Remove extensions from global paths
+smaqit-extensions uninstall --scope project  # Remove extensions from project directory
+smaqit-extensions version                # Show version
 ```
 
 For commands without an explicit directory, the CLI detects the enclosing Git worktree root. Outside Git, it uses the nearest ancestor containing `.smaqit`, then falls back to the current directory for a new standalone project. This makes invocation from nested directories such as `scripts/` safe.

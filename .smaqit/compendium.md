@@ -87,9 +87,9 @@ They used to, inconsistently — three different, mutually incompatible conventi
 
 **How does the CLI choose an installation target?**
 
-`smaqit-extensions install` (no flags) installs globally to user-level paths (`~/.agents/skills/`, `~/.copilot/agents/`, `~/.claude/`, `~/.codex/agents/`), with `COPILOT_HOME`/`CLAUDE_CONFIG_DIR`/`CODEX_HOME` env vars overriding the defaults. `install --scope project` (and its optional trailing `<dir>` argument) installs into a specific project instead: it first uses the enclosing Git worktree root, then outside Git the nearest ancestor containing `.smaqit`, then falls back to the current directory for a new standalone project. `update` always refreshes the global installation, and additionally re-scaffolds `.smaqit/` templates in the current project if one is already present. `uninstall` defaults to global scope; pass `--scope project` to remove a project installation instead. `init` is a deprecated alias for `install --scope project`.
+`curl -fsSL https://raw.githubusercontent.com/ruifrvaz/smaqit-extensions/main/install.sh | bash` downloads the binary and runs global agent/skill installation automatically. After that, running `smaqit-extensions` (no args, or `init`) scaffolds `.smaqit/` and `.github/workflows/post-merge-release.yml` in the current project. It first uses the enclosing Git worktree root, then outside Git the nearest ancestor containing `.smaqit`, then falls back to the current directory for a new standalone project. `update` refreshes the global installation and re-scaffolds `.smaqit/` templates if present. `uninstall` defaults to global scope; pass `--scope project` to remove a project installation instead.
 
-Git-root precedence (for `--scope project`) prevents an accidental nested installation such as `scripts/.smaqit` from trapping later commands in the wrong directory.
+Git-root precedence prevents an accidental nested installation such as `scripts/.smaqit` from trapping later commands in the wrong directory.
 
 ---
 

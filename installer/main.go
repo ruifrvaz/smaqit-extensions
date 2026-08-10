@@ -257,6 +257,39 @@ func parseScope(args []string) string {
 	return "user"
 }
 
+func installReleaseWorkflow(targetDir string) {
+	if err := fs.WalkDir(workflowTemplateFiles, "workflow-templates", func(path string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return err
+		}
+		content, err := fs.ReadFile(workflowTemplateFiles, path)
+		if err != nil {
+			return fmt.Errorf("reading %s: %w", path, err)
+		}
+		targetPath := filepath.Join(targetDir, filepath.Base(path))
+		if err := writeFileIfMissing(targetPath, content, 0644); err != nil {
+			return fmt.Errorf("writing %s: %w", targetPath, err)
+		}
+		return nil
+	}); err != nil {
+		fmt.Printf("Error installing release workflow: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+// scaffoldProject scaffolds .smaqit/ and the release workflow into the given
+// project directory. Used by both the default no-args path and the init alias.
+func scaffoldProject(targetDir string) {
+	scaffoldSmaqit(targetDir)
+	workflowsDir := filepath.Join(targetDir, ".github", "workflows")
+	if err := os.MkdirAll(workflowsDir, 0755); err != nil {
+		fmt.Printf("Error creating workflows directory: %v\n", err)
+		os.Exit(1)
+	}
+	installReleaseWorkflow(workflowsDir)
+	fmt.Println("✓ Project scaffolding complete")
+}
+
 func main() {
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
@@ -266,7 +299,11 @@ func main() {
 		case "help", "--help", "-h":
 			printHelp()
 			return
+		case "--install-global":
+			installGlobal(parseAgentFilter(nil))
+			return
 		case "install":
+			// Internal/testing alias — supports --scope project for smoke tests.
 			cmdInstall(os.Args[2:])
 			return
 		case "uninstall":
@@ -276,43 +313,16 @@ func main() {
 			runUpdate()
 			return
 		case "init":
-			fmt.Fprintln(os.Stderr, "Warning: 'init' is deprecated. Agents and skills are now installed globally by default — run 'smaqit-extensions install' once, then use 'init' only to scaffold project tracking.")
-			targetDir := resolveDefaultProjectDir(".")
 			if len(os.Args) > 2 {
-				targetDir = os.Args[2]
+				scaffoldProject(os.Args[2])
+				return
 			}
-			scaffoldSmaqit(targetDir)
-			// Also deploy the release automation workflow (create-if-absent).
-			githubWorkflowsDir := filepath.Join(targetDir, ".github", "workflows")
-			if err := os.MkdirAll(githubWorkflowsDir, 0755); err != nil {
-				fmt.Printf("Error creating workflows directory: %v\n", err)
-				os.Exit(1)
-			}
-			if err := fs.WalkDir(workflowTemplateFiles, "workflow-templates", func(path string, d fs.DirEntry, err error) error {
-				if err != nil || d.IsDir() {
-					return err
-				}
-				content, err := fs.ReadFile(workflowTemplateFiles, path)
-				if err != nil {
-					return fmt.Errorf("reading %s: %w", path, err)
-				}
-				targetPath := filepath.Join(githubWorkflowsDir, filepath.Base(path))
-				if err := writeFileIfMissing(targetPath, content, 0644); err != nil {
-					return fmt.Errorf("writing %s: %w", targetPath, err)
-				}
-				return nil
-			}); err != nil {
-				fmt.Printf("Error installing release workflow: %v\n", err)
-				os.Exit(1)
-			}
-			fmt.Println("✓ Project scaffolding complete")
-			fmt.Println("  Run 'smaqit-extensions install' separately to install agents and skills globally.")
-			return
+			// Fall through to default scaffold below.
 		}
 	}
 
-	// Default: show help
-	printHelp()
+	// Default: scaffold .smaqit/ tracking in the current directory.
+	scaffoldProject(resolveDefaultProjectDir("."))
 }
 
 func printHelp() {
@@ -321,14 +331,20 @@ func printHelp() {
 	fmt.Println("Usage: smaqit-extensions <command> [args]")
 	fmt.Println()
 	fmt.Println("Commands:")
-	fmt.Println("  smaqit-extensions install                     Install extensions globally (default)")
-	fmt.Println("  smaqit-extensions install --agent <agent>     Install for specific agent (copilot|claude|codex|all)")
-	fmt.Println("  smaqit-extensions install --scope project     Install into current project directory")
-	fmt.Println("  smaqit-extensions update                      Update binary and refresh global install")
-	fmt.Println("  smaqit-extensions uninstall                   Remove extensions from global paths")
-	fmt.Println("  smaqit-extensions uninstall --scope project   Remove extensions from current project")
-	fmt.Println("  smaqit-extensions version                     Show version")
-	fmt.Println("  smaqit-extensions --help                      Show this help message")
+	fmt.Println("  smaqit-extensions                 Scaffold .smaqit/ tracking in current project")
+	fmt.Println("  smaqit-extensions <dir>           Scaffold .smaqit/ tracking in specified directory")
+	fmt.Println("  smaqit-extensions update          Update binary and refresh global install")
+	fmt.Println("  smaqit-extensions uninstall       Remove extensions from global paths")
+	fmt.Println("  smaqit-extensions uninstall --scope project  Remove extensions from project directory")
+	fmt.Println("  smaqit-extensions version         Show version")
+	fmt.Println("  smaqit-extensions --help          Show this help message")
+	fmt.Println()
+	fmt.Println("Installation:")
+	fmt.Println("  curl -fsSL https://raw.githubusercontent.com/ruifrvaz/smaqit-extensions/main/install.sh | bash")
+	fmt.Println()
+	fmt.Println("The installer downloads the binary and runs global agent/skill installation")
+	fmt.Println("automatically. After that, run smaqit-extensions in any project directory to")
+	fmt.Println("scaffold the .smaqit/ tracking directory and release workflow.")
 	fmt.Println()
 	fmt.Println("Global installation paths:")
 	fmt.Println("  ~/.agents/skills/     - Shared skills (GitHub Copilot + Codex)")
@@ -343,7 +359,7 @@ func printHelp() {
 	fmt.Println("  CLAUDE_CONFIG_DIR     Override Claude install root (default: ~/.claude)")
 	fmt.Println("  CODEX_HOME            Override Codex install root (default: ~/.codex)")
 	fmt.Println()
-	fmt.Println("Project-scope install (--scope project) also scaffolds:")
+	fmt.Println("Project scaffolding creates:")
 	fmt.Println("  .smaqit/tasks/        - Task tracking")
 	fmt.Println("  .smaqit/history/      - Session history")
 	fmt.Println("  .smaqit/templates/    - Canonical templates")
@@ -513,7 +529,7 @@ func installGlobal(agents map[string]bool) {
 	fmt.Println("  Codex — agents: ask Codex to spawn smaqit.release.local, smaqit.release.pr, or smaqit.user-testing")
 	fmt.Println("  Codex — skills: invoke with $, or select with /skills")
 	fmt.Println()
-	fmt.Println("To scaffold project tracking, run: smaqit-extensions install --scope project")
+	fmt.Println("To scaffold project tracking, run: smaqit-extensions")
 }
 
 // installProject installs agents and skills into a project directory.

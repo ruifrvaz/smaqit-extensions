@@ -189,7 +189,7 @@ main() {
 
     # Install agents and skills globally.
     info "Installing agents and skills globally..."
-    "$target" --install-global
+    "${INSTALL_DIR}/smaqit-extensions" --install-global
 
     echo ""
     info "Installation complete!"

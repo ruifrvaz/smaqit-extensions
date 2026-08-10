@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.14.1] - 2026-08-10
+
+### Fixed
+- **`smaqit-extensions init`** no longer installs agents and skills into the project directory — it only scaffolds `.smaqit/` tracking and `.github/workflows/post-merge-release.yml`. Agents and skills are installed globally by `install.sh` during the initial `curl`-pipe install.
+- **`smaqit-extensions` with no arguments** restores the help output. Use `smaqit-extensions init` to scaffold project tracking.
+
+### Changed
+- **Removed `install` subcommand** from the user-facing CLI. The curl-pipe installer (`install.sh`) now runs global agent/skill installation automatically after downloading the binary. The `install` mechanism remains available internally for testing.
+- **README** updated to reflect the global-install model — references `install.sh` and `smaqit-extensions init`, not `smaqit-extensions install`.
+
 ## [1.14.0] - 2026-08-10
 
 ### Added

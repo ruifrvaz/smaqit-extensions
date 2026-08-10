@@ -200,20 +200,15 @@ The same smoke test is available from the repository root as `make smoke-test`. 
 
 This repository uses its own agents and skills for development (dogfooding).
 
-Source files are located in:
-
-- `agents/` - Agent definitions
-- `skills/` - Skill implementations
-
-Generated targets are copied to `.github/{agents,skills}/` and `.codex/agents/` plus `.agents/skills/` for this repository's Copilot and Codex dogfooding environments.
-
-**Important:** After making changes to source files, run:
+Source files are located in `agents/`, `skills/`, and `commands/` at the repo root. After modifying source files, rebuild and reinstall globally:
 
 ```bash
-make sync
+cd installer
+make prepare && make build
+./dist/smaqit-extensions --install-global
 ```
 
-This compiles updated files into the gitignored `installer/` staging trees, then synchronizes the committed `.github/`, `.codex/`, and `.agents/` dogfooding mirrors. CI fails when any mirror is out of sync with its generated target. This repository does not maintain a `.claude/` dogfooding copy; Claude output is still built and verified through scratch installations.
+`make sync` regenerates the gitignored `installer/` staging trees from canonical source — there are no committed mirrors to update. Running `--install-global` after building picks up the changed content for your editor session.
 
 ### Multi-Platform Build Pipeline
 

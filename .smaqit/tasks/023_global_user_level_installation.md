@@ -1,9 +1,10 @@
 # Global User-Level Installation with Agent-Specific Adapters
 
-**Status:** In Progress
+**Status:** Completed
 **Created:** 2026-08-10
 **Mode:** Assisted
 **Started:** 2026-08-10
+**Completed:** 2026-08-10
 
 ## Description
 
@@ -83,20 +84,41 @@ This task modifies internal smaqit-extensions installer code only (Go CLI, Pytho
 
 ## Acceptance Criteria
 
-- [ ] `smaqit-extensions install` (no args) installs all agents to global paths and skills to `~/.agents/skills/` and `~/.claude/skills/`
-- [ ] `smaqit-extensions install --agent copilot` installs only Copilot agents + skills (not Claude or Codex agents)
-- [ ] `smaqit-extensions install --agent all --scope project` matches current `init` behavior exactly
-- [ ] `COPILOT_HOME`, `CLAUDE_CONFIG_DIR`, `CODEX_HOME` environment variables override default global paths
-- [ ] `skills-codex/` embed is retired; Codex reads from the same `~/.agents/skills/` as Copilot
-- [ ] `smaqit-extensions init` prints deprecation notice and delegates to `install --scope project`
-- [ ] `smaqit-extensions update` refreshes global install + re-scaffolds `.smaqit/` templates if present
-- [ ] `smaqit-extensions uninstall` removes from global paths by default
-- [ ] `make smoke-test` passes with new global path assertions
-- [ ] `make -C installer test` passes with new unit tests for flag routing and env overrides
+- [x] `smaqit-extensions install` (no args) installs all agents to global paths and skills to `~/.agents/skills/` and `~/.claude/skills/`
+- [x] `smaqit-extensions install --agent copilot` installs only Copilot agents + skills (not Claude or Codex agents)
+- [x] `smaqit-extensions install --agent all --scope project` matches current `init` behavior exactly
+- [x] `COPILOT_HOME`, `CLAUDE_CONFIG_DIR`, `CODEX_HOME` environment variables override default global paths
+- [x] `skills-codex/` embed is retired; Codex reads from the same `~/.agents/skills/` as Copilot
+- [x] `smaqit-extensions init` prints deprecation notice and delegates to `install --scope project`
+- [x] `smaqit-extensions update` refreshes global install + re-scaffolds `.smaqit/` templates if present
+- [x] `smaqit-extensions uninstall` removes from global paths by default
+- [x] `make smoke-test` passes with new global path assertions
+- [x] `make -C installer test` passes with new unit tests for flag routing and env overrides
 
 ## Findings
 
-[Populated by smaqit.task-complete. Do not fill in manually before task is complete.]
+**Implementation approach:**
+- Added `resolveGlobalDir`, `parseAgentFilter`, `parseScope`, `parsePositionalDir` helpers to `installer/main.go`
+- Split old `cmdInstall` into `installGlobal` (user-level paths) and `installProject` (`--scope project`)
+- Implemented `install` subcommand; kept `init` as deprecated alias; updated `update`/`uninstall`/`checkAndReInit` flows
+- Removed `skillFilesCodex` embed; Codex/Copilot share the same `skills/` tree at `~/.agents/skills/`
+- Updated `generate-targets.py` SKILLS_DIR_BY_PLATFORM to global paths, retired `skills-codex/` output
+- Updated smoke-test, unit tests, README, install.sh, agent source, compendium, template, and 4 skill files
+
+**Decisions made:**
+- `--agent` flag gates only agent files; skills always installed (shared infrastructure)
+- `~/.copilot/agents/` for Copilot agents (documented CLI path, separate from `~/.agents/skills/`)
+- `[SMAQIT_SKILLS_DIR]` resolves to global paths at build time; `skills-codex/` tree retired
+- `init` deprecated alias prints warning and delegates; backward compatibility preserved
+- Flag parsing uses explicit index-based scan (`parsePositionalDir`) — a `range` loop bug was caught and fixed during review (Go `for i, a := range ... { i++; continue }` does not skip the next iteration)
+- Sparse-checkout documentation corrected: under default global install, consumer projects have none of `.github/agents/`, `.claude/`, `.codex/`, `.agents/skills/` — agents/skills live entirely outside the repo
+
+**Blockers encountered:**
+- Branch name mismatch between task-title slug (`...adapters`) and created branch (`...adapter`) blocked resolver — fixed by renaming branch to match title-derived slug
+
+**Follow-up identified:**
+- Root `templates/copilot-instructions.template.md` appears orphaned (last touched May 2026, not referenced by any script or skill) — candidate for removal
+- Dogfooding mirrors (`.github/skills/`, `.claude/skills/`, `.agents/skills/` at repo root) still reference pre-global `[SMAQIT_SKILLS_DIR]` values — need `make sync` after merge to regenerate with updated generator output
 
 **Implementation approach:**
 - TBD

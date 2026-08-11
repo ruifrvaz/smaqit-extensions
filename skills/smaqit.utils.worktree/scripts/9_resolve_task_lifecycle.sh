@@ -60,8 +60,7 @@ canonical_mode() {
   esac
 }
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-mapfile -t worktree_lines < <(git -C "$SCRIPT_DIR" worktree list --porcelain)
+mapfile -t worktree_lines < <(git worktree list --porcelain)
 
 worktree_paths=()
 worktree_branches=()

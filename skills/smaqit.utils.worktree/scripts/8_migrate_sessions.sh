@@ -26,8 +26,7 @@ command -v jq >/dev/null 2>&1 || { red "✗ jq is required."; exit 1; }
 command -v sqlite3 >/dev/null 2>&1 || { red "✗ sqlite3 is required."; exit 1; }
 command -v python3 >/dev/null 2>&1 || { red "✗ python3 is required."; exit 1; }
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
+REPO_ROOT="$(git rev-parse --show-toplevel)"
 PROJECT_NAME="${PROJECT_NAME:-$(basename "$REPO_ROOT")}"
 
 # Detect the actual workspace file in the repository root.

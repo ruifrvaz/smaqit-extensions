@@ -9,6 +9,7 @@ Central task tracking and planning for smaqit-extensions.
 | 002 | Fix Changelog Extraction for Cumulative Releases | Not Started | 2026-02-13 |
 | 007 | Create smaqit MCP Server (PoC) | Not Started | 2026-05-09 |
 | 010 | Publish smaqit-extensions as Copilot Marketplace Plugin | Not Started | 2026-05-09 |
+| 024 | Fix Worktree Script Repo-Root Resolution for Global Install | In Progress | 2026-08-11 |
 ## Completed Tasks
 
 | ID | Title | Status | Created | Completed |

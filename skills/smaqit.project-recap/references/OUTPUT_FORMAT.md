@@ -210,7 +210,7 @@ smaqit-extensions/
 | `go.mod` | Go module definition and dependencies |
 | `Makefile` | Build, sync, and clean targets |
 | `.github/copilot-instructions.md` / `CLAUDE.md` / `AGENTS.md` | Agent instructions and conventions |
-| `.github/workflows/test-sync.yml` | CI sync verification |
+| `.github/workflows/post-merge-release.yml` | Post-merge tag and release automation |
 | `install.sh` | Bash quick-install script |
 | `.smaqit/tasks/PLANNING.md` | Central task tracking |
 ```

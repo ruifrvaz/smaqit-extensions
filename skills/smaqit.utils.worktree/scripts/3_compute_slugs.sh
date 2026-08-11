@@ -19,8 +19,7 @@ if [ $# -eq 0 ]; then
   exit 0
 fi
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
+REPO_ROOT="$(git rev-parse --show-toplevel)"
 PROJECT_NAME="$(basename "$REPO_ROOT")"
 
 result="{"

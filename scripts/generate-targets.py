@@ -37,9 +37,8 @@ applied after copying:
     step uses direct git outside Copilot). Resolved
     only for skills with a matching .smaqit/definitions/skills/<name>.placeholders.yaml.
   skills/<name>/**
-  -> installer/skills/<name>/**         ([SMAQIT_SKILLS_DIR] -> .github/skills; existing embed path, unchanged)
-  -> installer/skills-claude/<name>/**  ([SMAQIT_SKILLS_DIR] -> .claude/skills)
-  -> installer/skills-codex/<name>/**   ([SMAQIT_SKILLS_DIR] -> .agents/skills)
+  -> installer/skills/<name>/**         ([SMAQIT_SKILLS_DIR] -> ~/.agents/skills; shared by Copilot and Codex)
+  -> installer/skills-claude/<name>/**  ([SMAQIT_SKILLS_DIR] -> ~/.claude/skills)
 
 Run via `make -C installer prepare`, or directly after editing agents/,
 commands/, skills/, or .smaqit/definitions/:

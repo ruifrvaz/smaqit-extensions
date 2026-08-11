@@ -6,7 +6,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 FIXTURE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/smaqit-parent-lifecycle.XXXXXX")"
 PRIMARY_ROOT="$FIXTURE_ROOT/project"
-WORKTREE_SCRIPTS="$PRIMARY_ROOT/.agents/skills/smaqit.utils.worktree/scripts"
+# Installed outside the fixture repo, mirroring the real global-install
+# topology (~/.claude/skills/, ~/.agents/skills/) where scripts never live
+# inside the project they operate on. Installing them under $PRIMARY_ROOT
+# instead would let the old SCRIPT_DIR/BASH_SOURCE-based resolution
+# accidentally succeed, masking a regression of that bug. Every invocation
+# below therefore runs with cwd already at $PRIMARY_ROOT (see the `cd` after
+# fixture setup) since the scripts resolve the repo root from the caller's
+# working directory, not from their own path.
+WORKTREE_SCRIPTS="$FIXTURE_ROOT/global-skills/smaqit.utils.worktree/scripts"
 
 cleanup() {
   rm -rf "$FIXTURE_ROOT"
@@ -72,6 +80,11 @@ git -C "$PRIMARY_ROOT" config user.email "test@example.invalid"
 git -C "$PRIMARY_ROOT" config user.name "Smaqit Test"
 git -C "$PRIMARY_ROOT" add .
 git -C "$PRIMARY_ROOT" commit -m "fixture: parent task files" >/dev/null
+
+# From here on, cwd is the primary checkout for every worktree-script
+# invocation below, matching how an agent actually invokes an installed
+# global script from within the target project.
+cd "$PRIMARY_ROOT"
 
 assert_contains "$SOURCE_ROOT/.smaqit/templates/task.template.md" "**Parent:** NNN" "installed task template documents parent metadata"
 assert_contains "$SOURCE_ROOT/skills/smaqit.task-create/assets/TASK_TEMPLATE.md" "**Parent:** NNN" "creation task template documents parent metadata"

@@ -13,12 +13,6 @@ Both mechanisms are resolved once, at build time, by `scripts/generate-targets.p
 
 ---
 
-**Does `make sync` keep every dogfooding mirror synchronized with canonical source?**
-
-No. `make sync` regenerates `.github/{agents,skills}` and `.agents/skills` (Codex) from the compiled `installer/` staging trees, but it does not touch `.claude/skills/`. That mirror must be resynced manually after any change to a skill's canonical source (e.g. `rm -rf .claude/skills/<name> && cp -r skills/<name> .claude/skills/<name>`). If this step is skipped, `.claude/skills/` silently serves stale content indefinitely — an agent working in this repository via Claude Code would use outdated instructions with no error or warning, since `make smoke-test` only validates `installer/` output against canonical, never `.claude/` against canonical.
-
----
-
 **How does `smaqit.project-init` synchronize instructions across tools?**
 
 Every platform receives the same inference-driven `smaqit.project-init` skill. The skill reads any existing `AGENTS.md`, `CLAUDE.md`, and `.github/copilot-instructions.md` together with repository evidence before writing. It semantically preserves and deduplicates explicit rules, keeps smaqit-owned scaffolding current, and asks the user before resolving irreconcilable instructions.
@@ -35,7 +29,7 @@ Repeated initialization is expected to be idempotent. Claude Code may fail to re
 
 **How does the installer's `[SMAQIT_SKILLS_DIR]` placeholder work?**
 
-A handful of skills reference their own install path in usage comments or example commands (e.g. `smaqit.project-diagnose`, `smaqit.utils.read-pdf`). Since a skill's install root differs by platform (`~/.agents/skills` for Copilot and Codex under the default global install, `~/.claude/skills` for Claude Code; `.github/skills`/`.agents/skills`/`.claude/skills` respectively under `--scope project`), any such self-reference is written in source using the literal placeholder `[SMAQIT_SKILLS_DIR]`. `scripts/generate-targets.py` resolves it when compiling each platform's ephemeral installer tree. The root `Makefile` copies from those compiled outputs, so dogfooding mirrors never contain the literal placeholder either.
+A handful of skills reference their own install path in usage comments or example commands (e.g. `smaqit.project-diagnose`, `smaqit.utils.read-pdf`). Since a skill's install root differs by platform (`~/.agents/skills` for Copilot and Codex under the default global install, `~/.claude/skills` for Claude Code; `.github/skills`/`.agents/skills`/`.claude/skills` respectively under `--scope project`), any such self-reference is written in source using the literal placeholder `[SMAQIT_SKILLS_DIR]`. `scripts/generate-targets.py` resolves it when compiling each platform's ephemeral installer tree into `installer/`, so no installed output ever contains the literal placeholder.
 
 ---
 
@@ -97,7 +91,7 @@ Git-root precedence prevents an accidental nested installation such as `scripts/
 
 **Where is desktop SSH-agent popup recovery defined and how is it constrained?**
 
-The canonical instructions live in `agents/smaqit.release.local.agent.md`, `skills/smaqit.release-git-local/SKILL.md`, and `.smaqit/templates/copilot-instructions.template.md`. Generated Copilot, Claude Code, and Codex artifacts plus installer templates carry the same guidance.
+The canonical instructions live in `agents/smaqit.release.local.agent.md`, `skills/smaqit.release-git-local/SKILL.md`, and `skills/smaqit.project-init/references/AGENTS.template.md`. Generated Copilot, Claude Code, and Codex artifacts carry the same guidance — the template is a skill-bundled reference, installed globally alongside `smaqit.project-init` itself, not a project-scaffolded file.
 
 When an authorized Git SSH step lacks an inherited agent, the workflow checks already-running desktop sockets in a defined order: GCR, legacy GNOME Keyring, GnuPG, the current OpenSSH socket, then the systemd user environment. It uses a socket only for a command-scoped identity check and one retry of the exact failed Git command, allowing WSLg/GNOME/pinentry unlock or confirmation prompts to appear. It never exports or persists `SSH_AUTH_SOCK`, starts or replaces an agent, loads or removes identities, changes transport, or broadens the authorized Git operation.
 
@@ -108,12 +102,6 @@ When an authorized Git SSH step lacks an inherited agent, the workflow checks al
 Agents, skills, and templates are compiled into the Go binary with `go:embed`. Replacing the executable file does not change the already-running process image, so reinitializing in-process after a download would reinstall stale embedded content and omit newly added files.
 
 After replacing the executable, the update path launches the new binary as a subprocess to run project initialization. Paths where no replacement occurs can safely reinitialize in-process because their embedded content has not changed.
-
----
-
-**How does this repository keep Claude Code assets from appearing as update-generated untracked files?**
-
-The repository tracks its generated `.claude/` dogfooding mirror alongside the Copilot and Codex mirrors. `smaqit-extensions update` can therefore re-initialize all supported platform assets at the repository root without leaving the installed Claude agents, commands, and skills untracked.
 
 ---
 
@@ -145,7 +133,7 @@ Implementation changes in a task worktree are deliberately left uncommitted unti
 
 **How does an agent work across the primary checkout and a task worktree in the same session?**
 
-`git worktree list --porcelain` always lists the main worktree first, and every linked worktree shares the same `.git` object database — so any worktree can address any other via `git -C <path>` or an absolute file path, without changing directory. In this repository, skill discovery happens through the committed dogfooding mirrors (`.github/skills/`, `.claude/skills/`, `.agents/skills/`), which are excluded from task-worktree sparse checkout — so a session's tools are anchored at main while source edits are addressed to whichever worktree folder actually holds the file. Under the default global install a consumer project has no such directories at all (agents/skills live at `~/.copilot/`, `~/.claude/`, `~/.codex/`, `~/.agents/skills/`, entirely outside the repo), so this sparse-checkout exclusion has nothing to exclude there. The generated multi-root `.code-workspace` file (main plus every active task worktree) is what makes both trees visible to one IDE session at once.
+`git worktree list --porcelain` always lists the main worktree first, and every linked worktree shares the same `.git` object database — so any worktree can address any other via `git -C <path>` or an absolute file path, without changing directory. This repository has no committed dogfooding mirrors (removed once the global-install migration landed) — skill discovery happens through the globally-installed copies (`~/.claude/skills/`, `~/.agents/skills/`), entirely outside the repo, exactly like any consumer project under the default global install. The sparse-checkout exclusion list (`.github/agents/`, `.github/skills/`, `.claude/agents/`, `.claude/commands/`, `.claude/skills/`, `.agents/skills/`, `.codex/agents/`) is therefore purely defensive here too — it has nothing to exclude unless a project explicitly used `install --scope project`. A session's tools are anchored at main while source edits are addressed to whichever worktree folder actually holds the file. The generated multi-root `.code-workspace` file (main plus every active task worktree) is what makes both trees visible to one IDE session at once.
 
 ---
 

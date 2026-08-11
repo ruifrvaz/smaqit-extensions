@@ -113,7 +113,7 @@ assert_contains "$smoke_root/.github/agents/smaqit.release.local.agent.md" "$des
 assert_contains "$smoke_root/.claude/agents/smaqit.release.local.md" "$desktop_ssh_guidance" "Claude local-release agent desktop SSH recovery"
 assert_contains "$smoke_root/.codex/agents/smaqit.release.local.toml" "$desktop_ssh_guidance" "Codex local-release agent desktop SSH recovery"
 assert_contains "$smoke_root/.claude/skills/smaqit.release-git-local/SKILL.md" "$desktop_ssh_guidance" "Claude local-release skill desktop SSH recovery"
-assert_contains "$smoke_root/.smaqit/templates/copilot-instructions.template.md" "$desktop_ssh_guidance" "Claude project-instructions template desktop SSH recovery"
+assert_contains "$smoke_root/.claude/skills/smaqit.project-init/references/AGENTS.template.md" "$desktop_ssh_guidance" "Claude project-init AGENTS template desktop SSH recovery"
 assert_contains "$smoke_root/.claude/agents/smaqit.release.local.md" 'gpgconf --list-dirs agent-ssh-socket' "Claude agent GnuPG socket discovery"
 assert_contains "$smoke_root/.claude/agents/smaqit.release.local.md" 'keyring/ssh' "Claude agent GNOME Keyring socket discovery"
 
@@ -124,7 +124,7 @@ if grep -R -E '(^|[[:space:]])export SSH_AUTH_SOCK=' \
   "$smoke_root/.github/skills/smaqit.release-git-local" \
   "$smoke_root/.claude/skills/smaqit.release-git-local" \
   "$smoke_root/.agents/skills/smaqit.release-git-local" \
-  "$smoke_root/.smaqit/templates/copilot-instructions.template.md"; then
+  "$smoke_root/.claude/skills/smaqit.project-init/references/AGENTS.template.md"; then
   echo "[ERROR] Desktop Linux SSH recovery must not persist SSH_AUTH_SOCK" >&2
   exit 1
 fi

@@ -259,6 +259,7 @@ For a child task, none of this cleanup runs. Child completion records criteria, 
 13. **Existing unregistered directories are preserved.** Report the conflict for user review; do not remove the directory automatically.
 14. **Parent tasks own Git resources.** A child task joins its active parent's registered branch/worktree and inherits its mode. Only a standalone or parent task can merge, remove a worktree, delete a branch, or rebuild the workspace.
 15. **Run lifecycle resolution from primary.** Sparse task worktrees omit installed skill directories by design. Use the primary checkout's installed resolver and the JSON-returned worktree path.
+16. **Steps 1–8 also require cwd = project root, not just Step 9.** Every script under `scripts/` resolves the repository root via a bare `git rev-parse --show-toplevel` (or bare `git worktree list --porcelain`) run against the invoking shell's current directory — never from the script's own install location. Under the default global install, scripts live entirely outside any project (`~/.claude/skills/...`, `~/.agents/skills/...`), so invoke every numbered step from the target project's root, exactly as Step 9 already requires of itself.
 
 ## Completion
 

@@ -23,6 +23,15 @@ assert_missing() {
   test ! -e "$1" || fail "Expected path to be excluded: $1"
 }
 
+# Install scripts outside any fixture repo, mirroring the real global-install
+# topology (~/.claude/skills/, ~/.agents/skills/) where installed scripts never
+# live inside the project repo they operate on. Copying them under a fixture
+# repo instead would let the old SCRIPT_DIR/BASH_SOURCE-based resolution
+# accidentally succeed, masking a regression of that bug.
+global_scripts="$fixture_root/global-skills/smaqit.utils.worktree-scripts"
+mkdir -p "$(dirname "$global_scripts")"
+cp -R "$repo_root/skills/smaqit.utils.worktree/scripts" "$global_scripts"
+
 create_fixture_repo() {
   local repo="$1"
   mkdir -p \
@@ -34,8 +43,6 @@ create_fixture_repo() {
     "$repo/.claude/skills" \
     "$repo/.agents/skills" \
     "$repo/.codex/agents"
-  cp -R "$repo_root/skills/smaqit.utils.worktree/scripts" \
-    "$repo/.agents/skills/smaqit.utils.worktree-scripts"
   touch \
     "$repo/.github/agents/generated.md" \
     "$repo/.github/skills/generated.md" \
@@ -59,7 +66,7 @@ run_creation() {
   local slug="$3"
   git -C "$repo" branch "$branch" main
   printf '{"%s":"%s"}' "$branch" "$slug" \
-    | bash "$repo/.agents/skills/smaqit.utils.worktree-scripts/5_create_worktrees.sh" --existing '{}'
+    | (cd "$repo" && bash "$global_scripts/5_create_worktrees.sh" --existing '{}')
 }
 
 fixture_repo="$fixture_root/repo"
@@ -85,7 +92,7 @@ assert_missing "$fixture_worktree/.claude/skills"
 assert_missing "$fixture_worktree/.agents/skills"
 assert_missing "$fixture_worktree/.codex/agents"
 
-bash "$fixture_repo/.agents/skills/smaqit.utils.worktree-scripts/7_build_workspace.sh" >/dev/null
+(cd "$fixture_repo" && bash "$global_scripts/7_build_workspace.sh") >/dev/null
 workspace_file="$fixture_repo/repo.code-workspace"
 assert_exists "$workspace_file"
 jq -e '.settings["files.exclude"] == {"**/bin/**": true, "**/obj/**": true}' "$workspace_file" >/dev/null \

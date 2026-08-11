@@ -2,7 +2,7 @@
 name: smaqit.utils.worktree
 description: "Sync Git worktrees and update the VS Code multi-root workspace, or set up worktrees for task branches. For interactive sync, presents local and remote branches and asks which branches to sync. Then creates missing sibling worktrees, detects and removes safe orphans, and keeps the project workspace in sync. Also migrates VS Code chat sessions when switching from a single-folder project to the generated multi-root workspace. Use after task branch creation, task completion, workspace migration, or when worktree folders are missing from VS Code Explorer. Triggers: `worktree.sync`, `worktree.migrate-sessions`."
 metadata:
-  version: "1.2.1"
+  version: "1.2.2"
 ---
 
 # smaqit Utils: Git Worktree Manager

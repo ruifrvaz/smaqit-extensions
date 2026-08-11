@@ -2,7 +2,7 @@
 name: smaqit.project-init
 description: Bootstrap or refresh a smaqit project by inferentially synchronizing Codex, Claude Code, and GitHub Copilot project instructions around a canonical root AGENTS.md, then creating the base project directories (docs/, assets/, assets/raw/). Use when the user asks to start, initialize, reinitialize, or refresh a smaqit project.
 metadata:
-  version: "0.5.0"
+  version: "0.6.0"
 ---
 
 # Project Init
@@ -23,9 +23,9 @@ The synchronized topology is:
    - Resolve all paths below relative to that project root.
 
 2. **Read the template**
-   - Read `.smaqit/templates/copilot-instructions.template.md` in full.
+   - Read [references/AGENTS.template.md](references/AGENTS.template.md) in full. This is a skill-bundled reference, installed alongside the skill itself — it is not project-scaffolded and never depends on `.smaqit/` state.
    - If it does not exist, stop and inform the user:
-     > Template not found at `.smaqit/templates/copilot-instructions.template.md`. Run `smaqit-extensions install --scope project` to scaffold the required project files.
+     > Template not found at `references/AGENTS.template.md`. The smaqit-extensions skill install looks incomplete or corrupted — run `smaqit-extensions update` to refresh it, or reinstall via `curl -fsSL https://raw.githubusercontent.com/ruifrvaz/smaqit-extensions/main/install.sh | bash`.
 
 3. **Read every existing instruction source before writing**
    - Inspect `AGENTS.md`, `CLAUDE.md`, and `.github/copilot-instructions.md` when present.

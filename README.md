@@ -218,7 +218,7 @@ Platform output shipped by `install.sh` is generated, not hand-maintained. Addit
 - `.smaqit/definitions/agents/*.frontmatter.yaml` - per-platform agent metadata for Copilot, Claude Code, and Codex; agent bodies are reused from `agents/`
 - `.smaqit/definitions/skills/*.placeholders.yaml` - per-platform values for skill instructions that genuinely differ by platform
 
-Running `make -C installer prepare` (or `python3 scripts/generate-targets.py` directly) compiles these, plus `agents/` and `skills/`, into gitignored `installer/{agents-copilot,agents-claude,agents-codex,commands-claude,skills,skills-claude}/` trees that the Go binary embeds. Root `.github/`, `.codex/`, and `.agents/` are dogfooding mirrors only and are never used as installer embed sources.
+Running `make -C installer prepare` (or `python3 scripts/generate-targets.py` directly) compiles these, plus `agents/` and `skills/`, into gitignored `installer/{agents-copilot,agents-claude,agents-codex,commands-claude,skills,skills-claude}/` trees that the Go binary embeds. This repository carries no committed `.github/agents/`, `.github/skills/`, `.claude/`, `.codex/`, or `.agents/` dogfooding mirrors — agents and skills are installed globally via `--install-global`, the same as any consumer project.
 
 ## Releases
 

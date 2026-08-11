@@ -46,6 +46,12 @@ metadata:
 - Increment MINOR (0.1.0 → 0.2.0) for new functionality or significant changes
 - Increment MAJOR (0.1.0 → 1.0.0) for breaking changes
 
+**When to update versions:**
+- Any change to frontmatter (name, description, metadata)
+- Any change to file content (implementation, documentation, examples)
+- Renaming files or directories
+- Updating references to other resources
+
 ## Workflow for File Changes
 
 ```bash
@@ -64,53 +70,15 @@ git add agents/smaqit.release.pr.agent.md
 git commit -m "fix: update release PR agent"
 ```
 
-All agents and skills include version metadata in their frontmatter:
-
-```yaml
----
-name: smaqit.example
-description: Example description
-metadata:
-  version: "0.2.0"
----
-```
-
-**Versioning rules:**
-- Follow semantic versioning (MAJOR.MINOR.PATCH)
-- Increment PATCH (0.1.0 → 0.1.1) for bug fixes or minor text changes
-- Increment MINOR (0.1.0 → 0.2.0) for new functionality or significant changes
-- Increment MAJOR (0.1.0 → 1.0.0) for breaking changes
-
-**When to update versions:**
-- Any change to frontmatter (name, description, metadata)
-- Any change to file content (implementation, documentation, examples)
-- Renaming files or directories
-- Updating references to other resources
-
-**Example workflow:**
-1. Modify `agents/smaqit.release.pr.agent.md`
-2. Update `metadata.version` from "0.1.0" to "0.2.0" in the frontmatter
-3. Run `make sync`
-4. Commit changes
-
-## CI Verification
-
-The sync verification workflow (`.github/workflows/test-sync.yml`) will fail if:
-- Source files are modified but not synced to `.github/`
-- Files in `.github/` don't match their source counterparts
-
-Always run `make sync` before committing changes to agents or skills.
-
 ## Other Commands
 
 ```bash
-make clean  # Remove synced files from .github/
-make sync   # Sync source files to .github/
+make clean  # Remove installer staging build artifacts (installer/skills*, installer/agents-*, installer/dist/, etc.)
+make sync   # Regenerate installer staging trees from canonical source (does not touch any committed path)
 ```
 
 ## Why This Structure?
 
 - **Dogfooding**: Repository uses its own workflows for development
 - **Source of truth**: `agents/`, `skills/` are the canonical versions
-- **Distribution**: `.github/` versions are what Copilot actually uses
-- **Sync ensures**: Both developer and user experience the same tools
+- **Distribution**: the globally-installed copies under `~/.copilot/`, `~/.claude/`, `~/.codex/`, and `~/.agents/skills/` are what Copilot, Claude Code, and Codex actually use — rebuild and run `--install-global` after every source change to keep them current

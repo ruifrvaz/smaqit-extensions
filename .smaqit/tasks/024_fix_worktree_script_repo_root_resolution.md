@@ -1,8 +1,9 @@
 # Fix Worktree Script Repo-Root Resolution for Global Install
 
-**Status:** In Progress
+**Status:** Completed
 **Created:** 2026-08-11
 **Started:** 2026-08-11
+**Completed:** 2026-08-11
 **Mode:** Assisted
 
 ## Description
@@ -42,28 +43,28 @@ Replace the script-location-based `git -C` idiom with a bare, caller-cwd-based `
 
 ## Acceptance Criteria
 
-- [ ] All 8 affected scripts (`1_present_branches.sh`, `3_compute_slugs.sh`, `4_enumerate_worktrees.sh`, `5_create_worktrees.sh`, `6_detect_orphans.sh`, `7_build_workspace.sh`, `8_migrate_sessions.sh`, `9_resolve_task_lifecycle.sh`) resolve the repo root via a bare, caller-cwd-based `git rev-parse --show-toplevel` (or bare `git worktree list --porcelain` for script 9), with no `SCRIPT_DIR`/`BASH_SOURCE`/`-C` involvement remaining
-- [ ] `2_validate_prereqs.sh` is left unchanged (already correct)
-- [ ] `SKILL.md` documents that Steps 1–8 require cwd = project root at invocation time, and `metadata.version` is bumped from `1.2.0`
-- [ ] `tests/skills/test-worktree-layout.sh` installs scripts outside the fixture repo and still passes
-- [ ] `tests/skills/test-parent-task-lifecycle.sh` installs scripts outside the fixture repo and still passes
-- [ ] `make test` passes in full
+- [x] All 8 affected scripts (`1_present_branches.sh`, `3_compute_slugs.sh`, `4_enumerate_worktrees.sh`, `5_create_worktrees.sh`, `6_detect_orphans.sh`, `7_build_workspace.sh`, `8_migrate_sessions.sh`, `9_resolve_task_lifecycle.sh`) resolve the repo root via a bare, caller-cwd-based `git rev-parse --show-toplevel` (or bare `git worktree list --porcelain` for script 9), with no `SCRIPT_DIR`/`BASH_SOURCE`/`-C` involvement remaining
+- [x] `2_validate_prereqs.sh` is left unchanged (already correct)
+- [x] `SKILL.md` documents that Steps 1–8 require cwd = project root at invocation time, and `metadata.version` is bumped from `1.2.0`
+- [x] `tests/skills/test-worktree-layout.sh` installs scripts outside the fixture repo and still passes
+- [x] `tests/skills/test-parent-task-lifecycle.sh` installs scripts outside the fixture repo and still passes
+- [x] `make test` passes in full
 
 ## Findings
 
-[Populated by smaqit.task-complete. Do not fill in manually before task is complete.]
-
 **Implementation approach:**
-- TBD
+- Replaced the `SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"` / `git -C "$SCRIPT_DIR" ...` idiom with bare, caller-cwd-based `git rev-parse --show-toplevel` (and bare `git worktree list --porcelain` for script 9) across all 8 affected scripts.
+- Added Gotcha #16 to `SKILL.md` documenting the Steps 1–8 cwd contract, and hardened both `tests/skills/test-worktree-layout.sh` and `tests/skills/test-parent-task-lifecycle.sh` to install scripts outside the fixture repo, invoking with cwd explicitly set to the fixture repo to mirror real global-install topology.
 
 **Decisions made:**
-- TBD
+- Relied on caller cwd rather than threading an explicit repo-root argument through every invocation, matching the existing house pattern (`2_validate_prereqs.sh`, `smaqit.project-diagnose/scripts/diagnose-inventory.sh`, the Go CLI's `resolveDefaultProjectDir`).
+- Included test-fixture hardening in scope since both fixtures' pre-existing design — copying scripts inside the fixture repo before invoking them — is exactly why this bug shipped undetected by `make test`.
 
 **Blockers encountered:**
-- TBD
+- None blocking. Discovered mid-implementation that the installed copy at `~/.claude/skills/smaqit.utils.worktree/scripts/` had already been manually patched to this exact fix out-of-band (explains the user's original "7 of 9" observation vs. the 8-of-9 canonical-source count — script 9 was already hand-fixed locally). Verified the canonical-source fix is byte-identical to that working patch, and separately confirmed regression-detection value by temporarily reintroducing the bug into `5_create_worktrees.sh` — `make test-worktree-layout` failed with `fatal: not a git repository` as expected, then restored.
 
 **Follow-up identified:**
-- TBD
+- `SKILL.md`'s `metadata.version` landed at `1.2.1` on this branch, but `main` separately bumped the same file to `1.2.1` for an unrelated stale-reference cleanup (commit `f01e95b`) before this merge. Since both changes are real and distinct, the version needs a follow-up bump to `1.2.2` post-merge to correctly reflect two independent changes since `1.2.0` — handled as part of this completion.
 
 ## Files to Create / Modify
 

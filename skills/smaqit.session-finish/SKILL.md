@@ -2,12 +2,19 @@
 name: smaqit.session-finish
 description: End session by documenting the entire conversation. Use at session completion to create history entries.
 metadata:
-  version: "0.9.1"
+  version: "0.10.0"
 ---
 
 # Session Finish
 
 End a session by documenting the **entire session** (not just recent activity).
+
+## Usage
+
+```
+session.finish                     # Assisted mode (default) - stops for confirmation before commit/push
+session.finish --autonomous        # Autonomous mode - commits/pushes automatically when safe
+```
 
 ## Steps
 
@@ -82,9 +89,43 @@ End a session by documenting the **entire session** (not just recent activity).
    - Write the updated compendium atomically (overwrite the file); create the file if it does not exist.
    - Report: "Compendium updated — N entries added, M entries updated." (Skip this report if no candidate questions were found.)
 
+7. **Finalize main branch state** — runs after Step 6 regardless of whether a history file was written this session (main can still be behind `origin/main` from a prior session). Operates only on the primary checkout and only on `main`; never touches another worktree or branch. Determine the skill install directory from this SKILL.md path; every git operation below goes through `<skill-install-dir>/scripts/finalize-main.sh`, which resolves the primary checkout from cwd via `git worktree list --porcelain` and never mutates a branch other than `main`. Do not run the underlying git commands directly — the helper is the only permitted mutation path so behavior is identical between Assisted and Autonomous mode.
+
+   - Run `bash <skill-install-dir>/scripts/finalize-main.sh detect`. Its `state` field is one of:
+     - `detached_head`, `merge_in_progress`, or `dirty_non_main` → STOP. Report the exact state and branch it returned. Take no further action, in both Assisted and Autonomous mode. Do not resolve conflicts, discard changes, or force a branch switch.
+     - `clean_non_main` → run `bash <skill-install-dir>/scripts/finalize-main.sh checkout-main`. This is unconditional in both modes — it is non-destructive (the helper refuses if the tree is dirty) and mirrors `smaqit.task-complete`'s own unconditional `git checkout main`. Report the switch, then continue below as if `on_main` had been returned.
+     - `on_main` with `dirty: false` → skip to the sync step.
+     - `on_main` with `dirty: true` → continue to the next bullet.
+   - **Stage only this run's own outputs.** Identify the exact paths this session-finish run wrote this session (the Step 2 history file; `.smaqit/compendium.md` if Step 6 updated it; `.smaqit/references/project-research.md` if Step 4 refreshed it). Never pass any other path — the helper stages only the paths given to it, so never substitute `git add -A` or a broader path for the exact list.
+     - **Assisted:** list the changed files and stop, asking for explicit confirmation before committing. Do not run `commit` without it.
+     - **Autonomous:** run `bash <skill-install-dir>/scripts/finalize-main.sh commit "chore: session housekeeping — <short description>" <exact paths>`.
+   - **Sync with `origin/main`.** Run `bash <skill-install-dir>/scripts/finalize-main.sh sync`. Its `sync` field is one of:
+     - `up_to_date` or `fast_forwarded` → done.
+     - `ahead` → continue to the push step below.
+     - `diverged` → STOP. Report the returned `ahead`/`behind` commit counts. Do not pull, merge, or rebase.
+   - **Push when the sync step returned `ahead`.**
+     - **Assisted:** report the number of commits ready to push and stop for explicit confirmation before pushing.
+     - **Autonomous:** run `bash <skill-install-dir>/scripts/finalize-main.sh push`. If it fails (a race with another push), STOP and report the helper's error — do not retry, do not force-push.
+   - **Never attempt, in either mode:** resolving a merge conflict, force-pushing, hard-resetting or discarding uncommitted work, rebasing, fixing an authentication/permission failure, or touching a branch or worktree other than the primary checkout's `main`. Report any of these situations to the user; do not solve them.
+
 ## Requirements
 
 - **Do NOT create** separate RESUME or TODO files (history file serves this purpose)
 - Document the complete session, not just the final activity
 - Focus on decisions and rationale, not implementation details
 - Always attempt Step 2 (memory) even when no history file was created, if a memory capability is available — it is the cross-branch context mechanism; the history file remains authoritative when it is not available
+- `scripts/finalize-main.sh` requires Bash, git, and jq. It is the only permitted mutation path for Step 7 — never run its underlying git commands directly.
+
+## Failure Handling
+
+| Situation | Action |
+|-----------|--------|
+| `finalize-main.sh detect` returns `detached_head` | STOP. Report the detached commit; do not check out any branch automatically. |
+| `finalize-main.sh detect` returns `merge_in_progress` | STOP. Report the conflicting paths; do not resolve, abort, or continue the merge/rebase. |
+| `finalize-main.sh detect` returns `dirty_non_main` | STOP. Report the branch and the uncommitted changes; do not switch branches or discard anything. |
+| `finalize-main.sh sync` reports a fast-forward pull failure despite `behind` with no `ahead` | STOP. Report the helper's error; do not merge or rebase. |
+| `finalize-main.sh sync` returns `diverged` | STOP. Report the returned ahead/behind commit counts; do not pull, merge, or rebase. |
+| `finalize-main.sh push` fails | STOP. Report the rejection; do not retry, force-push, or pull-then-retry automatically. |
+| `finalize-main.sh sync`/`push` fails on fetch/push due to auth or permissions | STOP. Report the error; do not attempt credential or SSH-agent recovery. |
+| Missing `git` or `jq` | STOP. Report that `finalize-main.sh` cannot run; do not fall back to raw git commands. |
+| Uncommitted work found outside this run's own known output paths | Do not stage or commit it; report it and leave it untouched. |

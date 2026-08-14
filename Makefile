@@ -1,4 +1,4 @@
-.PHONY: sync clean test smoke-test test-worktree-layout test-parent-task-lifecycle test-project-research-verify-urls
+.PHONY: sync clean test smoke-test test-worktree-layout test-parent-task-lifecycle test-project-research-verify-urls test-session-finish-main-sync
 
 SKILLS := smaqit.session-start smaqit.project-diagnose smaqit.session-finish smaqit.session-assess smaqit.session-title smaqit.session-recap smaqit.task-create smaqit.task-list smaqit.task-complete smaqit.task-plan smaqit.task-refresh smaqit.task-start smaqit.test-create smaqit.test-complete smaqit.test-start smaqit.project-init smaqit.project-glossary smaqit.release-analysis smaqit.release-approval smaqit.release-prepare-files smaqit.release-git-local smaqit.release-git-pr smaqit.utils.read-pdf smaqit.utils.triage-issues smaqit.utils.worktree smaqit.project-research smaqit.project-recap smaqit.project-compendium smaqit.parity-assess
 
@@ -26,7 +26,10 @@ test-parent-task-lifecycle:
 test-project-research-verify-urls:
 	@bash tests/skills/test-project-research-verify-urls.sh
 
-test: test-worktree-layout test-parent-task-lifecycle test-project-research-verify-urls
+test-session-finish-main-sync:
+	@bash tests/skills/test-session-finish-main-sync.sh
+
+test: test-worktree-layout test-parent-task-lifecycle test-project-research-verify-urls test-session-finish-main-sync
 
 smoke-test: test
 	@$(MAKE) -C installer smoke-test

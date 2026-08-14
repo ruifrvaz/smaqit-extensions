@@ -2,7 +2,7 @@
 name: smaqit.release-prepare-files
 description: Validate git state and prepare all files (CHANGELOG.md, version files) for release
 metadata:
-  version: "0.6.0"
+  version: "0.7.0"
 ---
 
 # Release Prepare Files
@@ -16,6 +16,53 @@ Use this skill after obtaining version approval and before executing git operati
 - Verify correct branch
 - Finalize CHANGELOG.md with approved version
 - Optionally sync version files (package.json, etc.)
+- Write or promote a single **pending-entry** for `smaqit.task-complete`'s per-task release flow (see "Pending Entry Mode" below) — a distinct, narrower path from the batched flow in Steps 1-4
+
+## Pending Entry Convention
+
+`smaqit.task-complete` treats every owner task's PR as its own release. To keep `main`'s `CHANGELOG.md` honest while a task's PR is still under review, its `[Unreleased]` entry carries a `(pending vX.Y.Z · PR #NNN)` annotation naming both the version it claims and the exact PR that will resolve it — the embedded version is what lets `smaqit.release-analysis` recognize it as already-claimed when a second, concurrent task computes its own next version (see that skill's pending-version-awareness step):
+
+```markdown
+## [Unreleased]
+
+### Added
+- **Widget caching** (pending v1.16.0 · PR #135) — adds an LRU cache to the widget resolver...
+```
+
+Multiple tasks can be pending at once, each with its own annotated entry under whichever category fits, in any order:
+
+```markdown
+## [Unreleased]
+
+### Added
+- **Widget caching** (pending v1.16.0 · PR #135) — adds an LRU cache to the widget resolver...
+
+### Fixed
+- **Null pointer in resolver** (pending v1.17.0 · PR #138) — fixes a crash when...
+```
+
+Promoting one entry (its PR merged) never touches another entry's `(pending vX.Y.Z · PR #NNN)` annotation or position — see "Pending Entry Mode" below.
+
+## Pending Entry Mode (used by `smaqit.task-complete`)
+
+This mode is distinct from the batched flow in Steps 1-4: it never moves the whole `[Unreleased]` section, and it operates on exactly one named entry at a time, identified by its PR number annotation.
+
+### Write a pending entry (before the PR exists)
+
+Invoked from `task-complete`'s Phase 1, directly on `main` (see [smaqit.task-complete](../smaqit.task-complete/SKILL.md)'s pre-PR metadata push), using the version and change description already computed by `smaqit.release-analysis`'s branch-diff mode:
+
+1. Confirm the target version does not already appear as a promoted `## [X.Y.Z]` header or another entry's `(pending vX.Y.Z · PR #NNN)` claim (this is `release-analysis`'s pending-version-awareness contract, not re-derived here — it must have already ruled this version out before returning it).
+2. Append one bullet under the appropriate `### Added|Changed|Fixed|Removed|Deprecated|Security` category of the existing `## [Unreleased]` section (create the subheading if this is the first entry in that category), formatted as `- **{title}** (pending v{X.Y.Z} · PR #{NNN}) — {one-sentence description}`.
+3. Leave every other line in `[Unreleased]` — including other pending entries — untouched.
+
+### Promote a single pending entry (on the PR's own branch)
+
+Invoked while authoring the PR branch's own changelog commit, after rebasing the branch onto `main`'s current tip so the entry pushed in the step above is present locally:
+
+1. Locate the one `[Unreleased]` bullet whose annotation matches `(pending v{X.Y.Z} · PR #{NNN})` for this PR's own version and number. If it is not present (rebase didn't pick it up, or the annotation was edited), stop and report — do not guess which entry to promote.
+2. Remove that bullet from `[Unreleased]`, strip the `(pending vX.Y.Z · PR #NNN)` annotation, and place it under a `## [X.Y.Z] - YYYY-MM-DD` section using today's date and the exact version already claimed in the annotation — inserted directly below `## [Unreleased]`, above any existing versioned sections (newest-first, matching existing convention). Create the category subheading (`### Added`, etc.) under the new version section to match the entry's original category.
+3. Leave every other `[Unreleased]` entry — any other task's still-pending annotation — exactly where it was; this promotion touches only its own named entry.
+4. Do not reconcile against the full commit delta (Step 2A-2B below) and do not update comparison links — those apply only to the batched flow.
 
 ## How to execute
 

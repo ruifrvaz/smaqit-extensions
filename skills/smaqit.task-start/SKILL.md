@@ -2,7 +2,7 @@
 name: smaqit.task-start
 description: Start working on a task by creating its task branch and worktree, updating the VS Code workspace, and setting assisted or autonomous workflow mode.
 metadata:
-  version: "0.11.0"
+  version: "0.12.0"
 ---
 
 # Task Start
@@ -100,6 +100,24 @@ task.start [id] --assisted         # Explicit assisted mode
    git add .smaqit/tasks/NNN_*.md .smaqit/tasks/PLANNING.md
    git commit -m "chore: start task NNN"
    ```
+   **Push this commit to `origin/main` immediately** — do not defer it to `session-finish`. A parallel session working a different task or branch must see this task's "In Progress" status in real time, not only after this session eventually ends.
+
+   Metadata pushes are expected to collide under normal concurrency (two sessions starting tasks minutes apart), so use a bounded fetch-rebase-retry loop rather than stopping on the first rejection:
+   ```bash
+   for attempt in 1 2 3; do
+     git push origin main && break
+     if [ "$attempt" -eq 3 ]; then
+       echo "push failed after 3 attempts — something is repeatedly racing this push"
+       break
+     fi
+     git fetch origin main
+     git rebase origin/main || { git rebase --abort; break; }
+   done
+   ```
+   - A rejection that rebases and pushes cleanly within 3 attempts needs no user involvement — this is the routine, expected case.
+   - **A rebase conflict is never auto-resolved.** If `git rebase origin/main` reports conflicts, abort it immediately (`git rebase --abort`) and STOP — report the conflicting paths to the user. This mirrors `session-finish`'s existing "never resolve a merge conflict" policy; it is the one case routine concurrency does not paper over — two tasks' metadata edits landed on the same lines (most likely `PLANNING.md`'s Active Tasks table).
+   - Exhausting all 3 attempts on a plain, non-conflicting rejection also STOPs and reports — repeated collisions on the same push are no longer routine and need a human look.
+   - This same bounded fetch-rebase-retry pattern is reused verbatim by `smaqit.task-complete`'s pre-PR metadata push; it is documented in full here rather than duplicated.
 9. **If a persistent, cross-session memory/notes capability is available in this environment**, use it to record task state (best-effort — `PLANNING.md` and the task file remain the source of truth regardless):
    - `subject`: `"task state"`
    - `fact`: `"[NNN] [Title] — In Progress ([Assisted|Autonomous], started YYYY-MM-DD)"` (≤ 200 chars)

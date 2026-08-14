@@ -2,7 +2,7 @@
 name: smaqit.release-approval
 description: Obtain approval for suggested version (auto-confirm or interactive)
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # Release Approval
@@ -35,6 +35,9 @@ Check the issue or task description for auto-confirm patterns:
 **Pattern 3: Version in issue/task title**
 - Issue title contains version (e.g., "Release v0.3.0")
 - Extract version from title using pattern `v\d+\.\d+\.\d+`
+
+**Pattern 4: `smaqit.task-complete`'s Task mode invocation**
+- Always auto-confirm, using `release-analysis`'s Task-mode `suggested_version` directly as the pre-approved version — a task's release version has no separate interactive checkpoint of its own; the human approval point for a task's release is the PR review itself (`smaqit.task-complete`'s Assisted-mode Phase 1 stop), not a version prompt.
 
 ### Step 2: Determine Approval Mode
 
@@ -84,6 +87,8 @@ Regardless of approval mode, validate the version format:
 **Validation rules:**
 - Version must match regex: `^v\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?$`
 - Version should follow semantic versioning (semver.org)
+
+**Step 4b — Pending-version re-check (defense in depth):** `release-analysis` already avoids a pending-claimed version in its own suggestion, but a manually-specified override (Step 3, interactive mode) bypasses that check. Re-scan `origin/main`'s current `CHANGELOG.md` `[Unreleased]` section for `(pending vX.Y.Z · PR #NNN)` annotations (see `smaqit.release-prepare-files`' Pending Entry Convention) and reject the approved version if it collides with one already claimed by a different PR: "Version vX.Y.Z is already claimed by PR #NNN — choose another version." This check applies in both modes; it is cheap and only ever fires on a manual override, since Task mode's Pattern 4 auto-confirm always uses the pre-cleared suggestion.
 
 ## Output
 

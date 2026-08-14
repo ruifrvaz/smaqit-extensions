@@ -2,7 +2,7 @@
 name: smaqit.task-create
 description: Create a new task with auto-numbering. Use when creating new tasks to track work.
 metadata:
-  version: "0.8.0"
+  version: "0.9.0"
 ---
 
 # Task Create
@@ -47,7 +47,7 @@ Create a new task with the format: `task.create [title]`, `task.create [title] -
 
 Use [assets/TASK_TEMPLATE.md](assets/TASK_TEMPLATE.md) as the canonical task file structure for task creation.
 
-Fields populated at creation time: **Status** (set to `Not Started`), **Created** (set to today's date), and the complete **Issue Triage Context**. A child also gets **Parent** (its validated owner task). The task lifecycle `Mode`, `Started`, and `Completed` fields are omitted at creation and added later by the relevant skill as the task progresses; triage `Mode` is a distinct field inside `## Issue Triage Context`.
+Fields populated at creation time: **Status** (set to `Not Started`), **Created** (set to today's date), and the complete **Issue Triage Context**. A child also gets **Parent** (its validated owner task). The task lifecycle `Mode`, `Started`, `PR`, and `Completed` fields are omitted at creation and added later by the relevant skill as the task progresses — `PR` specifically is owner-only, set by `smaqit.task-complete` when Status becomes `PR Open` and cleared again on `Completed`/`Abandoned`; triage `Mode` is a distinct field inside `## Issue Triage Context`.
 
 ## Central Planning File
 

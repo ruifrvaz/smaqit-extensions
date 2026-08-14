@@ -20,6 +20,16 @@ on:
     types: [closed]
     branches: [main]
 
+# When every owner task's merged PR is its own release (smaqit.task-complete's
+# per-task release model), back-to-back merges are the normal case. Queue runs
+# on a single shared group — never cancel an in-progress tag/release, since
+# each run represents a distinct, already-merged release that must still ship
+# — so a tag collision from a stale version computation fails loudly in its
+# own run instead of racing another run's tag push.
+concurrency:
+  group: post-merge-release
+  cancel-in-progress: false
+
 permissions:
   contents: write
 

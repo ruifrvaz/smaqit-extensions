@@ -3,10 +3,6 @@
     {
       "name": "main",
       "path": "."
-    },
-    {
-      "name": "task/027-pr-gated-task-completion-per-task-releases",
-      "path": "../smaqit-extensions-wt-task-027-pr-gated-task-completion-per-task-releases"
     }
   ],
   "settings": {

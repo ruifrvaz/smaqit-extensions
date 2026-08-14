@@ -95,6 +95,18 @@ Git-root precedence prevents an accidental nested installation such as `scripts/
 
 ---
 
+**Does `smaqit-extensions update` include every fix committed to `main`, or only tagged releases?**
+
+Only tagged releases. `update` fetches the latest GitHub Release and downloads its published binary — it has no awareness of `main`'s commit history beyond that. A direct commit to `main` (e.g. a small infra fix landed outside the PR-gated task flow) is invisible to `update` until some later release's tag includes it. Concretely: `post-merge-release.yml` tags and releases at the moment a task's PR merges, so any commit pushed to `main` *after* that merge — including another same-day hotfix — sits unreleased until a new release is cut, even though it's already on `main` and in the repository's history.
+
+---
+
+**Does `smaqit-extensions update`/`init` distinguish its own source repo from a consumer project when scaffolding?**
+
+No — not currently. Both check only whether `.smaqit/` exists in the target directory (`installer/main.go`, `checkAndReInitWithBinary` and `checkAndReInit`), with no check for "this directory is smaqit-extensions' own checkout." Since this repository also maintains its own `.smaqit/` for task tracking, running `update` (or `init`) from inside it re-creates the committed-dogfooding-mirror pattern removed in v1.14.3 — `.github/agents/`, `.github/skills/`, `.claude/`, `.codex/agents/`, `.agents/skills/` — plus resurrects an orphaned `copilot-instructions.template.md`. Everything created this way is untracked by git, so it's always safe to `rm -rf` the resulting paths; nothing is lost. This is unrelated to binary-replacement staleness (see "Why does self-update launch a fresh binary for project reinitialization?") — it reproduces identically regardless of which binary version runs it.
+
+---
+
 **Does installing or updating remove files that are no longer part of the current release?**
 
 No. The installer (fresh install or `update`) copies and overwrites files from the current source into the global install directories, but it never prunes files that exist on disk but are no longer present in the version being installed. A file left behind by an earlier development-time `--install-global` run (e.g. a helper script from an in-progress skill rework that was later dropped from the shipped design) survives an official reinstall untouched — its presence doesn't imply it's still part of the current release. Verify installed content against the exact released source (e.g. `git show <tag>:<path>` for a specific file, or a repo-wide grep for any reference to a suspect file) rather than trusting a version-string match alone.
@@ -139,21 +151,33 @@ This is distinct from `smaqit-extensions`' own `.github/workflows/post-merge-rel
 
 Task state (`.smaqit/tasks/PLANNING.md` and individual `NNN_*.md` files) lives exclusively on the main branch. Task worktrees exclude `.smaqit/tasks/` via sparse checkout so no worktree ever has a local copy of task state.
 
-The design eliminates merge conflicts on `PLANNING.md`: when `task-start` and `task-complete` update task status, they write to main's copy directly rather than to the worktree's copy. The worktree is purely for source code changes. When `task-complete` merges the task branch into main, only code files are affected — task state never diverged, so there is nothing to conflict on.
+The design eliminates merge conflicts on `PLANNING.md`: when `task-start` and `task-complete` update task status, they write to main's copy directly — and push it to `origin/main` immediately, with a bounded fetch-rebase-retry loop on collision — rather than to the worktree's copy or deferring to `session-finish`. The worktree is purely for source code changes.
 
-The lifecycle resolver (`9_resolve_task_lifecycle.sh`) finds task files exclusively on main and uses `git worktree list --porcelain` to map branch names to worktree paths for merge/cleanup operations. Branch ownership itself is recovered from the task's own title, not a stored field: `find_active_task()` reads the task file on main, and if its status is `In Progress`, recomputes the expected branch name via `task_branch_name()` — the same slug logic used when the branch was first created — then matches it against the registered worktree branches. Renaming an in-progress task's title after its branch exists breaks this recomputation, since the recomputed slug would no longer match the real branch.
+The lifecycle resolver (`9_resolve_task_lifecycle.sh`) finds task files exclusively on main and uses `git worktree list --porcelain` to map branch names to worktree paths for merge/cleanup operations. Branch ownership itself is recovered from the task's own title, not a stored field: `find_active_task()` reads the task file on main and, if its status is in the caller's allowed set, recomputes the expected branch name via `task_branch_name()` — the same slug logic used when the branch was first created — then matches it against the registered worktree branches. Renaming an in-progress task's title after its branch exists breaks this recomputation, since the recomputed slug would no longer match the real branch. The allowed-status set differs by caller: parent-child joining requires strictly `In Progress`; an owner's own `--purpose complete` resolution accepts either `In Progress` (task-complete's Phase 1) or `PR Open` (Phase 2) — see "How does `task-complete` work now that it no longer merges directly into `main`?" below.
 
-`task-start` also performs a task-awareness check before implementation: it scans main for other "In Progress" tasks and uncommitted task-state changes, surfacing them as an informational notice so agents in separate sessions are aware of concurrent work. `task-complete` verifies post-merge that the task is properly finalized on main (status=Completed, committed, PLANNING.md updated).
+`task-start` also performs a task-awareness check before implementation: it scans main for other "In Progress" tasks and uncommitted task-state changes, surfacing them as an informational notice so agents in separate sessions are aware of concurrent work. `task-complete`'s Phase 2 verifies post-merge that the task is properly finalized on main (status=Completed, committed, PLANNING.md updated).
 
 The rest of `.smaqit/` (templates, references, definitions, user-testing) remains available in task worktrees — only the conflict-prone task-tracking state is isolated.
 
-Implementation changes in a task worktree are deliberately left uncommitted until `task-complete` runs: for an owner, immediately before the merge; for a child, immediately before its own completion commit to main. This is the only point in the lifecycle a task branch receives an implementation commit, so Assisted-mode review always sees a normal working-tree diff rather than already-committed history.
+Implementation changes in a task worktree are deliberately left uncommitted until `task-complete` runs: for an owner, immediately before Phase 1 pushes the branch and opens its PR; for a child, immediately before its own completion commit to main. This is the only point in the lifecycle a task branch receives an implementation commit, so Assisted-mode review always sees a normal working-tree diff rather than already-committed history.
 
 ---
 
 **How does an agent work across the primary checkout and a task worktree in the same session?**
 
 `git worktree list --porcelain` always lists the main worktree first, and every linked worktree shares the same `.git` object database — so any worktree can address any other via `git -C <path>` or an absolute file path, without changing directory. This repository has no committed dogfooding mirrors (removed once the global-install migration landed) — skill discovery happens through the globally-installed copies (`~/.claude/skills/`, `~/.agents/skills/`), entirely outside the repo, exactly like any consumer project under the default global install. The sparse-checkout exclusion list (`.github/agents/`, `.github/skills/`, `.claude/agents/`, `.claude/commands/`, `.claude/skills/`, `.agents/skills/`, `.codex/agents/`) is therefore purely defensive here too — it has nothing to exclude unless a project explicitly used `install --scope project`. A session's tools are anchored at main while source edits are addressed to whichever worktree folder actually holds the file. The generated multi-root `.code-workspace` file (main plus every active task worktree) is what makes both trees visible to one IDE session at once.
+
+---
+
+**How does `task-complete` work now that it no longer merges directly into `main`?**
+
+For an owner (standalone or parent) task, completion is PR-gated and runs in two phases, because PR review is asynchronous and can't be waited out inside a single invocation. A child task is entirely unaffected — it still just commits into the shared parent worktree and updates task-file bookkeeping, with no PR and no release of its own.
+
+**Phase 1** (Status `In Progress`): commits the implementation, computes the task's own release version via `release-analysis`'s Task mode (fetches `origin/main` fresh and treats any other task's currently-pending version as already claimed), pushes the branch, opens a PR titled `Prepare release vX.Y.Z`, pushes a `(pending vX.Y.Z · PR #NNN)`-annotated entry to `CHANGELOG.md`'s `[Unreleased]` section directly on `main`, then rebases the branch and promotes that entry into a real `## [X.Y.Z]` section on the branch itself (so the merged PR carries the changelog change and `post-merge-release.yml`'s release-notes extraction has something to find). The task's status becomes `PR Open`, recording the PR number in a `**PR:**` field. Assisted mode stops here; Autonomous mode immediately self-merges (`gh pr merge --merge`) and falls straight into Phase 2.
+
+**Phase 2** (Status `PR Open`, re-entrant): confirms the PR actually merged via `gh pr view --json state,mergedAt` — never inferred any other way — pulls `main`, flips status to `Completed`, removes the worktree, and force-deletes (`-D`, not `-d`) the **local** branch only. `-D` is required because GitHub's own merge confirmation is authoritative regardless of merge strategy, and a squash merge (or Phase 1's own rebase) leaves the local branch tip unable to satisfy `-d`'s ancestry check. The remote branch is never deleted — it's kept indefinitely as an audit trail of every merged/released task.
+
+Each PR is also that task's release: merging it is what triggers `post-merge-release.yml`'s existing tag + GitHub Release automation, just now firing per-task instead of per manually-triggered batch. `CHANGELOG.md` can hold several tasks' pending entries at once, each promoted independently by its own PR merge — so tags can land out of numeric order, and this is expected. See also: "How does a project get post-merge release automation (tag + GitHub Release) after installing smaqit-extensions?"
 
 ---
 

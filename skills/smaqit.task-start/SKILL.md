@@ -2,7 +2,7 @@
 name: smaqit.task-start
 description: Start working on a task by creating its task branch and worktree, updating the VS Code workspace, and setting assisted or autonomous workflow mode.
 metadata:
-  version: "0.10.1"
+  version: "0.11.0"
 ---
 
 # Task Start
@@ -51,9 +51,7 @@ task.start [id] --assisted         # Explicit assisted mode
 
 ## Steps
 
-1. **Read task file** (`.smaqit/tasks/NNN_*.md`) to understand requirements
-   - If `## Findings` already contains non-placeholder content, surface it in context for continuity:
-     - Print: `Existing findings loaded from previous execution: [summary]`
+1. **Resolve the task file path** (`.smaqit/tasks/NNN_*.md`) without reading its contents. Full task reading happens only after the triage gate in Step 10.
 
 2. **Resolve lifecycle ownership** — run from the primary checkout, before creating any branch or worktree:
    ```bash
@@ -70,16 +68,17 @@ task.start [id] --assisted         # Explicit assisted mode
    - **Child:** reuse the resolver's `branch`, `worktree`, and `task_file` (already resolved on primary). Do not invoke branch creation, worktree setup, orphan cleanup, or workspace rebuilding.
    - Inform the user of the resolved ownership and path. For an owner, say `Branch "<branch>" created with worktree at <worktree-path>.`; for a child, say `Task NNN joined parent task <parent> at <worktree-path>.` In both cases, remind them to open the root workspace with `code <workspace-path>` when it changed.
 
-4. **Research map verification** — check whether `.smaqit/references/project-research.md` exists:
-   - If **absent** → invoke `smaqit.project-research [task-id]` before proceeding. Surface the resulting map in-context. Do not continue to Step 4a until the map is written.
-   - If **present** → proceed without refreshing. The existing map is sufficient. Surface it in-context (render the table) so the implementing agent has documentation topology available.
+4. **Research-map verification** — determine the project-research skill directory, project the task with `task-context.sh --allow-legacy`, and validate the map with `task-map.sh status` using the current task ID and context fingerprint.
+   - If the map is absent, the block is missing, or its fingerprint differs → invoke `smaqit.project-research [task-id]` for a task-only refresh before triage.
+   - If the block matches → do not refresh or render the full map. Triage receives only the projected current-task block.
 
 4a. **Issue triage** — invoke `smaqit.utils.triage-issues` with the current task ID:
-   - Skill reads the research map, extracts third-party tools, and searches GitHub for known open issues.
-   - After triage returns, write/overwrite `## Known Issues Triage` in the task file using the format from `skills/smaqit.utils.triage-issues/references/TRIAGE_BLOCK.md`.
+   - The verified current-task map block and deterministic context are triage's required upstream input. Triage must consume their projections without rebuilding or replacing the map, then search GitHub for known open issues.
+   - The triage skill owns writing or replacing `## Known Issues Triage` in the task file.
    - **If blocking issues found** → STOP. Do not continue to Step 5. Present findings and await user direction (proceed, reframe scope, or mark as Blocked).
    - **If advisory or clear** → continue to Step 5. Advisory findings are visible in-context but do not require approval.
-   - **If triage exits cleanly** (skip flag, no tools, gh unavailable, registry missing) → continue to Step 5 silently.
+   - **If triage exits cleanly** (skip flag or no third-party tools) → continue to Step 5 silently.
+   - **If triage reports an unavailable dependency or GitHub search warning** → surface the concise warning and continue to Step 5; warnings must not be treated as Clear.
    - If triage write-back fails, report a warning and continue (non-blocking).
 
 5. **Determine effective mode** from the resolver result.
@@ -106,7 +105,7 @@ task.start [id] --assisted         # Explicit assisted mode
    - `fact`: `"[NNN] [Title] — In Progress ([Assisted|Autonomous], started YYYY-MM-DD)"` (≤ 200 chars)
    - `citations`: path to the task file (e.g., `.smaqit/tasks/NNN_task_title.md`)
    - `reason`: `"Ensures in-progress task and mode are visible in any branch, supporting parallel agent workflows"`
-10. **Load workflow rules** by reading [references/RULES.md](references/RULES.md) from the primary checkout when the target worktree is sparse.
+10. **Read the full task file** after triage. Surface non-placeholder `## Findings` for continuity, then load workflow rules by reading [references/RULES.md](references/RULES.md) from the primary checkout when the target worktree is sparse.
 11. **Begin implementation** in the task worktree following task requirements. Leave implementation changes **uncommitted** in the task worktree — do not commit them here or at any point during implementation. `task-complete` commits them (its Step 9 for an owner, Step 8 for a child) right before the merge, specifically so Assisted-mode review sees a normal working-tree diff instead of already-committed history in the meantime.
 
 ## Task File Format

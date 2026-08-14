@@ -1,5 +1,5 @@
 ---
-version: "1.0.0"
+version: "1.1.0"
 ---
 
 ## Known Issues Triage
@@ -19,3 +19,8 @@ version: "1.0.0"
 ### Unresolvable Tools
 - tool-name — not found in registry
 
+### Omitted Tools
+- tool-name — excluded after relevance prioritization and the five-repository limit
+
+### Search Warnings
+- `owner/repo` open search — concise non-blocking failure reason

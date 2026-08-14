@@ -2,7 +2,7 @@
 name: smaqit.task-create
 description: Create a new task with auto-numbering. Use when creating new tasks to track work.
 metadata:
-  version: "0.7.0"
+  version: "0.8.0"
 ---
 
 # Task Create
@@ -24,6 +24,9 @@ Create a new task with the format: `task.create [title]`, `task.create [title] -
    - `**Status:** Not Started`
    - `**Created:** YYYY-MM-DD` (today)
    - For a child, add `**Parent:** NNN` using the validated parent ID. Omit the field for a standalone task.
+   - Populate `## Issue Triage Context` with exactly these single-line fields: `Mode`, `Technologies`, `Platforms/Environments`, `Features/Integrations`, and `Versions/Constraints`.
+   - Set `Mode` to `Auto` unless the approved task context explicitly requires `Skip`. Do not leave placeholders, `TBD`, or blank values. Use literal `None` only for a deliberate absence.
+   - Infer the context from approved `smaqit.task-plan` fields or the current session. If any required value cannot be inferred safely, ask for it before writing the task. A child receives its own context and does not inherit the parent's technologies merely because it inherits the worktree.
    - Keep `## Known Issues Triage` placeholder note (for `smaqit.task-start` to overwrite)
    - Keep `## Findings` placeholder categories with `TBD` bullets (for `smaqit.task-complete` to overwrite)
 7. **Add entry to `.smaqit/tasks/PLANNING.md` on the primary checkout** with status "Not Started"
@@ -44,7 +47,7 @@ Create a new task with the format: `task.create [title]`, `task.create [title] -
 
 Use [assets/TASK_TEMPLATE.md](assets/TASK_TEMPLATE.md) as the canonical task file structure for task creation.
 
-Fields populated at creation time: **Status** (set to `Not Started`) and **Created** (set to today's date). A child also gets **Parent** (its validated owner task). Fields such as `Mode`, `Started`, and `Completed` are omitted at creation and added later by the relevant skill as the task progresses.
+Fields populated at creation time: **Status** (set to `Not Started`), **Created** (set to today's date), and the complete **Issue Triage Context**. A child also gets **Parent** (its validated owner task). The task lifecycle `Mode`, `Started`, and `Completed` fields are omitted at creation and added later by the relevant skill as the task progresses; triage `Mode` is a distinct field inside `## Issue Triage Context`.
 
 ## Central Planning File
 

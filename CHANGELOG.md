@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Triage issue payload reduction** — new tasks now declare deterministic Issue Triage Context (mode, technologies, platforms, features, versions) before task content enters model context. Project research fingerprints and refreshes only the keyed current-task map block; triage consumes that projection, searches at most five deduplicated repositories with ten projected GitHub issues per state, excludes pull requests, and bounds corroborating issue excerpts. Legacy task prose is a warned migration fallback. Raw task sections, full research maps, API payloads, and irrelevant issue fields no longer enter model context for structured tasks.
+
 ## [1.14.3] - 2026-08-11
 
 ### Removed

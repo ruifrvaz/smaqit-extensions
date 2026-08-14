@@ -2,7 +2,7 @@
 name: smaqit.project-research
 description: Builds and maintains a documentation topology map for the current project, identifying the full tech stack and discovering section-level documentation URLs across multiple platforms (GitHub, official docs, ReadTheDocs, pkg.go.dev, npm, PyPI, and more). Writes a persistent map to `.smaqit/references/project-research.md`; adds task-specific annotation when a task is active. Invoke when the user asks to research project dependencies, build or refresh the documentation map, or find documentation for project tools and libraries.
 metadata:
-  version: "1.4.0"
+  version: "1.5.0"
 ---
 
 # smaqit.project-research
@@ -10,7 +10,7 @@ metadata:
 ## Context
 
 Also invoked automatically by:
-- `smaqit.task-start` — when `.smaqit/references/project-research.md` is absent
+- `smaqit.task-start` — to validate or refresh the exact task-context block before triage
 - `smaqit.session-finish` — when the map is older than the staleness threshold (default: 7 days) or when project manifests have changed
 
 ## Steps
@@ -28,7 +28,7 @@ Before building or reusing the existing map, determine whether a rebuild is need
 5. **Map is stale** if either condition is true:
    - Age ≥ staleness threshold (default **7 days**; override by running `project.research --refresh`)
    - Any manifest file is newer than the map's `Refreshed:` date
-6. **Map is current** → report "Research map is current (last updated: YYYY-MM-DD)" and stop. Do not proceed to Step 1.
+6. **Map is current** → retain the project table, then still validate the requested task block in Step 2. Do not let project freshness skip task-context mapping.
 7. **Map is stale** → proceed to Step 1 (full rebuild).
 
 ### Step 1 — Project stack extraction (always runs)
@@ -45,10 +45,10 @@ Exclude internal project names and the smaqit framework itself. Produce a dedupl
 
 If a task ID was provided, or if there is a currently active task in `.smaqit/tasks/PLANNING.md`:
 
-- Read the task file (`.smaqit/tasks/NNN_*.md`)
-- Extract any tools, services, platforms, or libraries named in the description, acceptance criteria, or notes that are not already in the project layer
-- Add these to the tool list, tagged as task-layer additions
-- Record which tools from the project layer are directly implicated by the task (for annotation in Step 4)
+- Determine the skill install directory and run `scripts/task-context.sh --allow-legacy <task-file>`. Use only its compact output; do not read the task file directly.
+- For structured tasks, use `Technologies`, `Platforms/Environments`, `Features/Integrations`, and `Versions/Constraints` as the task layer. The context helper supplies its stable fingerprint. Legacy output is permitted only with its migration warning.
+- Ensure the task block contains every named technology, including technologies already in the project table. Reuse existing verified URLs when available and discover/verify only missing task-relevant URLs.
+- Run `scripts/task-map.sh status <map> <task-id> <fingerprint>`. A matching block needs no task refresh. A missing or mismatched block requires a task-only refresh; preserve the project table, project `Refreshed` date, and other task blocks.
 
 If no task is specified and no task is active, skip this step entirely.
 
@@ -97,17 +97,17 @@ The script tries a HEAD request first and falls back to a single bounded GET (bo
 
 Determine the skill install directory from the path of this SKILL.md file. Load `<skill-install-dir>/references/RESEARCH_MAP.md` to confirm the required output format, column definitions, conditional rules, and rendering rules.
 
-Create `.smaqit/references/` if it does not exist. Write to `.smaqit/references/project-research.md` (overwrite if exists — re-runs are idempotent). The output must match the format defined in RESEARCH_MAP.md:
+Create `.smaqit/references/` if it does not exist. Write the project table only when project staleness requires it. Use `scripts/task-map.sh upsert` to write a refreshed task block without exposing or replacing unrelated blocks. The output must match the format defined in RESEARCH_MAP.md:
 
 - **Project table** — all `project`-layer entries; always present
-- **Task block** — a second table headed `## Task NNN — [title]` containing only `task`-layer entries; omit entirely if no task is active
+- **Task block** — a keyed `## Task NNN — [title]` table with a context fingerprint, task refresh date, and every task-context technology. Keep other keyed blocks intact.
 
 Render the same output in-context as part of the response.
 
 ## Output
 
-- `.smaqit/references/project-research.md` — persistent project-scoped map; overwritten on each invocation
-- In-context table — rendered in the response for immediate use
+- `.smaqit/references/project-research.md` — persistent project table plus keyed task blocks
+- Compact current-task block — render only when task-start/triage needs it; never render the full map for the triage gate
 
 ## Scope
 

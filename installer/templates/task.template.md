@@ -10,6 +10,13 @@
 ## Description
 [Clear description of what needs to be done]
 
+## Issue Triage Context
+**Mode:** Auto | Skip
+**Technologies:** [Comma-separated third-party products, libraries, platforms, or services; use None when deliberately absent]
+**Platforms/Environments:** [Comma-separated operating environments; use None when not material]
+**Features/Integrations:** [Comma-separated affected capabilities or integrations; use None only when Technologies is None]
+**Versions/Constraints:** [Comma-separated versions or relevant constraints; use None when not material]
+
 ## Acceptance Criteria
 - [ ] Criterion 1
 - [ ] Criterion 2

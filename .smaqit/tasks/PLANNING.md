@@ -9,11 +9,11 @@ Central task tracking and planning for smaqit-extensions.
 | 002 | Fix Changelog Extraction for Cumulative Releases | Not Started | 2026-02-13 |
 | 007 | Create smaqit MCP Server (PoC) | Not Started | 2026-05-09 |
 | 010 | Publish smaqit-extensions as Copilot Marketplace Plugin | Not Started | 2026-05-09 |
-| 025 | Reduce Triage Issue Payloads | In Progress | 2026-08-13 |
 ## Completed Tasks
 
 | ID | Title | Status | Created | Completed |
 |----|-------|--------|---------|-----------|
+| 025 | Reduce Triage Issue Payloads | Completed | 2026-08-13 | 2026-08-14 |
 | 001 | Fix Post-Merge Tag Workflow Trigger Issue | Completed | 2026-02-13 | 2026-02-13 |
 | 003 | Create smaqit.read-pdf Skill | Completed | 2026-05-02 | 2026-05-02 |
 | 004 | Create smaqit.project-glossary Skill | Completed | 2026-05-02 | 2026-05-02 |

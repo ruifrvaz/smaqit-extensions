@@ -19,7 +19,7 @@ A single `curl .../install.sh | bash` installs all three targets globally. Each 
 #### Session Management
 - **smaqit.session-start** - Load full project context at session start
 - **smaqit.session-assess** - Analyze requests before implementation
-- **smaqit.session-finish** - Document session history at completion
+- **smaqit.session-finish** - Document session history at completion, then finalize `main`'s git state (checkout, commit its own outputs, sync and push against `origin/main`) — Assisted by default, or `session.finish --autonomous`
 - **smaqit.session-title** - Generate concise session titles
 - **smaqit.session-recap** - Summarize session progress as a structured table
 

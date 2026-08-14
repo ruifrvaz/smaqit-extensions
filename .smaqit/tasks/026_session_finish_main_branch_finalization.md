@@ -1,9 +1,10 @@
 # Session-Finish Main Branch Finalization
 
-**Status:** In Progress
+**Status:** Completed
 **Created:** 2026-08-14
 **Mode:** Autonomous
 **Started:** 2026-08-14
+**Completed:** 2026-08-14
 
 ## Description
 
@@ -42,33 +43,35 @@ Add a new final step to `smaqit.session-finish` that resolves the primary checko
 
 ## Acceptance Criteria
 
-- [ ] `session.finish` (default Assisted) and `session.finish --autonomous` are both documented and supported invocation forms.
-- [ ] The finalize step always resolves the primary checkout via `git worktree list --porcelain`, never cwd.
-- [ ] Detached HEAD, merge-conflict markers, and a dirty non-main branch are detected before any mutation and always STOP with an exact report, in both modes — no auto-fix is attempted for any of these.
-- [ ] A non-main branch with a clean tree is checked out to `main` automatically in both modes.
-- [ ] Only the exact files this session-finish run wrote are staged for commit — never `git add -A`.
-- [ ] Assisted mode stops for explicit confirmation before committing and before pushing; Autonomous mode commits and pushes automatically only when the sync check confirms a clean fast-forward.
-- [ ] `main` is synced against `origin/main` via `git fetch` + `git pull --ff-only`; a truly diverged history STOPs and reports commit counts instead of pulling/merging/rebasing.
-- [ ] A push rejected unexpectedly (race condition) STOPs and reports — no automatic retry, no force-push.
-- [ ] No permission/auth fix, cross-session/worktree conflict resolution, or destructive operation (force-push, hard reset, discarding uncommitted work, rebase) is ever attempted — all such cases STOP and defer to the user.
-- [ ] Hermetic test `tests/skills/test-session-finish-main-sync.sh` covers all the branching conditions above without touching a real remote.
-- [ ] `make test` and `make smoke-test` pass; `CHANGELOG.md` and `README.md` updated; skill version bumped `0.9.1` → `0.10.0`.
+- [x] `session.finish` (default Assisted) and `session.finish --autonomous` are both documented and supported invocation forms.
+- [x] The finalize step always resolves the primary checkout via `git worktree list --porcelain`, never cwd.
+- [x] Detached HEAD, merge-conflict markers, and a dirty non-main branch are detected before any mutation and always STOP with an exact report, in both modes — no auto-fix is attempted for any of these.
+- [x] A non-main branch with a clean tree is checked out to `main` automatically in both modes.
+- [x] Only the exact files this session-finish run wrote are staged for commit — never `git add -A`.
+- [x] Assisted mode stops for explicit confirmation before committing and before pushing; Autonomous mode commits and pushes automatically only when the sync check confirms a clean fast-forward.
+- [x] `main` is synced against `origin/main` via `git fetch` + `git pull --ff-only`; a truly diverged history STOPs and reports commit counts instead of pulling/merging/rebasing.
+- [x] A push rejected unexpectedly (race condition) STOPs and reports — no automatic retry, no force-push.
+- [x] No permission/auth fix, cross-session/worktree conflict resolution, or destructive operation (force-push, hard reset, discarding uncommitted work, rebase) is ever attempted — all such cases STOP and defer to the user.
+- [x] Hermetic test `tests/skills/test-session-finish-main-sync.sh` covers all the branching conditions above without touching a real remote.
+- [x] `make test` and `make smoke-test` pass; `CHANGELOG.md` and `README.md` updated; skill version bumped `0.9.1` → `0.10.0`.
 
 ## Findings
 
-[Populated by smaqit.task-complete. Do not fill in manually before task is complete.]
-
 **Implementation approach:**
-- TBD
+- Added a new Step 7 ("Finalize main branch state") to `skills/smaqit.session-finish/SKILL.md`, backed by a new deterministic helper script `skills/smaqit.session-finish/scripts/finalize-main.sh` (`detect`, `checkout-main`, `commit`, `sync`, `push` subcommands) rather than leaving the git plumbing to free-form prose.
+- The helper is the sole permitted mutation path — SKILL.md explicitly forbids running the underlying git commands directly, so Assisted and Autonomous mode share identical detection/mutation logic and only differ in whether they stop for confirmation.
+- Added `## Usage` documenting `session.finish` / `session.finish --autonomous`, a Failure Handling table mapping every helper failure mode to "STOP, report, take no action," and bumped the skill version `0.9.1` → `0.10.0`.
 
 **Decisions made:**
-- TBD
+- Followed the precedent set by the parallel `smaqit.utils.triage-issues` rework (task 025) of backing precise conditional git/API logic with a small deterministic bash helper instead of relying on LLM-interpreted prose — this was not in the original Implementation Steps but makes the "never destructive, always STOP on the same conditions" guarantee structural rather than advisory, and is what makes the hermetic test able to exercise real branching behavior instead of only asserting on SKILL.md text.
+- Kept all four Design Decisions from planning unchanged during implementation (mode via explicit flag, targeted commit scope, fast-forward-gated autonomous push, fetch+ff-only sync, unconditional safe auto-checkout in both modes) — none needed revision once actually building the helper.
+- `smaqit.task-refresh` remains intentionally unwired, per the original scope decision.
 
 **Blockers encountered:**
-- TBD
+- Three hermetic-test fixture bugs, all in the test harness itself (not the helper under test): the bare "origin" repo needed an explicit `-b main` at `git init --bare` or its HEAD symref pointed at a nonexistent `master`, breaking the first push; the sandboxed environment's `safe.bareRepository=explicit` git config rejected `git -C <bare-repo>` and required `git --git-dir=<bare-repo>` for read-only inspection; and the push-rejection fixture needed the "other" clone explicitly fast-forwarded to the current origin tip before creating its own commit, since it had gone stale from earlier scenarios' pushes and its own push was failing instead of the primary's.
 
 **Follow-up identified:**
-- TBD
+- The two Further Considerations raised during planning remain open and were not addressed here (deliberately, to stay in scope): whether Step 7 should also invoke `smaqit.task-refresh`, and whether Assisted mode should stop-and-confirm before the automatic clean-non-main-branch checkout rather than doing it unconditionally.
 
 ## Files to Create / Modify
 

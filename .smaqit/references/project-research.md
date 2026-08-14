@@ -4,7 +4,7 @@ version: "1.0.0"
 
 # Project Research Map
 **Project:** smaqit-extensions
-**Refreshed:** 2026-08-06
+**Refreshed:** 2026-08-14
 **Active task:** None
 
 | Tool | Section | URL |

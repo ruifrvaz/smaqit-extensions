@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **PR-gated task completion with per-task releases** (pending v1.17.0 · PR #124) — `task-complete` for an owner task now opens a PR instead of merging directly into `main`; that PR is also the task's release. See PR #124 for details.
+
 ## [1.16.0] - 2026-08-14
 
 ### Added

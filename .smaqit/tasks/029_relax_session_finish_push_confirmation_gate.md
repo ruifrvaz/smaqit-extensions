@@ -1,10 +1,10 @@
 # Relax Session-Finish Push Confirmation Gate
 
-**Status:** PR Open
+**Status:** Completed
 **Created:** 2026-08-14
 **Started:** 2026-08-14
+**Completed:** 2026-08-15
 **Mode:** Assisted
-**PR:** #125
 
 ## Description
 

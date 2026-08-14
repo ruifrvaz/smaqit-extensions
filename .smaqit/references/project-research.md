@@ -38,3 +38,12 @@ version: "1.0.0"
 | GitHub Actions | Workflow syntax | https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax |
 | GitHub Actions | Workflow triggers | https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows |
 | GitHub Actions | Concurrency | https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency |
+
+## Task 029 — Relax Session-Finish Push Confirmation Gate
+
+**Context fingerprint:** sha256:b33f992ff57b92acf22c29a165b7dbe30c9c385eb3b3079424ba5316988725b3
+**Refreshed:** 2026-08-14
+
+| Tool | Section | URL |
+|------|---------|-----|
+| Git | Reference | https://git-scm.com/docs |

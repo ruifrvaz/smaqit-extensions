@@ -113,6 +113,16 @@ No. The installer (fresh install or `update`) copies and overwrites files from t
 
 ---
 
+## Session Management
+
+**Does `smaqit.session-finish` still have Assisted/Autonomous modes, or a `--autonomous` flag?**
+
+No. `session.finish` takes no mode flag and behaves identically on every invocation: it proceeds directly through its routine steps (history file, compendium, research map, and finalizing `main`'s git state) and stops only when one of its failure-handling table's hard-stop conditions is hit (detached HEAD, an in-progress merge/conflict, a dirty non-`main` branch, diverged history, an unexpected push rejection, an auth failure, or anything else ambiguous) — those conditions and their handling are unchanged from before.
+
+This is scoped to `session-finish` only. `task-start`/`task-complete`'s own per-task `**Mode:** Assisted | Autonomous` field, stored in each task file, is a completely separate mechanism and still governs whether `task-complete`'s PR-gated phases require an explicit user request or can self-complete.
+
+---
+
 ## Release Workflow
 
 **Where is desktop SSH-agent popup recovery defined and how is it constrained?**
@@ -178,6 +188,8 @@ For an owner (standalone or parent) task, completion is PR-gated and runs in two
 **Phase 2** (Status `PR Open`, re-entrant): confirms the PR actually merged via `gh pr view --json state,mergedAt` — never inferred any other way — pulls `main`, flips status to `Completed`, removes the worktree, and force-deletes (`-D`, not `-d`) the **local** branch only. `-D` is required because GitHub's own merge confirmation is authoritative regardless of merge strategy, and a squash merge (or Phase 1's own rebase) leaves the local branch tip unable to satisfy `-d`'s ancestry check. The remote branch is never deleted — it's kept indefinitely as an audit trail of every merged/released task.
 
 Each PR is also that task's release: merging it is what triggers `post-merge-release.yml`'s existing tag + GitHub Release automation, just now firing per-task instead of per manually-triggered batch. `CHANGELOG.md` can hold several tasks' pending entries at once, each promoted independently by its own PR merge — so tags can land out of numeric order, and this is expected. See also: "How does a project get post-merge release automation (tag + GitHub Release) after installing smaqit-extensions?"
+
+A task's own file (its Description, Implementation Steps, Files to Create/Modify) is a plan written at task-creation time — it is not itself the completion mechanism and can go stale if it predates a later change to that mechanism. In particular, a task file should never instruct a manually-authored `CHANGELOG.md` entry: `task-complete` Phase 1 always generates and pushes the pending-annotated entry itself, and a hand-written one would sit as an orphaned, never-promoted duplicate. When a task file's own steps conflict with the currently-installed `task-complete`/`task-start` skill behavior, the installed skill is authoritative — verify by reading it directly rather than assuming the task file is current.
 
 ---
 

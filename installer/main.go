@@ -41,7 +41,7 @@ var skillFilesClaude embed.FS
 var codexAgentFiles embed.FS
 
 // Version is set via ldflags during build: -X main.Version=$(VERSION)
-var Version = "1.14.3"
+var Version = "1.15.0"
 
 const planningTemplate = `# Task Planning
 

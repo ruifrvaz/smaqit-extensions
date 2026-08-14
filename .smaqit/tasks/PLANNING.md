@@ -42,3 +42,5 @@ Central task tracking and planning for smaqit-extensions.
 ## Notes
 
 Tasks are stored in individual files: `.smaqit/tasks/NNN_task_title.md`
+
+Status values: `Not Started`, `In Progress`, `PR Open` (owner tasks only — implementation committed, release PR awaiting or undergoing review; the task file's `**PR:** #NNN` field names it), `Completed`, `Abandoned`, `Blocked`. See `smaqit.task-complete`'s `references/RULES.md` for the full status lifecycle and phase model.

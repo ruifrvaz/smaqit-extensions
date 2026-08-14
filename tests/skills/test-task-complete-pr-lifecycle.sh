@@ -24,6 +24,11 @@ assert_contains() {
   rg -q --fixed-strings -- "$pattern" "$file" || fail "$message — expected [$pattern] in $file"
 }
 
+assert_eq() {
+  local actual="$1" expected="$2" message="$3"
+  [ "$actual" = "$expected" ] || fail "$message (expected [$expected], got [$actual])"
+}
+
 # --- Mechanical test 1: bounded fetch-rebase-retry push loop ---------------
 
 REMOTE="$FIXTURE_ROOT/remote.git"
@@ -153,6 +158,40 @@ child_kind="$(jq -r '.kind' <<< "$child_complete_result")"
   || fail "task-complete's own routing depends on this: a child task under --purpose complete must resolve as kind=child, never owner — got kind=$child_kind"
 
 echo "[PASS] a child task's completion resolves as kind=child, never owner — Phase 1/2 are unreachable for it"
+
+# --- Mechanical test 4: an owner with Status "PR Open" still resolves ------
+# Found live: 9_resolve_task_lifecycle.sh's find_active_task() originally
+# hardcoded a check for Status == "In Progress" — correct for Phase 1, but
+# task-complete's Phase 2 re-invokes this same resolver while Status is
+# "PR Open", and the hardcoded check rejected it outright ("Task NNN must be
+# In Progress in a registered worktree before completion"), even though the
+# owner's worktree/branch is still fully registered and valid. Exercise both
+# accepted statuses against the same owner fixture, and confirm the
+# parent-join path (resolve_parent, used only by --parent/child-start) still
+# requires strictly "In Progress" — a task that already has its PR open must
+# not accept a new child joining it.
+
+owner_task_file="$CHILD_ROOT/.smaqit/tasks/300_owner.md"
+
+# The child (301) fixture from test 3 above is still declared under parent
+# 300 and still "In Progress" — mark it Completed so it stops blocking 300's
+# own completion, matching the resolver's declared-children gate.
+sed -i 's/^\*\*Status:\*\*.*/**Status:** Completed/' "$CHILD_ROOT/.smaqit/tasks/301_child.md"
+
+pr_open_result="$(cd "$CHILD_ROOT" && bash "$CHILD_WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --task 300 --purpose complete)"
+assert_eq "$(jq -r '.kind' <<< "$pr_open_result")" "owner" "owner with Status In Progress still resolves as owner (baseline)"
+
+sed -i 's/^\*\*Status:\*\*.*/**Status:** PR Open/' "$owner_task_file"
+pr_open_result="$(cd "$CHILD_ROOT" && bash "$CHILD_WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --task 300 --purpose complete)"
+assert_eq "$(jq -r '.kind' <<< "$pr_open_result")" "owner" "owner with Status PR Open must still resolve as owner for Phase 2 (--purpose complete)"
+
+if bash "$CHILD_WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --parent 300 >/dev/null 2>&1; then
+  fail "a task with Status PR Open must not accept a new child joining it via --parent — its worktree is about to be cleaned up"
+fi
+
+sed -i 's/^\*\*Status:\*\*.*/**Status:** In Progress/' "$owner_task_file"
+
+echo "[PASS] Phase 2 resolves an owner whose Status is PR Open; child-join still requires strict In Progress"
 
 # --- Contract assertions: Phase 1 / Phase 2 / mode gating -------------------
 

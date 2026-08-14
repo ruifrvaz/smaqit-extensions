@@ -136,10 +136,18 @@ task_branch_name() {
 }
 
 find_active_task() {
-  local id="$1" file expected_branch index
+  local id="$1" allowed_statuses="${2:-In Progress}" file status expected_branch index candidate matched=1
   file="$(task_file_in "$primary_root" "$id")"
   [ -n "$file" ] || return 1
-  [ "$(task_status "$file")" = "In Progress" ] || return 1
+  status="$(task_status "$file")"
+  IFS=';' read -ra allowed_arr <<< "$allowed_statuses"
+  for candidate in "${allowed_arr[@]}"; do
+    if [ "$status" = "$candidate" ]; then
+      matched=0
+      break
+    fi
+  done
+  [ "$matched" -eq 0 ] || return 1
   expected_branch="$(task_branch_name "$file" "$id")"
   for index in "${!worktree_branches[@]}"; do
     if [ "${worktree_branches[$index]}" = "$expected_branch" ]; then
@@ -199,9 +207,12 @@ fi
 declared_parent="$(task_parent "$candidate_file")" || exit 1
 if [ -z "$declared_parent" ]; then
   if [ "$purpose" = "complete" ]; then
-    owner_info="$(find_active_task "$task_id" || true)"
+    # Phase 1 (implementation not yet committed away) resolves while "In
+    # Progress"; Phase 2 (re-entrant merge-check/cleanup) resolves while
+    # "PR Open" — both are valid entry points for an owner's completion.
+    owner_info="$(find_active_task "$task_id" "In Progress;PR Open" || true)"
     if [ -z "$owner_info" ]; then
-      echo "Task $task_id must be In Progress in a registered worktree before completion." >&2
+      echo "Task $task_id must be In Progress or PR Open in a registered worktree before completion." >&2
       exit 1
     fi
     IFS=$'\t' read -r owner_root owner_branch owner_file <<< "$owner_info"

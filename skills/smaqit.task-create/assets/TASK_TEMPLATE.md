@@ -3,6 +3,7 @@
 **Status:** Not Started
 **Created:** YYYY-MM-DD
 <!-- **Parent:** NNN (optional; omit for a standalone or lifecycle-owner task) -->
+<!-- **PR:** #NNN (owner tasks only; smaqit.task-complete sets this when Status becomes "PR Open", clears it on Completed/Abandoned) -->
 
 ## Description
 

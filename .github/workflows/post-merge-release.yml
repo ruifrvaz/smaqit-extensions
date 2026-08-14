@@ -8,6 +8,16 @@ on:
     types: [closed]
     branches: [main]
 
+# Every owner task's merged PR is now its own release (see smaqit.task-complete),
+# so back-to-back merges are the normal case, not an edge case. Queue runs on a
+# single shared group — never cancel an in-progress tag/release, since each run
+# represents a distinct, already-merged release that must still ship — so a tag
+# collision from a stale version computation fails loudly in its own run instead
+# of racing another run's tag push.
+concurrency:
+  group: post-merge-release
+  cancel-in-progress: false
+
 permissions:
   contents: write
 

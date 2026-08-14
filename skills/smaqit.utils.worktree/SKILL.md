@@ -2,7 +2,7 @@
 name: smaqit.utils.worktree
 description: "Sync Git worktrees and update the VS Code multi-root workspace, or set up worktrees for task branches. For interactive sync, presents local and remote branches and asks which branches to sync. Then creates missing sibling worktrees, detects and removes safe orphans, and keeps the project workspace in sync. Also migrates VS Code chat sessions when switching from a single-folder project to the generated multi-root workspace. Use after task branch creation, task completion, workspace migration, or when worktree folders are missing from VS Code Explorer. Triggers: `worktree.sync`, `worktree.migrate-sessions`."
 metadata:
-  version: "1.2.2"
+  version: "1.3.0"
 ---
 
 # smaqit Utils: Git Worktree Manager
@@ -190,16 +190,16 @@ The script uses delta-copy and upsert behavior so repeated runs preserve session
 
 ## Task Completion Cleanup
 
-After `smaqit.task-complete` completes a lifecycle-owner task:
+After `smaqit.task-complete`'s Phase 2 confirms a lifecycle-owner task's PR actually merged (`gh pr view` reports `MERGED` — never inferred from local branch state):
 
 1. Use Step 4 to find the worktree registered for the task branch.
 2. Remove it with `git worktree remove "<path>"`.
-3. Delete the merged branch with `git branch -d "<branch>"`.
+3. Force-delete the **local** branch only: `git branch -D "<branch>"`. Use `-D`, not `-d` — Phase 2 already confirmed the merge through GitHub's own PR API, which is authoritative regardless of merge strategy; `-d`'s local ancestry check would incorrectly refuse a squash-merged branch, since GitHub's squash commit is never an ancestor of the original branch tip. **Never delete the remote branch** (`git push origin --delete` is never run here) — it is retained indefinitely as an audit trail of every merged/released task.
 4. Run Step 7 to rebuild the workspace.
 
 Do not force-remove a dirty worktree. Report the Git error and preserve the worktree and branch for user review.
 
-For a child task, none of this cleanup runs. Child completion records criteria, findings, and status only; its parent performs the one eventual merge and cleanup after every declared child is `Completed`.
+For a child task, none of this cleanup runs. Child completion records criteria, findings, and status only; its parent performs the one eventual PR and cleanup after every declared child is `Completed` — the child's code ships as part of that PR, never through a merge or cleanup of its own.
 
 ## Output
 

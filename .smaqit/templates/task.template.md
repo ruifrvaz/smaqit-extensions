@@ -1,7 +1,8 @@
 # [Task Title]
 
-**Status:** Not Started | In Progress | Completed | Abandoned | Blocked
+**Status:** Not Started | In Progress | PR Open | Completed | Abandoned | Blocked
 <!-- **Parent:** NNN (optional; omit for a standalone or lifecycle-owner task) -->
+<!-- **PR:** #NNN (owner tasks only; set when Status becomes "PR Open", cleared on Completed/Abandoned) -->
 **Mode:** Assisted | Autonomous
 **Created:** YYYY-MM-DD
 **Started:** YYYY-MM-DD

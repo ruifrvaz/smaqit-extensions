@@ -2,7 +2,7 @@
 name: smaqit.release-git-pr
 description: Execute git operations for PR-based releases (commit, push, and enforce the post-merge automation PR title)
 metadata:
-  version: "0.3.1"
+  version: "0.4.0"
 ---
 
 # Release Git PR
@@ -17,6 +17,16 @@ Use this skill for **PR-based releases** (running in CI/CD or agent workflow) af
 - Documents post-merge tag creation instructions
 
 **Do NOT use this skill for local releases** - use `release-git-local` instead.
+
+## Invocation from `smaqit.task-complete`
+
+`task-complete`'s Phase 1 invokes this skill for **PR-title verification only** (Step 4), after it has already pushed the branch and created the PR itself (its Step 11).
+
+In that invocation, **skip Steps 1-3 entirely**:
+- **Steps 1-2 (stage + commit `CHANGELOG.md`)** — implementation was already committed by `task-complete`'s Step 9, and this release's changelog work is split differently under the per-task release model: a `(pending vX.Y.Z · PR #NNN)` entry goes directly to `main` (its Step 12) and is then promoted on the branch by `task-complete`'s own Step 13, via `smaqit.release-prepare-files`' Pending Entry Mode. Attempting Steps 1-2 here would either double-commit that work or hit the "nothing to commit" error path.
+- **Step 3 (push)** — `task-complete` owns pushing the branch, both at creation and again after Step 13's rebase (`--force-with-lease`).
+
+Step 4's title enforcement still matters and is the entire reason for the invocation: a title that does not match `Prepare release vX.Y.Z` makes `post-merge-release.yml` silently skip every job, so the task would appear complete while never actually releasing.
 
 ## How to execute
 

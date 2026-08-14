@@ -25,6 +25,8 @@ The synchronized topology is:
 
 Repeated initialization is expected to be idempotent. Claude Code may fail to resolve an ancestor import when launched from some repository subdirectories, so launch it from the project root if imported instructions are missing.
 
+The `# Scaffolding` section seeded into `AGENTS.md` comes from `skills/smaqit.project-init/references/AGENTS.template.md` — a skill-bundled reference installed globally alongside the skill itself, not a project-scaffolded file under `.smaqit/templates/`. This means the template is always present wherever the skill is installed, regardless of a given project's `.smaqit/` scaffolding state. Despite the name, `.github/copilot-instructions.md` never carries distinct Copilot-specific content; it is always the symlink described above.
+
 ---
 
 **How does the installer's `[SMAQIT_SKILLS_DIR]` placeholder work?**
@@ -35,9 +37,15 @@ A handful of skills reference their own install path in usage comments or exampl
 
 **Does the worktree workflow add a separate installer or CLI command?**
 
-No. Worktree behavior is implemented by the canonical `smaqit.utils.worktree` skill and its eight shell scripts. The normal initializer installs that skill for GitHub Copilot, Claude Code, and Codex alongside the other workflow skills.
+No. Worktree behavior is implemented by the canonical `smaqit.utils.worktree` skill and its nine shell scripts. The normal initializer installs that skill for GitHub Copilot, Claude Code, and Codex alongside the other workflow skills.
 
 `smaqit.task-start` invokes the workflow to create or reuse a task branch, sibling worktree, sparse checkout, and root VS Code workspace. `smaqit.task-complete` invokes its cleanup path after merging. `worktree.sync` and `worktree.migrate-sessions` are skill triggers, not commands in the `smaqit-extensions` binary.
+
+---
+
+**How do `smaqit.utils.worktree` scripts determine which repository to operate on?**
+
+Every script resolves the project root from the caller's current working directory — via a bare `git rev-parse --show-toplevel` (scripts 1, 3–8) or a bare `git worktree list --porcelain` (script 9's lifecycle resolver) — never from the script's own installed file location. This matters because under the default global install, the scripts live entirely outside any project (`~/.claude/skills/...`, `~/.agents/skills/...`); deriving the root from `${BASH_SOURCE[0]}` would resolve the wrong repository, or fail outright with "not a git repository." Every documented invocation in `SKILL.md` therefore requires cwd to already be at the project root when the script runs — Gotcha #16 states this explicitly for Steps 1–8, matching Step 9's own documented convention. `2_validate_prereqs.sh`'s bare `git rev-parse --git-dir` check is the same cwd-anchored pattern in miniature, and the only script that needed no fix when this was corrected.
 
 ---
 

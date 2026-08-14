@@ -2,12 +2,19 @@
 name: smaqit.session-finish
 description: End session by documenting the entire conversation. Use at session completion to create history entries.
 metadata:
-  version: "0.9.1"
+  version: "0.10.0"
 ---
 
 # Session Finish
 
 End a session by documenting the **entire session** (not just recent activity).
+
+## Usage
+
+```
+session.finish                     # Assisted mode (default) - stops for confirmation before commit/push
+session.finish --autonomous        # Autonomous mode - commits/pushes automatically when safe
+```
 
 ## Steps
 
@@ -82,9 +89,34 @@ End a session by documenting the **entire session** (not just recent activity).
    - Write the updated compendium atomically (overwrite the file); create the file if it does not exist.
    - Report: "Compendium updated — N entries added, M entries updated." (Skip this report if no candidate questions were found.)
 
+7. **Finalize main branch state** — runs after Step 6 regardless of whether a history file was written this session (main can still be behind `origin/main` from a prior session). Operates only on the primary checkout and only on `main`; never touches another worktree or branch. Resolve the primary checkout path via `git worktree list --porcelain` — never assume cwd is the primary checkout.
+
+   - Check the current branch and status (`git branch --show-current`, `git status --porcelain`). If already on `main`, clean, and in sync with `origin/main`, there is nothing to do.
+   - If the situation is straightforward, resolve it directly:
+     - On a different branch with a clean tree → `git checkout main`.
+     - Uncommitted changes on `main` from files this run itself wrote (the Step 2 history file; `.smaqit/compendium.md` if Step 6 updated it; `.smaqit/references/project-research.md` if Step 4 refreshed it) → stage exactly those paths (never `git add -A` or a broader path) and commit. **Assisted:** list the files and stop for explicit confirmation before committing. **Autonomous:** commit directly.
+     - Behind `origin/main` with no local commits of your own → `git fetch origin main && git pull --ff-only origin main`.
+     - Ahead of `origin/main` with nothing to pull → push. **Assisted:** report the commits ready to push and stop for explicit confirmation. **Autonomous:** `git push origin main` directly.
+   - **If anything doesn't resolve cleanly on the first safe attempt, or the situation is ambiguous or risky** — a detached HEAD, an in-progress merge/conflict, a dirty branch other than `main`, diverged history, an unexpected push rejection, an authentication failure, or anything else you're not confident is safe — **STOP.** Report exactly what you observed and take no further action, in both Assisted and Autonomous mode. Do not guess, retry, or improvise a fix.
+   - **Never attempt, in either mode:** resolving a merge conflict, force-pushing, hard-resetting or discarding uncommitted work, rebasing, fixing an authentication/permission failure, or touching a branch or worktree other than the primary checkout's `main`. Report any of these situations to the user; do not solve them.
+
 ## Requirements
 
 - **Do NOT create** separate RESUME or TODO files (history file serves this purpose)
 - Document the complete session, not just the final activity
 - Focus on decisions and rationale, not implementation details
 - Always attempt Step 2 (memory) even when no history file was created, if a memory capability is available — it is the cross-branch context mechanism; the history file remains authoritative when it is not available
+
+## Failure Handling
+
+| Situation | Action |
+|-----------|--------|
+| Detached HEAD | STOP. Report the detached commit; do not check out any branch automatically. |
+| An in-progress merge or conflict markers | STOP. Report the conflicting paths; do not resolve, abort, or continue the merge/rebase. |
+| A non-`main` branch with a dirty tree | STOP. Report the branch and the uncommitted changes; do not switch branches or discard anything. |
+| `git pull --ff-only` fails despite an apparent clean fast-forward | STOP. Report the error; do not merge or rebase. |
+| Local `main` has diverged from `origin/main` | STOP. Report the ahead/behind situation; do not pull, merge, or rebase. |
+| `git push` is rejected unexpectedly | STOP. Report the rejection; do not retry, force-push, or pull-then-retry automatically. |
+| Authentication/permission failure on fetch or push | STOP. Report the error; do not attempt credential or SSH-agent recovery. |
+| Uncommitted work found outside this run's own known output paths | Do not stage or commit it; report it and leave it untouched. |
+| Anything else that doesn't resolve cleanly on the first safe attempt | STOP. Report what you observed; do not guess or improvise a fix. |

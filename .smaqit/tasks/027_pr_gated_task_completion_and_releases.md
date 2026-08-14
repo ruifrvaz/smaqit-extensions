@@ -1,6 +1,7 @@
 # PR-Gated Task Completion & Per-Task Releases
 
-**Status:** In Progress
+**Status:** PR Open
+**PR:** #124
 **Created:** 2026-08-14
 **Mode:** Assisted
 **Started:** 2026-08-14
@@ -77,33 +78,36 @@ None.
 
 ## Acceptance Criteria
 
-- [ ] `task-complete` never runs a local `git merge` into `main`; Assisted-mode completion always produces a pushed branch and an open PR, then stops.
-- [ ] `task-start` and `task-complete`'s pre-PR metadata commit are pushed to `origin/main` immediately, with a bounded fetch-rebase-retry loop on rejection.
-- [ ] `CHANGELOG.md`'s `[Unreleased]` section supports multiple simultaneous `(pending PR #NNN)`-annotated entries, each independently promotable to its own dated version section by its own PR.
-- [ ] `release-analysis` computes version/severity against live `origin/main` (never stale local state) and treats other pending entries as already-claimed versions.
-- [ ] `post-merge-release.yml` (this repo's copy and the consumer template) has a concurrency group; a residual tag collision fails the workflow run visibly rather than silently dropping a release.
-- [ ] Local task-branch cleanup force-deletes the branch only after `gh pr view` confirms `MERGED`, regardless of merge strategy; the remote branch is never deleted.
-- [ ] Autonomous-mode `task-complete` opens and merges its own PR in one invocation with no human wait; Assisted-mode's merge-check-and-cleanup phase never self-initiates and only runs on explicit user request.
-- [ ] A new `PR Open` task status (recording the PR number) is documented in both task templates, `PLANNING.md`, and all three synced `RULES.md` copies.
-- [ ] An abandoned task with an unmerged, closed PR has its pending `CHANGELOG.md` entry removed; its claimed version number is never reused.
-- [ ] Child task completion is unchanged: no branch push, no PR, no release; its commits land only in the shared parent worktree via the existing bookkeeping-only path, and this is exercised by a hermetic test asserting a child never triggers Phase 1 or Phase 2.
-- [ ] Hermetic tests cover pending-entry promotion, fresh-boundary version computation, push retry, and squash-merge-safe branch deletion; `make test` and `make smoke-test` pass.
+- [x] `task-complete` never runs a local `git merge` into `main`; Assisted-mode completion always produces a pushed branch and an open PR, then stops.
+- [x] `task-start` and `task-complete`'s pre-PR metadata commit are pushed to `origin/main` immediately, with a bounded fetch-rebase-retry loop on rejection.
+- [x] `CHANGELOG.md`'s `[Unreleased]` section supports multiple simultaneous `(pending PR #NNN)`-annotated entries, each independently promotable to its own dated version section by its own PR.
+- [x] `release-analysis` computes version/severity against live `origin/main` (never stale local state) and treats other pending entries as already-claimed versions.
+- [x] `post-merge-release.yml` (this repo's copy and the consumer template) has a concurrency group; a residual tag collision fails the workflow run visibly rather than silently dropping a release.
+- [x] Local task-branch cleanup force-deletes the branch only after `gh pr view` confirms `MERGED`, regardless of merge strategy; the remote branch is never deleted.
+- [x] Autonomous-mode `task-complete` opens and merges its own PR in one invocation with no human wait; Assisted-mode's merge-check-and-cleanup phase never self-initiates and only runs on explicit user request.
+- [x] A new `PR Open` task status (recording the PR number) is documented in both task templates, `PLANNING.md`, and all three synced `RULES.md` copies.
+- [x] An abandoned task with an unmerged, closed PR has its pending `CHANGELOG.md` entry removed; its claimed version number is never reused.
+- [x] Child task completion is unchanged: no branch push, no PR, no release; its commits land only in the shared parent worktree via the existing bookkeeping-only path, and this is exercised by a hermetic test asserting a child never triggers Phase 1 or Phase 2.
+- [x] Hermetic tests cover pending-entry promotion, fresh-boundary version computation, push retry, and squash-merge-safe branch deletion; `make test` and `make smoke-test` pass.
 
 ## Findings
 
-[Populated by smaqit.task-complete. Do not fill in manually before task is complete.]
-
 **Implementation approach:**
-- TBD
+- Rewrote `task-complete` into a phase-gated flow (`3a` branches on Status; Phase 1 = commit → compute version → push branch → `gh pr create` → push pending `CHANGELOG.md` entry → rebase and promote it on the branch → set `PR Open`; Phase 2 = re-check mode gate → `gh pr view` → pull `main` → cleanup) and threaded the same split through `task-start`, `release-analysis`, `release-approval`, `release-prepare-files`, `release-git-pr`, `smaqit.utils.worktree`, both `post-merge-release.yml` copies, both task templates, and all three synced `RULES.md` copies.
+- Added two new hermetic test files exercising real git mechanics (bounded fetch-rebase-retry recovery, squash-merge-safe `-D` deletion, a child task's `--purpose complete` resolution, pending-entry promotion against a two-task fixture) plus contract assertions across every touched file; registered both in the Makefile.
 
 **Decisions made:**
-- TBD
+- Pending `CHANGELOG.md` annotations embed the claimed version (`pending vX.Y.Z · PR #NNN`), not just the PR number, so a concurrent task's `release-analysis` run can treat it as an already-claimed version.
+- The PR must exist before its pending entry is written (the annotation names the PR), and its branch carries a separate promotion commit after rebasing onto `main` — resolved via a self-review pass that caught the original ordering as backwards and the promotion step as entirely missing (see Blockers).
+- Local branch cleanup always force-deletes (`-D`) once `gh pr view` confirms `MERGED`, never relying on git's own ancestry check, since both a squash merge and this design's own rebase-and-force-push in Phase 1 make `-d` unreliable.
 
 **Blockers encountered:**
-- TBD
+- A self-review pass after the first implementation draft found three defects that would have broken the flow outright: nothing actually created the PR (a step said "capture the resulting PR number" with no `gh pr create` anywhere); the pending `CHANGELOG.md` entry was written before the PR existed even though its annotation names the PR; and nothing promoted the pending entry on the PR's own branch, which would have shipped every release with empty notes and left the pending annotation on `main` forever. Also found: Phase 2 was reachable without re-checking the Assisted-mode gate, the abandon path was undocumented as unreachable from the phase gate, and a stale step cross-reference. All six fixed, with new test assertions guarding the three that were silent (no test would have failed) before the fix.
+- AC #10 required a test proving a child task never triggers Phase 1/2; the first draft only had a content-assertion on prose, not an actual test of the resolver's child/owner routing that `task-complete`'s own gate depends on — added a real fixture-based test before marking the task complete.
 
 **Follow-up identified:**
-- TBD
+- `release-git-local`-only projects (no PR-based release model) are not addressed by this task, per its own Notes — worth a follow-up once the PR-based model proves out as the global default.
+- Step 15 of this task (manual end-to-end verification against a real disposable PR) is what this very completion run now performs live, since Assisted-mode task-complete itself exercises Phase 1 against the real repository.
 
 ## Files to Create / Modify
 

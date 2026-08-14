@@ -7,13 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.16.0] - 2026-08-14
+
+### Added
+- **Triage issue payload reduction** — new tasks now declare deterministic Issue Triage Context (mode, technologies, platforms, features, versions) before task content enters model context. Project research fingerprints and refreshes only the keyed current-task map block; triage consumes that projection, searches at most five deduplicated repositories with ten projected GitHub issues per state, excludes pull requests, and bounds corroborating issue excerpts. Legacy task prose is a warned migration fallback. Raw task sections, full research maps, API payloads, and irrelevant issue fields no longer enter model context for structured tasks.
+
+### Changed
+- **Claude pull-request guidance** — project instructions now prohibit AI-disclaimer footers in pull-request descriptions.
+
 ## [1.15.0] - 2026-08-14
 
 ### Added
 - **Session-finish main-branch finalization** — `smaqit.session-finish` now ends every session by checking out a clean `main`, committing only the files the session itself wrote, and syncing/pushing against `origin/main` via a fast-forward-only pull. Behavior is Assisted (default, stops for confirmation before commit/push) or Autonomous (`session.finish --autonomous`, commits/pushes automatically when safe). Anything that doesn't resolve cleanly on the first safe attempt — detached HEAD, an in-progress merge, a dirty non-`main` branch, diverged history, an unexpected push rejection, an auth failure, or anything else ambiguous — always stops and reports in both modes; no conflict resolution, force-push, hard reset, rebase, or auth recovery is ever attempted.
-
-### Changed
-- **Triage issue payload reduction** — new tasks now declare deterministic Issue Triage Context (mode, technologies, platforms, features, versions) before task content enters model context. Project research fingerprints and refreshes only the keyed current-task map block; triage consumes that projection, searches at most five deduplicated repositories with ten projected GitHub issues per state, excludes pull requests, and bounds corroborating issue excerpts. Legacy task prose is a warned migration fallback. Raw task sections, full research maps, API payloads, and irrelevant issue fields no longer enter model context for structured tasks.
 
 ## [1.14.3] - 2026-08-11
 
@@ -655,6 +660,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bash install script with version mode support
 
 [Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.15.0...HEAD
+[1.16.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.15.0...v1.16.0
 [1.15.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.14.3...v1.15.0
 [1.14.3]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.14.2...v1.14.3
 [1.14.2]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.14.1...v1.14.2

@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Session-finish push confirmation gate relaxed** (pending v1.17.2 · PR #125) — `smaqit.session-finish`'s Step 7 no longer stops for explicit confirmation before the routine commit and push of main's own known files; every hard-stop condition (detached HEAD, conflicts, unexpected rejection, diverged history, auth failure, foreign changes) still stops unconditionally exactly as before. Since this left no remaining functional difference between the skill's Assisted and Autonomous modes, the `--autonomous` flag and all mode language are removed entirely rather than kept as a documented no-op — `## Usage` now documents a single invocation.
+
 ## [1.17.1] - 2026-08-14
 
 ### Fixed

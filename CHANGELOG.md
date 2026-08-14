@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.17.1] - 2026-08-14
+
 ### Fixed
 - **`9_resolve_task_lifecycle.sh` rejected `PR Open` owners** — found live while completing task 027 itself: `find_active_task()` hardcoded a requirement that a task be `Status: In Progress` before `--purpose complete` would resolve it, which broke `task-complete`'s new Phase 2 (re-entrant, runs while Status is `PR Open`). Now accepts an explicit allow-list of statuses per call site — Phase 2 owner completion accepts `In Progress` or `PR Open`; parent-child join (`--parent`) still requires strictly `In Progress`, so a task already awaiting merge cannot accept a new child into a worktree that's about to be cleaned up.
 
@@ -667,7 +669,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.15.0...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.17.1...HEAD
+[1.17.1]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.17.0...v1.17.1
+[1.17.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.16.0...v1.17.0
 [1.16.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.15.0...v1.16.0
 [1.15.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.14.3...v1.15.0
 [1.14.3]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.14.2...v1.14.3

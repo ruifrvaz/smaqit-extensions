@@ -8,6 +8,14 @@
 
 [1-3 paragraphs describing what the task is and why it exists. Be specific enough that the task can be executed in a standalone session with no prior context.]
 
+## Issue Triage Context
+
+**Mode:** Auto | Skip
+**Technologies:** [Comma-separated third-party products, libraries, platforms, or services; use None when deliberately absent]
+**Platforms/Environments:** [Comma-separated operating environments; use None when not material]
+**Features/Integrations:** [Comma-separated affected capabilities or integrations; use None only when Technologies is None]
+**Versions/Constraints:** [Comma-separated versions or relevant constraints; use None when not material]
+
 ## Design Decisions
 
 [Confirmed design decisions. Use bullet format: **Decision name:** rationale. Add as needed during refinement. If no decisions yet, write "TBD — to be confirmed during assessment."]

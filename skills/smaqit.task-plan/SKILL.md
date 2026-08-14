@@ -2,7 +2,7 @@
 name: smaqit.task-plan
 description: Plans work before implementation or task creation. Given a task ID or a free-form idea, assesses complexity, resolves design gaps via discovery and Q&A, and produces an approved execution plan. Offers context-appropriate next steps: create a new task, start an existing one, or update the task file with resolved decisions.
 metadata:
-  version: "1.3.1"
+  version: "1.4.0"
 ---
 
 # Task Plan
@@ -24,7 +24,7 @@ The skill infers the operating mode from the user's input:
 
 ### Phase 1 — Task Assessment (Mode B only)
 
-2. Read `.smaqit/tasks/NNN_*.md` for the given task ID. Extract: Description, Acceptance Criteria, Implementation Steps, Design Decisions, Notes, dependencies, and any existing Findings. If the task file is not found, report the error and ask the user to verify the task ID. Do not proceed.
+2. Read `.smaqit/tasks/NNN_*.md` for the given task ID. Extract: Description, Issue Triage Context, Acceptance Criteria, Implementation Steps, Design Decisions, Notes, dependencies, and any existing Findings. Treat a missing, placeholder, malformed, or contradictory Issue Triage Context as a planning gap. If the task file is not found, report the error and ask the user to verify the task ID. Do not proceed.
 
 3. Score complexity:
 
@@ -107,6 +107,12 @@ The skill infers the operating mode from the user's input:
         - {Step derived from plan}
       Design Decisions:
         - {resolved decision from Phase 3}
+      Issue Triage Context:
+        - Mode: {Auto|Skip}
+        - Technologies: {exact comma-separated values or None}
+        - Platforms/Environments: {exact values or None}
+        - Features/Integrations: {exact values or None}
+        - Versions/Constraints: {exact values or None}
       ```
       These are exactly what Step 15 passes to `task.create` on approval. Showing them here means the single approval in Step 14 covers both the plan and the fields, instead of asking twice over nearly the same content.
 
@@ -131,7 +137,7 @@ The skill infers the operating mode from the user's input:
 16. **Task file update (Mode B, option 2):**
     - Present a field-by-field summary of proposed changes: current value → new value for each field being updated
     - Require explicit user confirmation before writing
-    - Write only the fields that have changed: Implementation Steps, Design Decisions, and ACs if the plan reveals they are incorrect or incomplete
+    - Write only the fields that have changed: Issue Triage Context, Implementation Steps, Design Decisions, and ACs if the plan reveals they are incorrect or incomplete
     - Never touch PLANNING.md or any other file
 
 ## Output
@@ -149,7 +155,7 @@ The skill infers the operating mode from the user's input:
 - Launching Explore subagents to gather codebase context
 - Iterative Q&A to resolve design decisions and gaps
 - Writing and refining an execution plan
-- Updating Implementation Steps, Design Decisions, and ACs in the task file after explicit user confirmation (Mode B option 2)
+- Updating Issue Triage Context, Implementation Steps, Design Decisions, and ACs in the task file after explicit user confirmation (Mode B option 2)
 
 **Out of scope:**
 - Does not implement code or modify source files

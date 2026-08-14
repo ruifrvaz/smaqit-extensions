@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - **Session-finish main-branch finalization** — `smaqit.session-finish` now ends every session by checking out a clean `main`, committing only the files the session itself wrote, and syncing/pushing against `origin/main` via a fast-forward-only pull. Behavior is Assisted (default, stops for confirmation before commit/push) or Autonomous (`session.finish --autonomous`, commits/pushes automatically when safe). Anything that doesn't resolve cleanly on the first safe attempt — detached HEAD, an in-progress merge, a dirty non-`main` branch, diverged history, an unexpected push rejection, an auth failure, or anything else ambiguous — always stops and reports in both modes; no conflict resolution, force-push, hard reset, rebase, or auth recovery is ever attempted.
 
+### Changed
+- **Triage issue payload reduction** — new tasks now declare deterministic Issue Triage Context (mode, technologies, platforms, features, versions) before task content enters model context. Project research fingerprints and refreshes only the keyed current-task map block; triage consumes that projection, searches at most five deduplicated repositories with ten projected GitHub issues per state, excludes pull requests, and bounds corroborating issue excerpts. Legacy task prose is a warned migration fallback. Raw task sections, full research maps, API payloads, and irrelevant issue fields no longer enter model context for structured tasks.
+
 ## [1.14.3] - 2026-08-11
 
 ### Removed

@@ -1,10 +1,10 @@
 # PR-Gated Task Completion & Per-Task Releases
 
-**Status:** PR Open
-**PR:** #124
+**Status:** Completed
 **Created:** 2026-08-14
 **Mode:** Assisted
 **Started:** 2026-08-14
+**Completed:** 2026-08-14
 
 ## Description
 
@@ -107,7 +107,8 @@ None.
 
 **Follow-up identified:**
 - `release-git-local`-only projects (no PR-based release model) are not addressed by this task, per its own Notes — worth a follow-up once the PR-based model proves out as the global default.
-- Step 15 of this task (manual end-to-end verification against a real disposable PR) is what this very completion run now performs live, since Assisted-mode task-complete itself exercises Phase 1 against the real repository.
+- Step 15 of this task (manual end-to-end verification against a real disposable PR) is what this completion run performed live: PR #124 was opened, its CHANGELOG diff verified via `gh pr diff` to be exactly the intended promotion, merged, and cleaned up.
+- Phase 2's own live run found a second real bug this task's implementation missed: `9_resolve_task_lifecycle.sh`'s `find_active_task()` hardcoded `Status: In Progress` for `--purpose complete`, which rejected Phase 2 entirely (Status is `PR Open` by then). Fixed directly on `main` (commit `d50e4b9`, not part of PR #124, which had already merged) with a regression test that fails against the pre-fix resolver and confirms the parent-child join path still requires strictly `In Progress`.
 
 ## Files to Create / Modify
 

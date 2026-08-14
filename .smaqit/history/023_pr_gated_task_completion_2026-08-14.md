@@ -1,8 +1,9 @@
 # PR-Gated Task Completion
 
 **Date:** 2026-08-14
-**Session focus:** Redesigning `task-complete` so main is never pushed into directly for code while smaqit's own metadata stays synced in real time, then implementing, self-reviewing, and shipping that redesign as task 027 — including two live-discovered bugs fixed after the fact — plus diagnosing a separate `smaqit-extensions update` regression.
+**Session focus:** Redesigning `task-complete` so main is never pushed into directly for code while smaqit's own metadata stays synced in real time, then implementing, self-reviewing, and shipping that redesign as task 027 — including two live-discovered bugs fixed after the fact — plus diagnosing a separate `smaqit-extensions update` regression, then planning a follow-up hotfix to `session-finish`'s own confirmation gate based on direct feedback during this session's own close-out.
 **Tasks completed:** 027 — PR-Gated Task Completion & Per-Task Releases
+**Tasks created:** 029 — Relax Session-Finish Push Confirmation Gate (Not Started)
 **Tasks referenced:** 002, 007, 010, 028 (untouched, still Not Started/new)
 
 ## Actions Taken
@@ -18,6 +19,7 @@
 - User asked for a small patch release via the local release agent. Delegated to the `smaqit-release-local` subagent, which produced `v1.17.1` (analyzed the two-commit delta since `v1.17.0`, confirmed PATCH severity, also fixed a stale `CHANGELOG.md` compare-links footer). Verified independently (ancestry check, GitHub Actions run success, GitHub Release not a draft), then ran `smaqit-extensions update` myself to confirm end-to-end.
 - That verification run exposed a third bug: `update`'s project-rescaffolding step has no special case for "this directory is smaqit-extensions' own source repo" — it re-created the exact committed-dogfooding-mirror pattern removed in v1.14.3 (`.github/agents/`, `.github/skills/`, `.claude/`, `.codex/agents/`, `.agents/skills/`) plus resurrected an orphaned template file, directly inside this repo. Everything was untracked (nothing committed), so cleaned it up and flagged it as a follow-up rather than fixing it unprompted.
 - User asked whether this was the known "self-update runs stale in-process code" bug class. Read `installer/main.go`'s actual `runUpdate`/`replaceBinary`/`checkAndReInitWithBinary` implementation rather than guessing — confirmed that class of bug is correctly avoided (`exec.Command(binaryPath, ...)` respawns a fresh subprocess of the just-replaced binary). Pinpointed the real cause precisely: `checkAndReInitWithBinary`'s scaffold check (`main.go` ~1304-1305) only tests "does `.smaqit/` exist here," with no repo-identity check at all — and the `cmp == 0`/`cmp > 0` early-return path calls the equivalent `checkAndReInit`, so the bug is unrelated to versioning or process staleness.
+- Ran `session.finish`. Mid-way, at the Step 7 commit/push confirmation, user gave direct feedback: the routine confirm-before-commit/push gate is "too slow and too fearful" — should proceed directly on the unambiguous case (known self-authored files, clean fast-forward) and reserve stopping for actual critical errors, using the exact pending push as a live example of what should have gone through without asking. Captured as a feedback memory, scoped explicitly against the separate, still-standing release-approval feedback so the two don't get conflated. Pushed the pending commit directly per the new guidance, then planned (`smaqit.task-plan`, no Explore agents needed — the target file's current content was already fully known from earlier in this session) and created task 029 to make the fix: a subtractive rewrite of `session-finish` Step 7's two confirmation sentences, explicitly not replaced with new prescriptive logic, with all existing hard-stop conditions left untouched. Applied the same new push-autonomy guidance immediately to task 029's own creation commit.
 
 ## Problems Solved
 
@@ -55,7 +57,8 @@
 
 ## Next Steps
 
-- `smaqit-extensions update`'s scaffolding logic needs a repo-identity check so it stops re-creating dogfooding mirrors when run inside this repo's own checkout — root cause pinpointed (`installer/main.go` ~1304), not yet fixed. Good candidate for task 028's slot or its own small task.
+- Task 029 (Not Started) is ready to start: subtractive rewrite of `session-finish` Step 7's confirmation gate.
+- `smaqit-extensions update`'s scaffolding logic still needs a repo-identity check so it stops re-creating dogfooding mirrors when run inside this repo's own checkout — root cause pinpointed (`installer/main.go` ~1304), not yet fixed or task-tracked.
 - Tasks 002, 007, 010 remain open (Not Started), unchanged this session.
 - Task 028 ("Benchmark Glossary Skill Invocation") appeared in `PLANNING.md` during this session from outside this thread — not investigated here.
 - Working tree should be clean on `main` after this session-finish run; verify before next session.
@@ -64,6 +67,8 @@
 
 - **Duration:** Full session, single continuous thread (model switched Sonnet → Opus for review → Sonnet)
 - **Tasks completed:** 1 (027)
+- **Tasks created:** 1 (029, Not Started)
 - **Releases shipped:** 2 (v1.17.0 via task 027's own new PR-gated mechanism — the first task ever completed through it; v1.17.1 patch via `smaqit-release-local`)
 - **Real bugs found and fixed:** 9 total — 3 blocking + 3 non-blocking in self-review before merge; 1 live in Phase 2 after merge; 1 pre-existing bug fixed as part of discovery (release-analysis stale boundary); 1 (`update` scaffolding) found and diagnosed but deliberately left unfixed pending a future task
 - **Files modified/created:** ~20 across the task 027 PR, plus 2 more in the post-merge direct fix
+- **Direct process feedback incorporated mid-session:** relaxed push-confirmation behavior for routine session-finish commits, applied immediately and captured as a standing memory

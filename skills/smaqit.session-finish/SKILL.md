@@ -2,7 +2,7 @@
 name: smaqit.session-finish
 description: End session by documenting the entire conversation. Use at session completion to create history entries.
 metadata:
-  version: "0.10.0"
+  version: "0.10.1"
 ---
 
 # Session Finish
@@ -12,8 +12,7 @@ End a session by documenting the **entire session** (not just recent activity).
 ## Usage
 
 ```
-session.finish                     # Assisted mode (default) - stops for confirmation before commit/push
-session.finish --autonomous        # Autonomous mode - commits/pushes automatically when safe
+session.finish                     # Documents the session, then finalizes main's git state; stops only on the failure-handling conditions below
 ```
 
 ## Steps
@@ -94,11 +93,11 @@ session.finish --autonomous        # Autonomous mode - commits/pushes automatica
    - Check the current branch and status (`git branch --show-current`, `git status --porcelain`). If already on `main`, clean, and in sync with `origin/main`, there is nothing to do.
    - If the situation is straightforward, resolve it directly:
      - On a different branch with a clean tree → `git checkout main`.
-     - Uncommitted changes on `main` from files this run itself wrote (the Step 2 history file; `.smaqit/compendium.md` if Step 6 updated it; `.smaqit/references/project-research.md` if Step 4 refreshed it) → stage exactly those paths (never `git add -A` or a broader path) and commit. **Assisted:** list the files and stop for explicit confirmation before committing. **Autonomous:** commit directly.
+     - Uncommitted changes on `main` from files this run itself wrote (the Step 2 history file; `.smaqit/compendium.md` if Step 6 updated it; `.smaqit/references/project-research.md` if Step 4 refreshed it) → stage exactly those paths (never `git add -A` or a broader path) and commit.
      - Behind `origin/main` with no local commits of your own → `git fetch origin main && git pull --ff-only origin main`.
-     - Ahead of `origin/main` with nothing to pull → push. **Assisted:** report the commits ready to push and stop for explicit confirmation. **Autonomous:** `git push origin main` directly.
-   - **If anything doesn't resolve cleanly on the first safe attempt, or the situation is ambiguous or risky** — a detached HEAD, an in-progress merge/conflict, a dirty branch other than `main`, diverged history, an unexpected push rejection, an authentication failure, or anything else you're not confident is safe — **STOP.** Report exactly what you observed and take no further action, in both Assisted and Autonomous mode. Do not guess, retry, or improvise a fix.
-   - **Never attempt, in either mode:** resolving a merge conflict, force-pushing, hard-resetting or discarding uncommitted work, rebasing, fixing an authentication/permission failure, or touching a branch or worktree other than the primary checkout's `main`. Report any of these situations to the user; do not solve them.
+     - Ahead of `origin/main` with nothing to pull → `git push origin main`.
+   - **If anything doesn't resolve cleanly on the first safe attempt, or the situation is ambiguous or risky** — a detached HEAD, an in-progress merge/conflict, a dirty branch other than `main`, diverged history, an unexpected push rejection, an authentication failure, or anything else you're not confident is safe — **STOP.** Report exactly what you observed and take no further action. Do not guess, retry, or improvise a fix.
+   - **Never attempt:** resolving a merge conflict, force-pushing, hard-resetting or discarding uncommitted work, rebasing, fixing an authentication/permission failure, or touching a branch or worktree other than the primary checkout's `main`. Report any of these situations to the user; do not solve them.
 
 ## Requirements
 

@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **Session-finish main-branch finalization** — `smaqit.session-finish` now ends every session by resolving the primary checkout, detecting unsafe git states (detached HEAD, an in-progress merge, a dirty non-`main` branch), restoring a clean `main`, committing only the files the session itself wrote, and syncing/pushing against `origin/main` via a fast-forward-only pull. Behavior is Assisted (default, stops for confirmation before commit/push) or Autonomous (`session.finish --autonomous`, commits/pushes automatically only when safe) via a new deterministic `scripts/finalize-main.sh` helper. Any unsafe or unexpected state always stops and reports in both modes — no conflict resolution, force-push, hard reset, rebase, or auth recovery is ever attempted.
+- **Session-finish main-branch finalization** — `smaqit.session-finish` now ends every session by checking out a clean `main`, committing only the files the session itself wrote, and syncing/pushing against `origin/main` via a fast-forward-only pull. Behavior is Assisted (default, stops for confirmation before commit/push) or Autonomous (`session.finish --autonomous`, commits/pushes automatically when safe). Anything that doesn't resolve cleanly on the first safe attempt — detached HEAD, an in-progress merge, a dirty non-`main` branch, diverged history, an unexpected push rejection, an auth failure, or anything else ambiguous — always stops and reports in both modes; no conflict resolution, force-push, hard reset, rebase, or auth recovery is ever attempted.
 
 ## [1.14.3] - 2026-08-11
 

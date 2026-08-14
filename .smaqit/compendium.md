@@ -95,6 +95,12 @@ Git-root precedence prevents an accidental nested installation such as `scripts/
 
 ---
 
+**Does installing or updating remove files that are no longer part of the current release?**
+
+No. The installer (fresh install or `update`) copies and overwrites files from the current source into the global install directories, but it never prunes files that exist on disk but are no longer present in the version being installed. A file left behind by an earlier development-time `--install-global` run (e.g. a helper script from an in-progress skill rework that was later dropped from the shipped design) survives an official reinstall untouched — its presence doesn't imply it's still part of the current release. Verify installed content against the exact released source (e.g. `git show <tag>:<path>` for a specific file, or a repo-wide grep for any reference to a suspect file) rather than trusting a version-string match alone.
+
+---
+
 ## Release Workflow
 
 **Where is desktop SSH-agent popup recovery defined and how is it constrained?**
@@ -102,6 +108,12 @@ Git-root precedence prevents an accidental nested installation such as `scripts/
 The canonical instructions live in `agents/smaqit.release.local.agent.md`, `skills/smaqit.release-git-local/SKILL.md`, and `skills/smaqit.project-init/references/AGENTS.template.md`. Generated Copilot, Claude Code, and Codex artifacts carry the same guidance — the template is a skill-bundled reference, installed globally alongside `smaqit.project-init` itself, not a project-scaffolded file.
 
 When an authorized Git SSH step lacks an inherited agent, the workflow checks already-running desktop sockets in a defined order: GCR, legacy GNOME Keyring, GnuPG, the current OpenSSH socket, then the systemd user environment. It uses a socket only for a command-scoped identity check and one retry of the exact failed Git command, allowing WSLg/GNOME/pinentry unlock or confirmation prompts to appear. It never exports or persists `SSH_AUTH_SOCK`, starts or replaces an agent, loads or removes identities, changes transport, or broadens the authorized Git operation.
+
+---
+
+**Do release PRs carry an AI-authorship disclaimer footer?**
+
+No. `CLAUDE.md` at the repository root explicitly instructs against adding a "Generated with Claude Code" footer (or any equivalent AI-authorship disclaimer) to pull request descriptions. Such a footer is not part of any smaqit skill or agent's own PR template — it originates from Claude Code's own baseline `gh pr create` guidance and must be suppressed via this project-level instruction.
 
 ---
 
@@ -148,5 +160,15 @@ Implementation changes in a task worktree are deliberately left uncommitted unti
 **How many approvals does `task.plan` need before creating a new task (Mode A)?**
 
 Just one. The plan and the pre-populated task-create fields derived from it are shown together in the same message; approving either approves both, and `task.create` is invoked immediately afterward with no separate re-confirmation. Mode B (an existing task ID) is different — its post-approval prompt offers three genuinely distinct choices (start now, update the task file, or hold for later), which is not a restatement of the plan and is not collapsed.
+
+---
+
+## Issue Triage
+
+**How does `smaqit.utils.triage-issues` reduce execution-token usage without losing task signal?**
+
+New tasks declare a compact `## Issue Triage Context` with the triage mode, technologies, platforms/environments, features/integrations, and versions/constraints. `smaqit.project-research/scripts/task-context.sh` validates and fingerprints just those fields; triage does not load general task prose for structured tasks. Project research stores a keyed task block for that fingerprint, and triage reads only that exact block rather than the full research map.
+
+GitHub access is likewise projected before model inspection: `github-issues.sh` limits each open or closed search to ten issues, excludes pull requests, retains only decision-relevant metadata, and caps at most three corroborating detail excerpts to 1,500 characters each. The workflow retains the Blocking, Advisory, Historical, and Clear decisions, with warnings preventing a false Clear result. Legacy task prose remains a warned migration fallback until the task is re-planned.
 
 ---

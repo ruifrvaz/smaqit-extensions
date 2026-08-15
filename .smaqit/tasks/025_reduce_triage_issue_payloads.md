@@ -1,10 +1,12 @@
-# Reduce Triage Issue Payloads
+---
+status: Completed
+mode: Assisted
+created: "2026-08-13"
+started: "2026-08-13"
+completed: "2026-08-14"
+---
 
-**Status:** Completed
-**Created:** 2026-08-13
-**Mode:** Assisted
-**Started:** 2026-08-13
-**Completed:** 2026-08-14
+# Reduce Triage Issue Payloads
 
 ## Description
 

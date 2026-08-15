@@ -1,10 +1,12 @@
-# Global User-Level Installation with Agent-Specific Adapters
+---
+status: Completed
+mode: Assisted
+created: "2026-08-10"
+started: "2026-08-10"
+completed: "2026-08-10"
+---
 
-**Status:** Completed
-**Created:** 2026-08-10
-**Mode:** Assisted
-**Started:** 2026-08-10
-**Completed:** 2026-08-10
+# Global User-Level Installation with Agent-Specific Adapters
 
 ## Description
 

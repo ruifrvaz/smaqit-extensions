@@ -1,7 +1,9 @@
-# Publish smaqit-extensions as Copilot Marketplace Plugin
+---
+status: Not Started
+created: "2026-05-09"
+---
 
-**Status:** Not Started
-**Created:** 2026-05-09
+# Publish smaqit-extensions as Copilot Marketplace Plugin
 
 ## Description
 

@@ -1,7 +1,9 @@
-# Create smaqit.project-recap Skill
+---
+status: Completed
+created: "2026-05-09"
+---
 
-**Status:** Completed
-**Created:** 2026-05-09
+# Create smaqit.project-recap Skill
 
 ## Description
 

@@ -1,10 +1,12 @@
-# Repair Worktree Visibility and Sparse Checkout
+---
+status: Completed
+mode: Assisted
+created: "2026-07-27"
+started: "2026-07-29"
+completed: "2026-07-29"
+---
 
-**Status:** Completed
-**Created:** 2026-07-27
-**Mode:** Assisted
-**Started:** 2026-07-29
-**Completed:** 2026-07-29
+# Repair Worktree Visibility and Sparse Checkout
 
 ## Description
 

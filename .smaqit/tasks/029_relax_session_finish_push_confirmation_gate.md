@@ -1,10 +1,12 @@
-# Relax Session-Finish Push Confirmation Gate
+---
+status: Completed
+mode: Assisted
+created: "2026-08-14"
+started: "2026-08-14"
+completed: "2026-08-15"
+---
 
-**Status:** Completed
-**Created:** 2026-08-14
-**Started:** 2026-08-14
-**Completed:** 2026-08-15
-**Mode:** Assisted
+# Relax Session-Finish Push Confirmation Gate
 
 ## Description
 

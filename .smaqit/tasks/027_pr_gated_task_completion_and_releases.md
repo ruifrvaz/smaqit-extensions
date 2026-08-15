@@ -1,10 +1,12 @@
-# PR-Gated Task Completion & Per-Task Releases
+---
+status: Completed
+mode: Assisted
+created: "2026-08-14"
+started: "2026-08-14"
+completed: "2026-08-14"
+---
 
-**Status:** Completed
-**Created:** 2026-08-14
-**Mode:** Assisted
-**Started:** 2026-08-14
-**Completed:** 2026-08-14
+# PR-Gated Task Completion & Per-Task Releases
 
 ## Description
 

@@ -46,4 +46,6 @@ Central task tracking and planning for smaqit-extensions.
 
 Tasks are stored in individual files: `.smaqit/tasks/NNN_task_title.md`
 
-Status values: `Not Started`, `In Progress`, `PR Open` (owner tasks only — implementation committed, release PR awaiting or undergoing review; the task file's `**PR:** #NNN` field names it), `Completed`, `Abandoned`, `Blocked`. See `smaqit.task-complete`'s `references/RULES.md` for the full status lifecycle and phase model.
+Status values: `Not Started`, `In Progress`, `PR Open` (owner tasks only — implementation committed, release PR awaiting or undergoing review; the task file's `pr: NNN` frontmatter key names it), `Completed`, `Abandoned`, `Blocked`. See `smaqit.task-complete`'s `references/RULES.md` for the full status lifecycle and phase model.
+
+Task file header fields (`status`, `mode`, `parent`, `pr`, `created`, `started`, `completed`) are stored as YAML frontmatter, not bold-markdown lines. `## Issue Triage Context`'s own `Mode: Auto | Skip` field is unrelated and stays bold-markdown, unchanged.

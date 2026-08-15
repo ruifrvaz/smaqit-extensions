@@ -1,10 +1,12 @@
-# Repair Skill Contract and Scope Inconsistencies
+---
+status: Completed
+mode: Assisted
+created: "2026-07-24"
+started: "2026-08-06"
+completed: "2026-08-06"
+---
 
-**Status:** Completed
-**Created:** 2026-07-24
-**Mode:** Assisted
-**Started:** 2026-08-06
-**Completed:** 2026-08-06
+# Repair Skill Contract and Scope Inconsistencies
 
 ## Description
 

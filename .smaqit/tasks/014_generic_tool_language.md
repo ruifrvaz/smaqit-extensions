@@ -1,9 +1,11 @@
-# Generic Tool Language for Memory, Transcript, and Question-Asking Steps
+---
+status: Completed
+mode: Assisted
+created: "2026-07-16"
+completed: "2026-07-16"
+---
 
-**Status:** Completed
-**Mode:** Assisted
-**Created:** 2026-07-16
-**Completed:** 2026-07-16
+# Generic Tool Language for Memory, Transcript, and Question-Asking Steps
 
 ## Description
 

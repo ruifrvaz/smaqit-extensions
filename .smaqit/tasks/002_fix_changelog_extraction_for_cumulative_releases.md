@@ -1,7 +1,9 @@
-# Fix Changelog Extraction for Cumulative Releases
+---
+status: Not Started
+created: "2026-02-13"
+---
 
-**Status:** Not Started  
-**Created:** 2026-02-13
+# Fix Changelog Extraction for Cumulative Releases
 
 ## Description
 

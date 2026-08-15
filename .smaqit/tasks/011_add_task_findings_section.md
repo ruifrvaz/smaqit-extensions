@@ -1,8 +1,10 @@
-# Add Findings Section to Task Workflow
+---
+status: Completed
+created: "2026-05-09"
+completed: "2026-05-09"
+---
 
-**Status:** Completed
-**Created:** 2026-05-09
-**Completed:** 2026-05-09
+# Add Findings Section to Task Workflow
 
 ## Description
 

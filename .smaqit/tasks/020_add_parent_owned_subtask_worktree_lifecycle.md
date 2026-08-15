@@ -1,10 +1,12 @@
-# Add Parent-Owned Subtask Worktree Lifecycle
+---
+status: Completed
+mode: Assisted
+created: "2026-07-29"
+started: "2026-07-29"
+completed: "2026-07-29"
+---
 
-**Status:** Completed
-**Created:** 2026-07-29
-**Mode:** Assisted
-**Started:** 2026-07-29
-**Completed:** 2026-07-29
+# Add Parent-Owned Subtask Worktree Lifecycle
 
 ## Description
 

@@ -1,7 +1,9 @@
-# Create smaqit MCP Server (PoC)
+---
+status: Not Started
+created: "2026-05-09"
+---
 
-**Status:** Not Started
-**Created:** 2026-05-09
+# Create smaqit MCP Server (PoC)
 
 ## Description
 

@@ -1,10 +1,12 @@
-# Isolate Task State to Main Worktree
+---
+status: Completed
+mode: Assisted
+created: "2026-08-06"
+started: "2026-08-06"
+completed: "2026-08-06"
+---
 
-**Status:** Completed
-**Created:** 2026-08-06
-**Mode:** Assisted
-**Started:** 2026-08-06
-**Completed:** 2026-08-06
+# Isolate Task State to Main Worktree
 
 ## Description
 

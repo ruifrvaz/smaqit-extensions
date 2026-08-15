@@ -1,7 +1,9 @@
-# Create smaqit.project-glossary Skill
+---
+status: Not Started
+created: "2026-05-02"
+---
 
-**Status:** Not Started
-**Created:** 2026-05-02
+# Create smaqit.project-glossary Skill
 
 ## Description
 

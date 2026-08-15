@@ -1,9 +1,11 @@
-# Task File YAML Frontmatter Migration
+---
+status: In Progress
+mode: Assisted
+created: "2026-08-15"
+started: "2026-08-15"
+---
 
-**Status:** In Progress
-**Created:** 2026-08-15
-**Mode:** Assisted
-**Started:** 2026-08-15
+# Task File YAML Frontmatter Migration
 
 ## Description
 

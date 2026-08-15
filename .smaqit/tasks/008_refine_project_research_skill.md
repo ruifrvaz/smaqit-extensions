@@ -1,8 +1,10 @@
-# Refine smaqit.project-research Skill
+---
+status: Completed
+created: "2026-05-09"
+completed: "2026-05-09"
+---
 
-**Status:** Completed
-**Created:** 2026-05-09
-**Completed:** 2026-05-09
+# Refine smaqit.project-research Skill
 
 ## Description
 

@@ -1,7 +1,9 @@
-# Add smaqit-extensions update Self-Update Command
+---
+status: Completed
+created: "2026-05-09"
+---
 
-**Status:** Completed
-**Created:** 2026-05-09
+# Add smaqit-extensions update Self-Update Command
 
 ## Description
 

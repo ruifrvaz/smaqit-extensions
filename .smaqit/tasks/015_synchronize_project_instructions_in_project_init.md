@@ -1,10 +1,12 @@
-# Synchronize Project Instructions in Project Init
+---
+status: Completed
+mode: Assisted
+created: "2026-07-22"
+started: "2026-07-22"
+completed: "2026-07-23"
+---
 
-**Status:** Completed
-**Mode:** Assisted
-**Created:** 2026-07-22
-**Started:** 2026-07-22
-**Completed:** 2026-07-23
+# Synchronize Project Instructions in Project Init
 
 ## Description
 

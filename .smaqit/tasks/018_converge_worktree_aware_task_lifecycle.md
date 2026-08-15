@@ -1,10 +1,12 @@
-# Converge Worktree-Aware Task Lifecycle
+---
+status: Completed
+mode: Assisted
+created: "2026-07-26"
+started: "2026-07-26"
+completed: "2026-07-26"
+---
 
-**Status:** Completed
-**Created:** 2026-07-26
-**Mode:** Assisted
-**Started:** 2026-07-26
-**Completed:** 2026-07-26
+# Converge Worktree-Aware Task Lifecycle
 
 ## Description
 

@@ -1,10 +1,12 @@
-# Ship Release Automation Workflow Bootstrap for Consumer Projects
+---
+status: Completed
+mode: Assisted
+created: "2026-07-31"
+started: "2026-07-31"
+completed: "2026-07-31"
+---
 
-**Status:** Completed
-**Created:** 2026-07-31
-**Mode:** Assisted
-**Started:** 2026-07-31
-**Completed:** 2026-07-31
+# Ship Release Automation Workflow Bootstrap for Consumer Projects
 
 ## Description
 

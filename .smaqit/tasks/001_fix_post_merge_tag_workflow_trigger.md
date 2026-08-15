@@ -1,8 +1,10 @@
-# Fix Post-Merge Tag Workflow Trigger Issue
+---
+status: Completed
+created: "2026-02-13"
+completed: "2026-02-13"
+---
 
-**Status:** Completed  
-**Created:** 2026-02-13  
-**Completed:** 2026-02-13
+# Fix Post-Merge Tag Workflow Trigger Issue
 
 ## Description
 

@@ -1,10 +1,12 @@
-# Fix Worktree Script Repo-Root Resolution for Global Install
+---
+status: Completed
+mode: Assisted
+created: "2026-08-11"
+started: "2026-08-11"
+completed: "2026-08-11"
+---
 
-**Status:** Completed
-**Created:** 2026-08-11
-**Started:** 2026-08-11
-**Completed:** 2026-08-11
-**Mode:** Assisted
+# Fix Worktree Script Repo-Root Resolution for Global Install
 
 ## Description
 

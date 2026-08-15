@@ -1,8 +1,10 @@
-# Add In-Progress Task Gate to Session Finish
+---
+status: Completed
+created: "2026-07-23"
+completed: "2026-07-23"
+---
 
-**Status:** Completed
-**Created:** 2026-07-23
-**Completed:** 2026-07-23
+# Add In-Progress Task Gate to Session Finish
 
 ## Description
 

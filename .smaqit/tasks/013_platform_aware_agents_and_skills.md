@@ -1,9 +1,11 @@
-# Platform-Aware Agent Frontmatter and Skill Content (Claude Code Follow-up)
+---
+status: Completed
+mode: Assisted
+created: "2026-07-16"
+completed: "2026-07-16"
+---
 
-**Status:** Completed
-**Mode:** Assisted
-**Created:** 2026-07-16
-**Completed:** 2026-07-16
+# Platform-Aware Agent Frontmatter and Skill Content (Claude Code Follow-up)
 
 ## Description
 

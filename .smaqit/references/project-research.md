@@ -47,3 +47,18 @@ version: "1.0.0"
 | Tool | Section | URL |
 |------|---------|-----|
 | Git | Reference | https://git-scm.com/docs |
+
+## Task 030 — Task File YAML Frontmatter Migration
+
+**Context fingerprint:** sha256:48143406ad1f33b4ca376b4c171979b633e0e0d4b4f4e4134f8cf1a86405576d
+**Refreshed:** 2026-08-15
+
+| Tool | Section | URL |
+|------|---------|-----|
+| Go | Documentation | https://go.dev/doc/ |
+| Go | `embed` package | https://pkg.go.dev/embed |
+| Python | Documentation | https://docs.python.org/3/ |
+| Bash | Manual | https://man7.org/linux/man-pages/man1/bash.1.html |
+| GNU sed | Manual | https://man7.org/linux/man-pages/man1/sed.1.html |
+| GNU awk | Manual | https://man7.org/linux/man-pages/man1/gawk.1.html |
+| YAML | Specification | https://yaml.org/spec/1.2.2/ |

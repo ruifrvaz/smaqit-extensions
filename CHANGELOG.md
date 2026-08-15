@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Task file format converted to YAML frontmatter** (pending v1.18.0 · PR #126) — task file header fields (`status`, `mode`, `parent`, `pr`, `created`, `started`, `completed`) move from bold-markdown lines to flat YAML frontmatter; `skills/smaqit.task-create/assets/TASK_TEMPLATE.md` is now the sole canonical task template, and the stale `.smaqit/templates/` directory (unchanged since before task 011) is retired entirely from the installer pipeline. Breaking change, no legacy-format fallback — existing task files in consumer projects must be manually migrated to the new frontmatter format.
+
 ## [1.17.2] - 2026-08-15
 
 ### Fixed

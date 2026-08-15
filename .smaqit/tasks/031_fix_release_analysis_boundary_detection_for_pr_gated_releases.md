@@ -1,6 +1,8 @@
 ---
-status: Not Started
+status: In Progress
+mode: Assisted
 created: "2026-08-15"
+started: "2026-08-16"
 ---
 
 # Fix Release-Analysis Boundary Detection for PR-Gated Releases
@@ -60,8 +62,28 @@ Resolved via `smaqit.task-plan` on 2026-08-15. All three candidate approaches we
 12. Run `make test` and `make smoke-test`; confirm the marker-regex fallback still fires against a tagless fixture and batch mode is unregressed.
 
 ## Known Issues Triage
+**Triaged:** 2026-08-16
+**Tools searched:** Git, GitHub CLI (gh), GitHub Actions
+**Result:** Advisory
 
-[Populated by smaqit.task-start via smaqit.utils.triage-issues. Do not edit manually.]
+### Advisory Issues
+- [#12800 `pr create` fails when local branch name differs from upstream](https://github.com/cli/cli/issues/12800) — `cli/cli` — opened 2026-02-27 — bug, priority-3, core, gh-pr, stale
+- [#10509 `gh pr status` returns error message `no remote for "<branch name>@push" found in "origin"`](https://github.com/cli/cli/issues/10509) — `cli/cli` — opened 2025-02-27 — bug, priority-3, gh-pr
+
+Neither touches boundary detection. Both are recorded only because `task-complete`'s PR flow — which this task calls but does not modify — sits on the affected `gh pr` surface.
+
+### Historical (Closed)
+- [#1137 Question: workflow_run event to filter by tags](https://github.com/actions/starter-workflows/issues/1137) — `actions/starter-workflows` — closed 2022-01-05
+
+### Unresolvable Tools
+- Bash — the helper resolved `dylanaraps/pure-bash-bible`, a tips repository, not an authoritative tracker. Bash upstream uses GNU Savannah and the `bug-bash` mailing list, not GitHub issues, so no meaningful search exists. Not searched.
+
+### Search Warnings
+- `git/git` open and closed searches both returned zero results, but the repository is a **read-only mirror that does not accept GitHub issues** (Git development happens on the `git@vger.kernel.org` mailing list). The empty result is uninformative and must not be read as evidence of absence.
+- `actions/starter-workflows` is a workflow-template gallery, not the GitHub Actions platform tracker; its results carry no signal about workflow-trigger or tag semantics.
+
+### Categorization Limitation
+No resolved repository is an authoritative tracker for the specific mechanism this task changes — `git describe` / `git tag` ordering semantics. Triage coverage for this task is therefore weak, and the Advisory result reflects absence of evidence rather than evidence of absence. The task's own risk is contained: the change is confined to this repository's own Markdown skill instructions and a Bash test fixture, with behavior verified directly against real local history (see Implementation Steps, Phase 4).
 
 ## Acceptance Criteria
 

@@ -62,3 +62,20 @@ version: "1.0.0"
 | GNU sed | Manual | https://man7.org/linux/man-pages/man1/sed.1.html |
 | GNU awk | Manual | https://man7.org/linux/man-pages/man1/gawk.1.html |
 | YAML | Specification | https://yaml.org/spec/1.2.2/ |
+
+## Task 031 — Fix Release-Analysis Boundary Detection for PR-Gated Releases
+
+**Context fingerprint:** sha256:7cf4bbc8277864d5597ff5acecd9cd7b5d453e72cf897bb4a4e70ab5d508409a
+**Refreshed:** 2026-08-16
+
+| Tool | Section | URL |
+|------|---------|-----|
+| Git | git-describe | https://git-scm.com/docs/git-describe |
+| Git | git-tag | https://git-scm.com/docs/git-tag |
+| Git | git-fetch | https://git-scm.com/docs/git-fetch |
+| Git | git-rev-list | https://git-scm.com/docs/git-rev-list |
+| Git | git-log | https://git-scm.com/docs/git-log |
+| Bash | Manual | https://man7.org/linux/man-pages/man1/bash.1.html |
+| GitHub CLI (gh) | Manual | https://cli.github.com/manual/ |
+| GitHub Actions | Workflow triggers | https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows |
+| Semantic Versioning | Specification | https://semver.org/spec/v2.0.0.html |

@@ -57,10 +57,10 @@ This document defines the rules for task workflow execution. These rules are loa
 
 ### Rule 1: Mode Detection
 
-**Location:** Task file metadata
+**Location:** Task file frontmatter
 
-```markdown
-**Mode:** Assisted | Autonomous
+```yaml
+mode: Assisted | Autonomous
 ```
 
 - Set by `task-start` skill during task initiation
@@ -116,7 +116,7 @@ Not Started → In Progress → Abandoned
 Not Started → In Progress → PR Open → Abandoned                 (PR closed unmerged — see Rule 6)
 ```
 
-`PR Open` is owner-only and records a `**PR:** #NNN` field alongside `**Status:**`. A child task never enters it — it never opens a PR.
+`PR Open` is owner-only and records a `pr: NNN` key alongside `status`. A child task never enters it — it never opens a PR.
 
 Invalid flows:
 ```
@@ -129,7 +129,7 @@ PR Open → In Progress  (cannot regress once the PR exists; abandon and start a
 
 ### Rule 4.5: Parent-Child Lifecycle Ownership
 
-- A task without `**Parent:** NNN` owns its normal branch/worktree lifecycle.
+- A task without a `parent` key owns its normal branch/worktree lifecycle.
 - A child starts only when its parent is `In Progress` in a registered worktree; it inherits the parent mode and uses that branch/worktree.
 - A child never creates a branch or worktree, and never performs merge, cleanup, branch deletion, workspace rebuild, or PR — it never enters Phase 1/Phase 2 at all. Its code ships only as part of whichever PR the parent eventually opens.
 - A parent may complete only when every declared child is `Completed`. Blocked and Abandoned children require explicit user resolution.

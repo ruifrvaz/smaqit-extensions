@@ -2,7 +2,7 @@
 name: smaqit.task-complete
 description: Complete a task by opening a PR for owner-task code review (Phase 1), or by verifying that PR merged and cleaning up (Phase 2, re-entrant). Verifies acceptance criteria, records state in PLANNING.md, and refreshes the worktree workspace. A task's PR is also its release.
 metadata:
-  version: "0.11.0"
+  version: "0.12.0"
 ---
 
 # Task Complete
@@ -27,7 +27,7 @@ A **child** task's completion is completely unaffected by any of this: it never 
    - Capture `kind`, `parent`, `branch`, `worktree`, `mode`, and `task_file` from the JSON output.
    - The resolver reads parent/child state in the registered owner worktree. It blocks owner completion unless every declared child is `Completed`.
    - A child resolves to its parent's branch/worktree and must never receive a separate Git lifecycle.
-3. Read the resolved task file (see [.smaqit/templates/task.template.md](.smaqit/templates/task.template.md) for the canonical task file structure) to review acceptance criteria, effective task mode, **and current Status**.
+3. Read the resolved task file (see [../smaqit.task-create/assets/TASK_TEMPLATE.md](../smaqit.task-create/assets/TASK_TEMPLATE.md) for the canonical task file structure) to review acceptance criteria, effective task mode, **and current status**.
 
 3a. **Phase gate (owner only).** A child always continues to Step 4 regardless of Status — it never has a phase of its own.
    - **Owner, Status `PR Open`, abandoning:** the user has asked to discontinue the task rather than land its PR, or the PR was already closed unmerged on GitHub → go to the **Abandon Path** (Step 23).
@@ -102,7 +102,7 @@ A **child** task's completion is completely unaffected by any of this: it never 
     - `--force-with-lease` (never bare `--force`) is required because the rebase rewrote the branch's history; the lease aborts the push if anyone else moved the branch in the meantime.
     - If the rebase conflicts, STOP and report — never auto-resolve. The task stays `In Progress` with its PR open for the user to sort out.
 
-14. **Update task state to `PR Open`** on the primary checkout: set `**Status:** PR Open` and add a `**PR:** #<PR#>` field to the task file, update `PLANNING.md`'s Active Tasks row to `PR Open`, then commit and push together using the same bounded retry loop:
+14. **Update task state to `PR Open`** on the primary checkout: set `status: PR Open` and add a `pr: <PR#>` key to the task file's frontmatter, update `PLANNING.md`'s Active Tasks row to `PR Open`, then commit and push together using the same bounded retry loop:
     ```bash
     git add .smaqit/tasks/NNN_*.md .smaqit/tasks/PLANNING.md
     git commit -m "chore: task NNN — PR #<PR#> opened"
@@ -142,7 +142,7 @@ A **child** task's completion is completely unaffected by any of this: it never 
     ```
     If this does not fast-forward cleanly, STOP and report — never force, merge, or rebase here, matching `smaqit.session-finish`'s existing policy for `main`.
 
-18. **Update task state to Completed** on the primary checkout: set the task file status to "Completed" (with completion date), clear the `**PR:**` field, and move the entry in `PLANNING.md`. Commit them together:
+18. **Update task state to Completed** on the primary checkout: set `status: Completed`, add `completed: "YYYY-MM-DD"` (today, quoted) to the frontmatter, remove the `pr` key, and move the entry in `PLANNING.md`. Commit them together:
     ```bash
     git add .smaqit/tasks/NNN_*.md .smaqit/tasks/PLANNING.md
     git commit -m "chore: complete task NNN"
@@ -178,7 +178,7 @@ Entered from Step 3a when a task is abandoned while its PR is still open — the
 
 23. Close the PR if it is still open (only on explicit user confirmation of abandonment; never auto-close without instruction): `gh pr close <PR#>`.
 24. Delete the pending `CHANGELOG.md` entry for this task directly on `main` (same primary-checkout, bounded-retry push as Step 12) — remove the whole bullet, do not leave an orphaned annotation. **Never reuse the version it claimed**; the next task's `release-analysis` run will naturally pick the next available number.
-25. Update the task file to "Abandoned" (with reason), clear the `**PR:**` field, and move the `PLANNING.md` entry, commit and push (Step 18's pattern), then run Steps 20-21 (worktree removal, local-only branch force-delete) exactly as a normal completion would.
+25. Set `status: Abandoned` (with the reason recorded in `PLANNING.md`), remove the `pr` key, and move the `PLANNING.md` entry, commit and push (Step 18's pattern), then run Steps 20-21 (worktree removal, local-only branch force-delete) exactly as a normal completion would.
 
 ## Mode-Aware Enforcement
 
@@ -245,14 +245,14 @@ Each category must have bullet points and may use `None` when nothing applies.
 
 ## Task Mode Detection
 
-Check the task file for mode metadata:
+Check the task file's frontmatter for the `mode` key:
 
-```markdown
-**Mode:** Assisted | Autonomous
+```yaml
+mode: Assisted | Autonomous
 ```
 
-- If mode is missing, assume **Assisted** (default)
-- Mode is set by `task-start` skill
+- If `mode` is missing, assume **Assisted** (default)
+- `mode` is set by `task-start` skill
 
 ## Central Planning File
 

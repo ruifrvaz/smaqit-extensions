@@ -2,7 +2,7 @@
 name: smaqit.task-start
 description: Start working on a task by creating its task branch and worktree, updating the VS Code workspace, and setting assisted or autonomous workflow mode.
 metadata:
-  version: "0.12.0"
+  version: "0.13.0"
 ---
 
 # Task Start
@@ -59,7 +59,7 @@ task.start [id] --assisted         # Explicit assisted mode
      --task NNN --purpose start [--requested-mode assisted|autonomous]
    ```
    - Capture the JSON result: `kind`, `parent`, `branch`, `worktree`, `mode`, and `task_file`.
-   - A task without `**Parent:** NNN` is an `owner`; it keeps the standalone lifecycle below.
+   - A task without a `parent` frontmatter key is an `owner`; it keeps the standalone lifecycle below.
    - A child requires an active registered parent worktree. The resolver rejects a missing, inactive, nested, self-referential, cyclic, or mode-conflicting relationship. Do not create a fallback child branch or worktree.
    - Sparse task worktrees intentionally omit installed skills and `.smaqit/tasks/`, so always invoke the resolver from the primary checkout. Task state for both owner and child lives exclusively on primary — the returned worktree is for implementation only.
 
@@ -90,11 +90,12 @@ task.start [id] --assisted         # Explicit assisted mode
    - Check for uncommitted changes under `.smaqit/tasks/` (e.g. `git status --short -- .smaqit/tasks/`) and surface them as a notice — this usually means another in-flight task-start/task-complete didn't finish committing.
    - Never block or require confirmation on either finding; this step is visibility only.
 
-6. **Update the task file status** to "In Progress" on the primary checkout.
-7. **Store the effective mode in the task file** on the primary checkout as metadata field:
-   ```markdown
-   **Mode:** Autonomous | Assisted
+6. **Update the task file's frontmatter `status` key** to `In Progress` on the primary checkout.
+7. **Store the effective mode in the task file's frontmatter** on the primary checkout:
+   ```yaml
+   mode: Assisted | Autonomous
    ```
+   Also add `started: "YYYY-MM-DD"` (today, quoted) to the frontmatter block.
 8. **Update `PLANNING.md`** on the primary checkout to reflect "In Progress" status, then commit the status, mode, and `PLANNING.md` changes together on the primary checkout:
    ```bash
    git add .smaqit/tasks/NNN_*.md .smaqit/tasks/PLANNING.md
@@ -128,9 +129,9 @@ task.start [id] --assisted         # Explicit assisted mode
 
 ## Task File Format
 
-See [.smaqit/templates/task.template.md](.smaqit/templates/task.template.md) for the canonical task file structure.
+See [../smaqit.task-create/assets/TASK_TEMPLATE.md](../smaqit.task-create/assets/TASK_TEMPLATE.md) for the canonical task file structure.
 
-This skill adds the effective **Mode** field (`Autonomous` or `Assisted`) and the **Started** field (set to today's date) when starting a task. A child also retains its declared **Parent** field and never receives a child-specific branch or worktree.
+This skill adds the effective `mode` (`Autonomous` or `Assisted`) and `started` (today's date) frontmatter keys when starting a task. A child also retains its declared `parent` key and never receives a child-specific branch or worktree.
 
 ## Critical Rules
 

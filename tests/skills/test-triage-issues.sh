@@ -45,7 +45,7 @@ assert_contains "$(<"$TRIAGE_SKILL")" 'smaqit.project-research/scripts/task-cont
 assert_contains "$(<"$TRIAGE_SKILL")" 'Do not open, read, print, or search the task file directly' "triage forbids direct task-file reads"
 assert_contains "$(<"$TASK_START_SKILL")" 'Read the full task file** after triage' "task-start delays the full task read until after triage"
 assert_contains "$(<"$TASK_START_SKILL")" 'do not refresh or render the full map' "task-start avoids a full map at the triage gate"
-for template in "$SOURCE_ROOT/.smaqit/templates/task.template.md" "$SOURCE_ROOT/skills/smaqit.task-create/assets/TASK_TEMPLATE.md"; do
+for template in "$SOURCE_ROOT/skills/smaqit.task-create/assets/TASK_TEMPLATE.md"; do
   template_context="$(awk '/^## Issue Triage Context$/ { in_context = 1; next } in_context && /^## / { exit } in_context { print }' "$template")"
   assert_eq "$(rg -c '^## Issue Triage Context$' "$template")" "1" "template has one Issue Triage Context heading"
   assert_eq "$(printf '%s\n' "$template_context" | rg '^\*\*(Mode|Technologies|Platforms/Environments|Features/Integrations|Versions/Constraints):\*\*' | sed 's/^\*\*\([^:]*\):\*\*.*/\1/' | paste -sd '|')" 'Mode|Technologies|Platforms/Environments|Features/Integrations|Versions/Constraints' "template fields use canonical order"

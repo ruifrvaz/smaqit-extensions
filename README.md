@@ -91,7 +91,7 @@ The installer downloads the binary and installs agents and skills globally:
 
 Running `smaqit-extensions init` in a project additionally scaffolds:
 
-- `.smaqit/` — task tracking (PLANNING.md), session history, templates
+- `.smaqit/` — task tracking (PLANNING.md), session history
 - `.github/workflows/post-merge-release.yml` — generic, project-agnostic release automation (tag + GitHub Release; no build step). Deployed create-if-absent: `init` and `update` never overwrite an existing copy, so local edits (e.g. adding a build/artifact-upload step) are always preserved.
 
 **Environment overrides:**
@@ -133,7 +133,7 @@ For commands without an explicit directory, the CLI detects the enclosing Git wo
 smaqit-extensions update
 ```
 
-Fetches the latest release from GitHub, downloads the new binary, and replaces the running binary atomically. Refreshes the global installation automatically. If the detected project root contains `.smaqit/`, it also re-scaffolds project templates without overwriting your project state (tasks, history, glossary) or a pre-existing `.github/workflows/post-merge-release.yml`.
+Fetches the latest release from GitHub, downloads the new binary, and replaces the running binary atomically. Refreshes the global installation automatically. If the detected project root contains `.smaqit/`, it also re-scaffolds project tracking directories without overwriting your project state (tasks, history, glossary) or a pre-existing `.github/workflows/post-merge-release.yml`.
 
 > **Note:** Self-update is currently supported on Linux only.
 
@@ -152,7 +152,7 @@ Fetches the latest release from GitHub, downloads the new binary, and replaces t
 
 ### Task Worktrees
 
-`smaqit.task-start [id]` creates a `task/NNN-title` branch, adds a sibling Git worktree, and refreshes the project’s `.code-workspace` file for a standalone or parent task. A task declaring `**Parent:** NNN` joins the active parent's registered branch and worktree instead; it creates no child Git resources and inherits the parent mode.
+`smaqit.task-start [id]` creates a `task/NNN-title` branch, adds a sibling Git worktree, and refreshes the project’s `.code-workspace` file for a standalone or parent task. A task declaring a `parent` frontmatter key joins the active parent's registered branch and worktree instead; it creates no child Git resources and inherits the parent mode.
 
 `smaqit.task-complete [id]` records a child task's criteria, findings, and state without touching Git resources. The standalone or parent owner performs the one merge, worktree removal, branch deletion, and workspace refresh only after every declared child is `Completed`. Shared-parent tasks are intended for sequential or coordinated work; independent parallel editing still needs separate branches and worktrees.
 

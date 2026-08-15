@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.18.0] - 2026-08-15
 
 ### Changed
-- **Task file format converted to YAML frontmatter** — task file header fields (`status`, `mode`, `parent`, `pr`, `created`, `started`, `completed`) move from bold-markdown lines to flat YAML frontmatter; `skills/smaqit.task-create/assets/TASK_TEMPLATE.md` is now the sole canonical task template, and the stale `.smaqit/templates/` directory (unchanged since before task 011) is retired entirely from the installer pipeline. Breaking change, no legacy-format fallback — existing task files in consumer projects must be manually migrated to the new frontmatter format.
+- **Task file format converted to YAML frontmatter** — task file header fields (`status`, `mode`, `parent`, `pr`, `created`, `started`, `completed`) move from bold-markdown lines to flat YAML frontmatter; `skills/smaqit.task-create/assets/TASK_TEMPLATE.md` is now the sole canonical task template, and the stale `.smaqit/templates/` directory (unchanged since before task 011) is retired entirely from the installer pipeline. Breaking change, no legacy-format fallback — existing task files in consumer projects must be migrated to the new frontmatter format. `9_resolve_task_lifecycle.sh` rejects a task file that has no frontmatter block outright, naming the file and the required migration, rather than reading its absent keys as "no parent, no mode" and silently resolving a child task as a standalone owner. Migration touches only the header block; everything from the first `##` heading onward is unchanged.
 
 ## [1.17.2] - 2026-08-15
 

@@ -123,6 +123,37 @@ assert_fails "cannot declare itself as its parent" bash "$WORKTREE_SCRIPTS/9_res
 assert_fails "Invalid Parent metadata" bash "$WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --task 104 --purpose start
 assert_fails "Parent task 999 must be In Progress" bash "$WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --parent 999
 
+# --- Pre-v1.18.0 bold-markdown files are rejected, never mis-parsed --------
+# Found in review: every extractor returns empty for a frontmatter-less file,
+# and empty is indistinguishable from "legitimately absent" — so an old-format
+# CHILD silently resolved as a standalone owner (parent null, mode defaulted)
+# and exited 0, which would hand it its own branch and worktree. --purpose
+# start is the path that regressed; complete/--parent already failed, but for
+# the wrong reason. All three must now reject with the migration message.
+legacy_dir="$PRIMARY_ROOT/.smaqit/tasks"
+printf '# Legacy Child\n\n**Status:** In Progress\n**Mode:** Autonomous\n**Parent:** 100\n' > "$legacy_dir/150_legacy_child.md"
+printf '# Legacy Owner\n\n**Status:** In Progress\n**Mode:** Assisted\n' > "$legacy_dir/151_legacy_owner.md"
+
+assert_fails "no YAML frontmatter block" bash "$WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --task 150 --purpose start
+assert_fails "no YAML frontmatter block" bash "$WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --task 151 --purpose start
+assert_fails "no YAML frontmatter block" bash "$WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --task 151 --purpose complete
+
+legacy_out="$(bash "$WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --task 150 --purpose start 2>/dev/null || true)"
+[ -z "$legacy_out" ] || fail "an old-format child must emit no resolution at all, got: $legacy_out"
+
+rm -f "$legacy_dir/150_legacy_child.md" "$legacy_dir/151_legacy_owner.md"
+
+# --- Quoted frontmatter values parse identically to unquoted ---------------
+# The schema quotes dates and parent IDs, so `status: "In Progress"` is
+# equally valid YAML; it must not silently fail to match the unquoted form.
+printf -- '---\nstatus: "In Progress"\nmode: "Assisted"\nparent: "100"\n---\n\n# Quoted Child\n' \
+  > "$legacy_dir/160_quoted_child.md"
+quoted_result="$(bash "$WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --task 160 --purpose start)"
+assert_eq "$(jq -r '.kind' <<< "$quoted_result")" "child" "quoted frontmatter still resolves a child as a child"
+assert_eq "$(jq -r '.parent' <<< "$quoted_result")" "100" "quoted parent value is unquoted on read"
+assert_eq "$(jq -r '.mode' <<< "$quoted_result")" "Assisted" "quoted mode value is unquoted on read"
+rm -f "$legacy_dir/160_quoted_child.md"
+
 assert_eq "$(git -C "$PRIMARY_ROOT" branch --format='%(refname:short)' | { rg '^task/' || true; } | wc -l | tr -d ' ')" "1" "no child branches were created"
 assert_eq "$(git -C "$PRIMARY_ROOT" worktree list --porcelain | rg '^worktree ' | wc -l | tr -d ' ')" "2" "only main and parent worktrees are registered"
 assert_eq "$(jq '.folders | length' "$PRIMARY_ROOT/project.code-workspace")" "2" "workspace contains main and parent only"

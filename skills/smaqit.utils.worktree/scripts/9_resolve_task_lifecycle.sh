@@ -114,23 +114,52 @@ _frontmatter_block() {
   awk '/^---[[:space:]]*$/{n++; next} n==1' "$1"
 }
 
+# Rejects a task file that carries no frontmatter block at all — i.e. the
+# pre-v1.18.0 `**Status:** ...` bold-markdown header format.
+#
+# This must fail loudly rather than fall through: every extractor below
+# returns empty for such a file, and empty is indistinguishable from
+# "legitimately absent". A child task would silently resolve as a
+# standalone owner (no parent, default mode) and be handed its own branch
+# and worktree. Refusing to parse the old format is the point; misreading
+# it is not.
+require_frontmatter() {
+  local file="$1"
+  if head -1 "$file" | grep -q '^---[[:space:]]*$'; then
+    return 0
+  fi
+  echo "Task file has no YAML frontmatter block: $file" >&2
+  echo "Task metadata (status/mode/parent/pr/dates) moved to YAML frontmatter in v1.18.0; the older '**Status:** ...' header format is not supported. Convert this file before continuing." >&2
+  return 1
+}
+
+# Reads one frontmatter key. Surrounding quotes are stripped because the
+# schema itself quotes dates and parent IDs, so a hand-written
+# `status: "Completed"` is equally valid YAML and must not silently fail
+# to match the unquoted form every writer emits.
+_frontmatter_value() {
+  local value
+  value="$(_frontmatter_block "$1" | sed -n "s/^$2:[[:space:]]*//p" | head -1 | sed 's/[[:space:]]*$//')"
+  value="${value%\"}"
+  value="${value#\"}"
+  value="${value%\'}"
+  value="${value#\'}"
+  printf '%s\n' "$value"
+}
+
 task_status() {
-  _frontmatter_block "$1" | sed -n 's/^status:[[:space:]]*//p' | head -1 | sed 's/[[:space:]]*$//'
+  _frontmatter_value "$1" status
 }
 
 task_mode() {
-  local mode
-  mode="$(_frontmatter_block "$1" | sed -n 's/^mode:[[:space:]]*//p' | head -1 | sed 's/[[:space:]]*$//')"
-  canonical_mode "$mode"
+  canonical_mode "$(_frontmatter_value "$1" mode)"
 }
 
 task_parent() {
   local line value
-  line="$(_frontmatter_block "$1" | sed -n 's/^parent:[[:space:]]*//p' | head -1 | sed 's/[[:space:]]*$//')"
+  line="$(_frontmatter_value "$1" parent)"
   [ -z "$line" ] && return 0
   value="${line%%[[:space:]]*}"
-  value="${value%\"}"
-  value="${value#\"}"
   if ! [[ "$value" =~ ^[0-9]{3}$ ]]; then
     echo "Invalid Parent metadata in $1: $line" >&2
     return 1
@@ -149,6 +178,7 @@ find_active_task() {
   local id="$1" allowed_statuses="${2:-In Progress}" file status expected_branch index candidate matched=1
   file="$(task_file_in "$primary_root" "$id")"
   [ -n "$file" ] || return 1
+  require_frontmatter "$file" || exit 1
   status="$(task_status "$file")"
   IFS=';' read -ra allowed_arr <<< "$allowed_statuses"
   for candidate in "${allowed_arr[@]}"; do
@@ -213,6 +243,7 @@ if [ -z "$candidate_file" ]; then
   echo "Task file not found for $task_id." >&2
   exit 1
 fi
+require_frontmatter "$candidate_file" || exit 1
 
 declared_parent="$(task_parent "$candidate_file")" || exit 1
 if [ -z "$declared_parent" ]; then
@@ -229,9 +260,19 @@ if [ -z "$declared_parent" ]; then
     incomplete_children=()
     for child_file in "$primary_root"/.smaqit/tasks/*.md; do
       [ -f "$child_file" ] || continue
+      # PLANNING.md is the tracking table, not a task file — it lives in this
+      # directory by design and is never a completion candidate.
+      [ "$(basename "$child_file")" = "PLANNING.md" ] && continue
       child_id="$(basename "$child_file" | cut -d_ -f1)"
       if ! [[ "$child_id" =~ ^[0-9]{3}$ ]]; then
         echo "Warning: skipping malformed task filename: $child_file" >&2
+        continue
+      fi
+      # A sibling stuck in the old format must not silently read as
+      # "no parent", which would let this owner complete while an actual
+      # child of it is still unfinished.
+      if ! require_frontmatter "$child_file" 2>/dev/null; then
+        echo "Warning: skipping $child_file — no YAML frontmatter block (pre-v1.18.0 format)" >&2
         continue
       fi
       if ! child_parent="$(task_parent "$child_file")"; then

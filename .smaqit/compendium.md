@@ -139,6 +139,16 @@ No. `CLAUDE.md` at the repository root explicitly instructs against adding a "Ge
 
 ---
 
+**Why is v1.18.0 marked superseded, and what does v2.0.0 change?**
+
+v1.18.0 shipped the task-file YAML frontmatter migration — a change that invalidates every pre-existing task file with no automatic migration — but was published under a MINOR version. It also shipped defective: `9_resolve_task_lifecycle.sh` returned empty for a legacy-format file rather than rejecting it, and empty is indistinguishable from "legitimately absent", so a legacy child task resolved as a standalone owner (`kind: owner`, `parent: null`, defaulted mode) and **exited 0** — earning itself a branch, a worktree, and eventually its own release PR.
+
+The fix was authored before the merge but an authentication failure blocked its push, and the PR merged without it. Because a published release cannot be retagged, v2.0.0 was cut as the next release to carry both the guard and the honest major-version boundary; v1.18.0's changelog entry was restored verbatim from its tag (a cherry-pick had rewritten it to claim behavior that release does not have) and annotated as superseded. **Upgrade from v1.17.x straight to v2.0.0.**
+
+Two durable lessons live in this history: a reported-but-unresolved push failure should gate a merge rather than rely on a human connecting the two facts; and a "no legacy support" contract must be tested explicitly, since every suite at the time exercised only new-format files and never the rejection path.
+
+---
+
 **Why does self-update launch a fresh binary for project reinitialization?**
 
 Agents, skills, and templates are compiled into the Go binary with `go:embed`. Replacing the executable file does not change the already-running process image, so reinitializing in-process after a download would reinstall stale embedded content and omit newly added files.
@@ -210,6 +220,16 @@ Just one. The plan and the pre-populated task-create fields derived from it are 
 ---
 
 ## Issue Triage
+
+**What does `## Issue Triage Context`'s `Mode: Auto | Skip` field control, and where is it actually read?**
+
+It is the sole mechanism by which a task opts out of GitHub issue triage. It is a **body** field in bold-markdown, entirely separate from the task's frontmatter `mode: Assisted | Autonomous` key — the two share a label but nothing else, and the frontmatter migration deliberately left this one alone.
+
+The chain is: `smaqit.project-research/scripts/task-context.sh` parses it with a strict order-enforced awk block and rejects any value other than `Auto` or `Skip`; `smaqit.utils.triage-issues` Step 2 exits cleanly on `mode: "Skip"` with a logged note; and `smaqit.task-start` Step 4a branches on that clean exit, continuing silently rather than searching GitHub.
+
+Use `Skip` when a task has no third-party dependency surface — a pure git-workflow or documentation change, for example, where a GitHub issue search would return nothing relevant. Leave it `Auto` otherwise. Setting it to anything else is a hard validation failure, not a silent default.
+
+---
 
 **How does `smaqit.utils.triage-issues` reduce execution-token usage without losing task signal?**
 

@@ -123,7 +123,7 @@ assert_fails "cannot declare itself as its parent" bash "$WORKTREE_SCRIPTS/9_res
 assert_fails "Invalid Parent metadata" bash "$WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --task 104 --purpose start
 assert_fails "Parent task 999 must be In Progress" bash "$WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --parent 999
 
-# --- Pre-v1.18.0 bold-markdown files are rejected, never mis-parsed --------
+# --- Legacy bold-markdown files are rejected, never mis-parsed -------------
 # Found in review: every extractor returns empty for a frontmatter-less file,
 # and empty is indistinguishable from "legitimately absent" — so an old-format
 # CHILD silently resolved as a standalone owner (parent null, mode defaulted)

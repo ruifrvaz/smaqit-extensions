@@ -115,7 +115,8 @@ _frontmatter_block() {
 }
 
 # Rejects a task file that carries no frontmatter block at all — i.e. the
-# pre-v1.18.0 `**Status:** ...` bold-markdown header format.
+# legacy `**Status:** ...` bold-markdown header format. (The frontmatter
+# format shipped in v1.18.0; this guard in v2.0.0.)
 #
 # This must fail loudly rather than fall through: every extractor below
 # returns empty for such a file, and empty is indistinguishable from
@@ -129,7 +130,7 @@ require_frontmatter() {
     return 0
   fi
   echo "Task file has no YAML frontmatter block: $file" >&2
-  echo "Task metadata (status/mode/parent/pr/dates) moved to YAML frontmatter in v1.18.0; the older '**Status:** ...' header format is not supported. Convert this file before continuing." >&2
+  echo "Task metadata (status/mode/parent/pr/dates) lives in YAML frontmatter; the older '**Status:** ...' header format is not supported. Convert this file before continuing." >&2
   return 1
 }
 
@@ -272,7 +273,7 @@ if [ -z "$declared_parent" ]; then
       # "no parent", which would let this owner complete while an actual
       # child of it is still unfinished.
       if ! require_frontmatter "$child_file" 2>/dev/null; then
-        echo "Warning: skipping $child_file — no YAML frontmatter block (pre-v1.18.0 format)" >&2
+        echo "Warning: skipping $child_file — no YAML frontmatter block (legacy format)" >&2
         continue
       fi
       if ! child_parent="$(task_parent "$child_file")"; then

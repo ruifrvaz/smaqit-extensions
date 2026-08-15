@@ -7,8 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-08-16
+
 ### Fixed
-- **`update` no longer writes project-scoped agent/skill mirrors** (pending v2.0.1 · PR #128) — its post-self-update reinit now shares `init`'s scope-only scaffold path, so it never writes `.agents/`, `.claude/`, `.codex/`, `.github/agents/`, or `.github/skills/` into a project that never opted into `install --scope project`.
+- **`update` no longer writes project-scoped agent/skill mirrors** — its post-self-update reinit now shares `init`'s scope-only scaffold path, so it never writes `.agents/`, `.claude/`, `.codex/`, `.github/agents/`, or `.github/skills/` into a project that never opted into `install --scope project`.
 
 ## [2.0.0] - 2026-08-15
 

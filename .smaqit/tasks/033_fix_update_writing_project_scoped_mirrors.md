@@ -1,6 +1,8 @@
 ---
-status: Not Started
+status: In Progress
+mode: Assisted
 created: "2026-08-15"
+started: "2026-08-16"
 ---
 
 # Fix `update` Writing Project-Scoped Agent/Skill Mirrors Despite Documenting Itself as Global-Only

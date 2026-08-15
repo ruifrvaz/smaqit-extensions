@@ -95,7 +95,7 @@ assert_tree_matches "$repo_root/installer/commands-claude" "$smoke_root/.claude/
 assert_tree_matches "$repo_root/installer/skills-claude" "$smoke_root/.claude/skills" "Claude Code skills"
 assert_tree_matches "$repo_root/installer/agents-codex" "$smoke_root/.codex/agents" "Codex agents"
 assert_tree_matches "$repo_root/installer/skills" "$smoke_root/.agents/skills" "Codex skills (shared skills tree)"
-assert_tree_matches "$repo_root/installer/templates" "$smoke_root/.smaqit/templates" "smaqit templates"
+assert_empty_or_missing "$smoke_root/.smaqit/templates" "smaqit templates directory (retired — should never be scaffolded)"
 assert_tree_matches "$repo_root/installer/workflow-templates" "$smoke_root/.github/workflows" "release automation workflow"
 
 echo "[OK] Nested init resolved the Git project root"

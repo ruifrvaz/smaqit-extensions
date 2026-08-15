@@ -14,7 +14,7 @@ clean:
 	@echo "Cleaning installer staging artifacts..."
 	@rm -rf installer/skills/ installer/skills-claude/
 	@rm -rf installer/agents-copilot/ installer/agents-claude/ installer/agents-codex/
-	@rm -rf installer/commands-claude/ installer/templates/ installer/dist/
+	@rm -rf installer/commands-claude/ installer/dist/
 	@echo "✓ Clean complete"
 
 test-worktree-layout:

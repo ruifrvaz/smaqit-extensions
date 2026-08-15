@@ -2,7 +2,7 @@
 name: smaqit.task-list
 description: Show current active tasks. Use to view task overview from planning file.
 metadata:
-  version: "0.4.0"
+  version: "0.5.0"
 ---
 
 # Task List
@@ -13,7 +13,7 @@ Show current tasks from the Active table.
 
 1. **Load workflow rules** by reading [references/RULES.md](references/RULES.md)
 2. Read `.smaqit/tasks/PLANNING.md` on the primary checkout for the status overview — task worktrees never hold a copy.
-3. Read active task files to resolve `Mode` and optional `Parent` metadata. Do not infer relationships from titles.
+3. Read active task files to resolve the `mode` and optional `parent` frontmatter keys. Do not infer relationships from titles.
 4. Show tasks from the Active table. If a task is a child, display its parent ID and note that it shares the parent's branch/worktree.
 5. **Display mode indicators** if tasks are in progress. A child mode is inherited from its active parent; surface a missing or contradictory parent relationship as a warning.
 

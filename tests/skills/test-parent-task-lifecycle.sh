@@ -50,12 +50,14 @@ write_task() {
   local path="$1" id="$2" title="$3" status="$4" parent="${5:-}" mode="${6:-Assisted}"
   mkdir -p "$(dirname "$path")"
   {
-    printf '# %s\n\n' "$title"
-    printf '**Status:** %s\n' "$status"
-    printf '**Mode:** %s\n' "$mode"
+    printf -- '---\n'
+    printf 'status: %s\n' "$status"
+    printf 'mode: %s\n' "$mode"
     if [ -n "$parent" ]; then
-      printf '**Parent:** %s\n' "$parent"
+      printf 'parent: "%s"\n' "$parent"
     fi
+    printf -- '---\n\n'
+    printf '# %s\n' "$title"
   } > "$path"
 }
 
@@ -71,8 +73,7 @@ write_task "$PRIMARY_ROOT/.smaqit/tasks/100_feature_cycle.md" 100 "Feature Cycle
 write_task "$PRIMARY_ROOT/.smaqit/tasks/101_spec_revalidation.md" 101 "Spec Revalidation" "Not Started" 100
 write_task "$PRIMARY_ROOT/.smaqit/tasks/102_development.md" 102 "Development" "Not Started" 100
 write_task "$PRIMARY_ROOT/.smaqit/tasks/103_self_parent.md" 103 "Self Parent" "Not Started" 103
-write_task "$PRIMARY_ROOT/.smaqit/tasks/104_invalid_parent.md" 104 "Invalid Parent" "Not Started"
-printf '**Parent:** invalid\n' >> "$PRIMARY_ROOT/.smaqit/tasks/104_invalid_parent.md"
+write_task "$PRIMARY_ROOT/.smaqit/tasks/104_invalid_parent.md" 104 "Invalid Parent" "Not Started" "invalid"
 write_task "$PRIMARY_ROOT/.smaqit/tasks/bad_prefix_task.md" "n/a" "Bad Prefix Task" "Not Started"
 
 git -C "$PRIMARY_ROOT" init -b main >/dev/null
@@ -86,8 +87,8 @@ git -C "$PRIMARY_ROOT" commit -m "fixture: parent task files" >/dev/null
 # global script from within the target project.
 cd "$PRIMARY_ROOT"
 
-assert_contains "$SOURCE_ROOT/.smaqit/templates/task.template.md" "**Parent:** NNN" "installed task template documents parent metadata"
-assert_contains "$SOURCE_ROOT/skills/smaqit.task-create/assets/TASK_TEMPLATE.md" "**Parent:** NNN" "creation task template documents parent metadata"
+[ ! -e "$SOURCE_ROOT/.smaqit/templates/task.template.md" ] || fail ".smaqit/templates/task.template.md should have been retired"
+assert_contains "$SOURCE_ROOT/skills/smaqit.task-create/assets/TASK_TEMPLATE.md" 'parent: "NNN"' "creation task template documents parent metadata"
 assert_contains "$SOURCE_ROOT/skills/smaqit.task-start/SKILL.md" "9_resolve_task_lifecycle.sh" "task-start invokes lifecycle resolver"
 assert_contains "$SOURCE_ROOT/skills/smaqit.task-complete/SKILL.md" "Report completion and stop" "task-complete exits before child cleanup"
 assert_contains "$SOURCE_ROOT/skills/smaqit.task-list/SKILL.md" "shares the parent's branch/worktree" "task-list documents child ownership"
@@ -105,7 +106,7 @@ PARENT_ROOT="$FIXTURE_ROOT/project-wt-task-100-feature-cycle"
 # Task state lives exclusively on primary — every mutation below targets
 # $PRIMARY_ROOT, never $PARENT_ROOT, since the linked worktree never has a
 # copy of .smaqit/tasks/ to write to.
-sed -i 's/^\*\*Status:\*\*.*/**Status:** In Progress/' "$PRIMARY_ROOT/.smaqit/tasks/100_feature_cycle.md"
+sed -i 's/^status:.*/status: In Progress/' "$PRIMARY_ROOT/.smaqit/tasks/100_feature_cycle.md"
 
 child_result="$(bash "$WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --task 101 --purpose start)"
 assert_eq "$(jq -r '.kind' <<< "$child_result")" "child" "child task is resolved as child"
@@ -127,8 +128,8 @@ assert_eq "$(git -C "$PRIMARY_ROOT" worktree list --porcelain | rg '^worktree ' 
 assert_eq "$(jq '.folders | length' "$PRIMARY_ROOT/project.code-workspace")" "2" "workspace contains main and parent only"
 
 assert_fails "cannot complete while child tasks remain unfinished" bash "$WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --task 100 --purpose complete
-sed -i 's/^\*\*Status:\*\*.*/**Status:** Completed/' "$PRIMARY_ROOT/.smaqit/tasks/101_spec_revalidation.md"
-sed -i 's/^\*\*Status:\*\*.*/**Status:** Completed/' "$PRIMARY_ROOT/.smaqit/tasks/102_development.md"
+sed -i 's/^status:.*/status: Completed/' "$PRIMARY_ROOT/.smaqit/tasks/101_spec_revalidation.md"
+sed -i 's/^status:.*/status: Completed/' "$PRIMARY_ROOT/.smaqit/tasks/102_development.md"
 
 # 104 (invalid Parent) and bad_prefix_task.md (non-NNN filename) stay in place
 # through completion — the child-scan loop must skip both with a warning

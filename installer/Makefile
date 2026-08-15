@@ -5,8 +5,6 @@ VERSION ?= 1.10.0
 prepare:
 	@echo "Preparing build environment..."
 	@mkdir -p dist
-	@mkdir -p templates
-	@cp -r ../.smaqit/templates/* templates/ 2>/dev/null || true
 	@python3 ../scripts/generate-targets.py
 
 build: prepare
@@ -16,7 +14,7 @@ build: prepare
 clean:
 	@echo "Cleaning build artifacts..."
 	rm -rf dist/
-	rm -rf skills/ agents-copilot/ agents-claude/ agents-codex/ commands-claude/ skills-claude/ skills-codex/
+	rm -rf skills/ agents-copilot/ agents-claude/ agents-codex/ commands-claude/ skills-claude/ skills-codex/ templates/
 
 test: build
 	@echo "Testing installer..."

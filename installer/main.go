@@ -22,9 +22,6 @@ var copilotAgentFiles embed.FS
 //go:embed skills/*
 var skillFiles embed.FS
 
-//go:embed templates/*
-var templateFiles embed.FS
-
 //go:embed workflow-templates/*
 var workflowTemplateFiles embed.FS
 
@@ -363,7 +360,6 @@ func printHelp() {
 	fmt.Println("Project scaffolding creates:")
 	fmt.Println("  .smaqit/tasks/        - Task tracking")
 	fmt.Println("  .smaqit/history/      - Session history")
-	fmt.Println("  .smaqit/templates/    - Canonical templates")
 	fmt.Println("  .github/workflows/    - post-merge-release.yml (create-if-absent)")
 }
 
@@ -550,7 +546,6 @@ func installProject(targetDir string, agents map[string]bool) {
 	tasksDir := filepath.Join(smaqitDir, "tasks")
 	historyDir := filepath.Join(smaqitDir, "history")
 	userTestingDir := filepath.Join(smaqitDir, "user-testing")
-	templatesDir := filepath.Join(smaqitDir, "templates")
 
 	if err := os.MkdirAll(agentsDir, 0755); err != nil {
 		fmt.Printf("Error creating agents directory: %v\n", err)
@@ -600,41 +595,10 @@ func installProject(targetDir string, agents map[string]bool) {
 		fmt.Printf("Error creating user-testing directory: %v\n", err)
 		os.Exit(1)
 	}
-	if err := os.MkdirAll(templatesDir, 0755); err != nil {
-		fmt.Printf("Error creating templates directory: %v\n", err)
-		os.Exit(1)
-	}
 
 	planningPath := filepath.Join(tasksDir, "PLANNING.md")
 	if err := writeFileIfMissing(planningPath, []byte(planningTemplate), 0644); err != nil {
 		fmt.Printf("Error creating planning file: %v\n", err)
-		os.Exit(1)
-	}
-
-	// Install template files (never overwrite existing ones)
-	if err := fs.WalkDir(templateFiles, "templates", func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if d.IsDir() {
-			return nil
-		}
-
-		content, err := fs.ReadFile(templateFiles, path)
-		if err != nil {
-			return fmt.Errorf("reading %s: %w", path, err)
-		}
-
-		filename := filepath.Base(path)
-		targetPath := filepath.Join(templatesDir, filename)
-
-		if err := writeFileIfMissing(targetPath, content, 0644); err != nil {
-			return fmt.Errorf("writing %s: %w", targetPath, err)
-		}
-
-		return nil
-	}); err != nil {
-		fmt.Printf("Error installing templates: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -1285,9 +1249,9 @@ func checkAndReInit(dir string) {
 		return
 	}
 
-	fmt.Println("Detected .smaqit/ — re-scaffolding project templates...")
+	fmt.Println("Detected .smaqit/ — re-scaffolding project tracking...")
 	scaffoldSmaqit(dir)
-	fmt.Println("Re-scaffolded .smaqit/templates/")
+	fmt.Println("Re-scaffolded .smaqit/ project tracking")
 }
 
 // checkAndReInitWithBinary re-initializes in a fresh process after self-update.
@@ -1307,7 +1271,7 @@ func checkAndReInitWithBinary(dir, binaryPath string) error {
 		return nil
 	}
 
-	fmt.Println("Detected .smaqit/ — re-scaffolding project templates with updated binary...")
+	fmt.Println("Detected .smaqit/ — re-scaffolding project tracking with updated binary...")
 	cmd2 := exec.Command(binaryPath, "install", "--scope", "project", dir)
 	cmd2.Stdin = os.Stdin
 	cmd2.Stdout = os.Stdout
@@ -1325,7 +1289,6 @@ func scaffoldSmaqit(targetDir string) {
 	tasksDir := filepath.Join(smaqitDir, "tasks")
 	historyDir := filepath.Join(smaqitDir, "history")
 	userTestingDir := filepath.Join(smaqitDir, "user-testing")
-	templatesDir := filepath.Join(smaqitDir, "templates")
 
 	if err := os.MkdirAll(tasksDir, 0755); err != nil {
 		fmt.Printf("Error creating tasks directory: %v\n", err)
@@ -1339,34 +1302,10 @@ func scaffoldSmaqit(targetDir string) {
 		fmt.Printf("Error creating user-testing directory: %v\n", err)
 		os.Exit(1)
 	}
-	if err := os.MkdirAll(templatesDir, 0755); err != nil {
-		fmt.Printf("Error creating templates directory: %v\n", err)
-		os.Exit(1)
-	}
 
 	planningPath := filepath.Join(tasksDir, "PLANNING.md")
 	if err := writeFileIfMissing(planningPath, []byte(planningTemplate), 0644); err != nil {
 		fmt.Printf("Error creating planning file: %v\n", err)
-		os.Exit(1)
-	}
-
-	// Install template files (never overwrite existing ones)
-	if err := fs.WalkDir(templateFiles, "templates", func(path string, d fs.DirEntry, err error) error {
-		if err != nil || d.IsDir() {
-			return err
-		}
-		content, err := fs.ReadFile(templateFiles, path)
-		if err != nil {
-			return fmt.Errorf("reading %s: %w", path, err)
-		}
-		filename := filepath.Base(path)
-		targetPath := filepath.Join(templatesDir, filename)
-		if err := writeFileIfMissing(targetPath, content, 0644); err != nil {
-			return fmt.Errorf("writing %s: %w", targetPath, err)
-		}
-		return nil
-	}); err != nil {
-		fmt.Printf("Error installing templates: %v\n", err)
 		os.Exit(1)
 	}
 }

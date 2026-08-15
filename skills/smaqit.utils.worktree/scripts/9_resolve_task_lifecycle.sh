@@ -106,21 +106,31 @@ task_file_in() {
   fi
 }
 
+# Extracts only the lines strictly between a task file's first two `---`
+# frontmatter delimiters. Structurally excludes the body (including
+# `## Issue Triage Context`'s own unrelated `**Mode:**` field), so callers
+# never need a match-anywhere-in-file heuristic.
+_frontmatter_block() {
+  awk '/^---[[:space:]]*$/{n++; next} n==1' "$1"
+}
+
 task_status() {
-  sed -n 's/^\*\*Status:\*\*[[:space:]]*//p' "$1" | head -1 | sed 's/[[:space:]]*$//'
+  _frontmatter_block "$1" | sed -n 's/^status:[[:space:]]*//p' | head -1 | sed 's/[[:space:]]*$//'
 }
 
 task_mode() {
   local mode
-  mode="$(sed -n 's/^\*\*Mode:\*\*[[:space:]]*//p' "$1" | head -1 | sed 's/[[:space:]]*$//')"
+  mode="$(_frontmatter_block "$1" | sed -n 's/^mode:[[:space:]]*//p' | head -1 | sed 's/[[:space:]]*$//')"
   canonical_mode "$mode"
 }
 
 task_parent() {
   local line value
-  line="$(sed -n 's/^\*\*Parent:\*\*[[:space:]]*//p' "$1" | head -1 | sed 's/[[:space:]]*$//')"
+  line="$(_frontmatter_block "$1" | sed -n 's/^parent:[[:space:]]*//p' | head -1 | sed 's/[[:space:]]*$//')"
   [ -z "$line" ] && return 0
   value="${line%%[[:space:]]*}"
+  value="${value%\"}"
+  value="${value#\"}"
   if ! [[ "$value" =~ ^[0-9]{3}$ ]]; then
     echo "Invalid Parent metadata in $1: $line" >&2
     return 1
@@ -130,7 +140,7 @@ task_parent() {
 
 task_branch_name() {
   local file="$1" id="$2" title slug
-  title="$(sed -n '1s/^# //p' "$file")"
+  title="$(sed -n '/^# /{s/^# //;p;q}' "$file")"
   slug="$(printf '%s' "$title" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//')"
   printf 'task/%s-%s\n' "$id" "$slug"
 }

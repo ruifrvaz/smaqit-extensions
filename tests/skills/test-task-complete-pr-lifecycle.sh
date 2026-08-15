@@ -135,10 +135,10 @@ git -C "$CHILD_ROOT" init -q -b main
 git -C "$CHILD_ROOT" config user.email "test@example.invalid"
 git -C "$CHILD_ROOT" config user.name "Smaqit Test"
 {
-  printf '# Owner\n\n**Status:** In Progress\n**Mode:** Assisted\n'
+  printf -- '---\nstatus: In Progress\nmode: Assisted\n---\n\n# Owner\n'
 } > "$CHILD_ROOT/.smaqit/tasks/300_owner.md"
 {
-  printf '# Child\n\n**Status:** In Progress\n**Mode:** Assisted\n**Parent:** 300\n'
+  printf -- '---\nstatus: In Progress\nmode: Assisted\nparent: "300"\n---\n\n# Child\n'
 } > "$CHILD_ROOT/.smaqit/tasks/301_child.md"
 git -C "$CHILD_ROOT" add .smaqit/tasks
 git -C "$CHILD_ROOT" commit -q -m "seed owner and child tasks"
@@ -176,12 +176,12 @@ owner_task_file="$CHILD_ROOT/.smaqit/tasks/300_owner.md"
 # The child (301) fixture from test 3 above is still declared under parent
 # 300 and still "In Progress" — mark it Completed so it stops blocking 300's
 # own completion, matching the resolver's declared-children gate.
-sed -i 's/^\*\*Status:\*\*.*/**Status:** Completed/' "$CHILD_ROOT/.smaqit/tasks/301_child.md"
+sed -i 's/^status:.*/status: Completed/' "$CHILD_ROOT/.smaqit/tasks/301_child.md"
 
 pr_open_result="$(cd "$CHILD_ROOT" && bash "$CHILD_WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --task 300 --purpose complete)"
 assert_eq "$(jq -r '.kind' <<< "$pr_open_result")" "owner" "owner with Status In Progress still resolves as owner (baseline)"
 
-sed -i 's/^\*\*Status:\*\*.*/**Status:** PR Open/' "$owner_task_file"
+sed -i 's/^status:.*/status: PR Open/' "$owner_task_file"
 pr_open_result="$(cd "$CHILD_ROOT" && bash "$CHILD_WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --task 300 --purpose complete)"
 assert_eq "$(jq -r '.kind' <<< "$pr_open_result")" "owner" "owner with Status PR Open must still resolve as owner for Phase 2 (--purpose complete)"
 
@@ -189,7 +189,7 @@ if bash "$CHILD_WORKTREE_SCRIPTS/9_resolve_task_lifecycle.sh" --parent 300 >/dev
   fail "a task with Status PR Open must not accept a new child joining it via --parent — its worktree is about to be cleaned up"
 fi
 
-sed -i 's/^\*\*Status:\*\*.*/**Status:** In Progress/' "$owner_task_file"
+sed -i 's/^status:.*/status: In Progress/' "$owner_task_file"
 
 echo "[PASS] Phase 2 resolves an owner whose Status is PR Open; child-join still requires strict In Progress"
 
@@ -249,16 +249,17 @@ diff -q "$RULES_COMPLETE" "$RULES_LIST" >/dev/null || fail "task-list's RULES.md
 assert_contains "$RULES_COMPLETE" 'PR Open → In Progress  (cannot regress once the PR exists' "RULES.md documents the PR Open status transitions"
 assert_contains "$RULES_COMPLETE" 'A child task never enters it' "RULES.md documents PR Open as owner-only"
 
-# --- Contract assertions: templates and PLANNING.md carry the new status ---
+# --- Contract assertions: the single canonical template, and retirement ----
+# .smaqit/templates/task.template.md was retired in favor of
+# skills/smaqit.task-create/assets/TASK_TEMPLATE.md as the sole canonical
+# task file structure — no more dual-template comparison.
 
-for template in \
-  "$SOURCE_ROOT/.smaqit/templates/task.template.md" \
-  "$SOURCE_ROOT/installer/templates/task.template.md"
-do
-  assert_contains "$template" 'Not Started | In Progress | PR Open | Completed | Abandoned | Blocked' "$template documents the PR Open status"
-  assert_contains "$template" '**PR:** #NNN' "$template documents the PR field"
-done
-assert_contains "$SOURCE_ROOT/skills/smaqit.task-create/assets/TASK_TEMPLATE.md" '**PR:** #NNN' "task-create's template documents the PR field"
+[ ! -e "$SOURCE_ROOT/.smaqit/templates/task.template.md" ] || fail ".smaqit/templates/task.template.md should have been retired"
+[ ! -e "$SOURCE_ROOT/installer/templates/task.template.md" ] || fail "installer/templates/task.template.md should have been retired"
+
+TASK_CREATE_TEMPLATE="$SOURCE_ROOT/skills/smaqit.task-create/assets/TASK_TEMPLATE.md"
+assert_contains "$TASK_CREATE_TEMPLATE" 'status becomes "PR Open"' "task-create's template documents the PR Open status"
+assert_contains "$TASK_CREATE_TEMPLATE" '# pr: NNN' "task-create's template documents the pr frontmatter key"
 # .smaqit/tasks/PLANNING.md is intentionally excluded from every task worktree's
 # sparse checkout (task state lives only on the primary checkout) — it is not
 # part of this repo's source tree from here, so it is not asserted against.

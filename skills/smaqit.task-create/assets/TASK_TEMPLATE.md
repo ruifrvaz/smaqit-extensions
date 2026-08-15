@@ -1,9 +1,14 @@
-# [Task Title]
+---
+status: Not Started
+created: "YYYY-MM-DD"
+# parent: "NNN"           — 3-digit owner task ID; added only for a child task, omitted for a standalone or lifecycle-owner task
+# pr: NNN                 — owner tasks only; smaqit.task-complete sets this when status becomes "PR Open", clears it on Completed/Abandoned
+# mode: Assisted          — Assisted | Autonomous; set by smaqit.task-start when the task begins
+# started: "YYYY-MM-DD"   — set by smaqit.task-start when the task begins
+# completed: "YYYY-MM-DD" — set by smaqit.task-complete when the task finishes
+---
 
-**Status:** Not Started
-**Created:** YYYY-MM-DD
-<!-- **Parent:** NNN (optional; omit for a standalone or lifecycle-owner task) -->
-<!-- **PR:** #NNN (owner tasks only; smaqit.task-complete sets this when Status becomes "PR Open", clears it on Completed/Abandoned) -->
+# [Task Title]
 
 ## Description
 

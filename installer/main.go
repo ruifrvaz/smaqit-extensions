@@ -1237,7 +1237,9 @@ func copyFile(src, dst string) error {
 }
 
 // checkAndReInit refreshes the global installation and, if the current
-// directory contains a .smaqit/ directory, re-scaffolds project templates.
+// directory contains a .smaqit/ directory, re-scaffolds project tracking.
+// Project re-scaffolding goes through scaffoldProject — the same path `init`
+// uses — and never installs project-scoped agent/skill mirrors.
 func checkAndReInit(dir string) {
 	// Always refresh the global install.
 	fmt.Println("Refreshing global installation...")
@@ -1245,16 +1247,19 @@ func checkAndReInit(dir string) {
 
 	smaqitPath := filepath.Join(dir, ".smaqit")
 	if _, err := os.Stat(smaqitPath); err != nil {
-		fmt.Println("Run `smaqit-extensions install --scope project` to scaffold project tracking")
+		fmt.Println("Run `smaqit-extensions init` to scaffold project tracking")
 		return
 	}
 
 	fmt.Println("Detected .smaqit/ — re-scaffolding project tracking...")
-	scaffoldSmaqit(dir)
+	scaffoldProject(dir)
 	fmt.Println("Re-scaffolded .smaqit/ project tracking")
 }
 
 // checkAndReInitWithBinary re-initializes in a fresh process after self-update.
+// The fresh binary runs `init`, which scaffolds project tracking only —
+// project-scoped agent/skill mirrors require an explicit
+// `install --scope project` and are never written by `update`.
 func checkAndReInitWithBinary(dir, binaryPath string) error {
 	// Always refresh the global install with the new binary.
 	cmd := exec.Command(binaryPath, "install")
@@ -1267,17 +1272,17 @@ func checkAndReInitWithBinary(dir, binaryPath string) error {
 
 	smaqitPath := filepath.Join(dir, ".smaqit")
 	if _, err := os.Stat(smaqitPath); err != nil {
-		fmt.Println("Run `smaqit-extensions install --scope project` to scaffold project tracking")
+		fmt.Println("Run `smaqit-extensions init` to scaffold project tracking")
 		return nil
 	}
 
 	fmt.Println("Detected .smaqit/ — re-scaffolding project tracking with updated binary...")
-	cmd2 := exec.Command(binaryPath, "install", "--scope", "project", dir)
+	cmd2 := exec.Command(binaryPath, "init", dir)
 	cmd2.Stdin = os.Stdin
 	cmd2.Stdout = os.Stdout
 	cmd2.Stderr = os.Stderr
 	if err := cmd2.Run(); err != nil {
-		return fmt.Errorf("running %s install --scope project: %w", binaryPath, err)
+		return fmt.Errorf("running %s init: %w", binaryPath, err)
 	}
 	return nil
 }

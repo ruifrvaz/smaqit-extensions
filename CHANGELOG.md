@@ -7,10 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-08-15
+
+Major version marking the task-file format break. The format change itself shipped in v1.18.0 under a MINOR version — that was wrong: it invalidates every existing task file with no automatic migration. A published release cannot be retagged, so v2.0.0 is where that boundary is recorded, and it carries the guard that makes the break safe. **Upgrade from v1.17.x straight to v2.0.0.**
+
 ### Fixed
-- **Legacy task files rejected instead of silently mis-parsed; format break signalled as a major version** (pending v2.0.0 · PR #127) — `9_resolve_task_lifecycle.sh` now refuses any task file with no YAML frontmatter block instead of reading its absent keys as "no parent, no mode" and resolving a legacy child task as a standalone owner; quoted frontmatter values are read correctly; v1.18.0 is marked superseded.
+- **Legacy task files are now rejected instead of silently mis-parsed** — `9_resolve_task_lifecycle.sh` refuses any task file with no YAML frontmatter block, naming the file and the required migration. Previously every extractor returned empty for such a file, and empty is indistinguishable from "legitimately absent": a legacy-format **child** task resolved as `kind: owner` with `parent: null` and a defaulted mode, and **exited 0** — so `task-start` would hand it its own branch and worktree, and `task-complete` its own release PR. The failure profile was also inconsistent, with `--purpose complete` and `--parent` erroring while `--purpose start` returned a wrong answer. All three paths now fail identically; the child-scan loop warns and skips instead, so one stale sibling cannot block an unrelated owner's completion.
+- **Quoted frontmatter values are read correctly** — only `parent` stripped surrounding quotes, so `status: "Completed"` (equally valid YAML, and consistent with the schema's own quoting of dates and parent IDs) silently failed to match the unquoted form every writer emits. All keys now read through a single accessor.
+- **`PLANNING.md` no longer triggers a spurious warning** during owner completion's child scan; it lives in `.smaqit/tasks/` by design and is never a completion candidate.
+
+### Migration
+Convert each `.smaqit/tasks/NNN_*.md` header block to YAML frontmatter — `status`, `mode`, `parent`, `pr`, `created`, `started`, `completed` in a `---` block before the `# Title` heading, omitting keys that do not apply. Enum text is unchanged (`In Progress`, `Assisted`, …). Everything from the first `##` heading onward stays byte-identical. See `skills/smaqit.task-create/assets/TASK_TEMPLATE.md` for the canonical shape.
 
 ## [1.18.0] - 2026-08-15
+
+> **Superseded by v2.0.0 — upgrade straight past this release.** v1.18.0 carried a breaking task-file format change but was published under a MINOR version, and its handling of pre-1.18.0 task files was defective. See v2.0.0.
 
 ### Changed
 - **Task file format converted to YAML frontmatter** — task file header fields (`status`, `mode`, `parent`, `pr`, `created`, `started`, `completed`) move from bold-markdown lines to flat YAML frontmatter; `skills/smaqit.task-create/assets/TASK_TEMPLATE.md` is now the sole canonical task template, and the stale `.smaqit/templates/` directory (unchanged since before task 011) is retired entirely from the installer pipeline. Breaking change, no legacy-format fallback — existing task files in consumer projects must be manually migrated to the new frontmatter format.

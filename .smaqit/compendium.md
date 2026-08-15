@@ -25,7 +25,7 @@ The synchronized topology is:
 
 Repeated initialization is expected to be idempotent. Claude Code may fail to resolve an ancestor import when launched from some repository subdirectories, so launch it from the project root if imported instructions are missing.
 
-The `# Scaffolding` section seeded into `AGENTS.md` comes from `skills/smaqit.project-init/references/AGENTS.template.md` — a skill-bundled reference installed globally alongside the skill itself, not a project-scaffolded file under `.smaqit/templates/`. This means the template is always present wherever the skill is installed, regardless of a given project's `.smaqit/` scaffolding state. Despite the name, `.github/copilot-instructions.md` never carries distinct Copilot-specific content; it is always the symlink described above.
+The `# Scaffolding` section seeded into `AGENTS.md` comes from `skills/smaqit.project-init/references/AGENTS.template.md` — a skill-bundled reference installed globally alongside the skill itself, never a project-scaffolded file. This means the template is always present wherever the skill is installed, regardless of a given project's `.smaqit/` scaffolding state. Every smaqit template now follows this same skill-bundled pattern: `.smaqit/templates/` was retired entirely in v1.18.0 and is no longer created in any project. Despite the name, `.github/copilot-instructions.md` never carries distinct Copilot-specific content; it is always the symlink described above.
 
 ---
 
@@ -119,7 +119,7 @@ No. The installer (fresh install or `update`) copies and overwrites files from t
 
 No. `session.finish` takes no mode flag and behaves identically on every invocation: it proceeds directly through its routine steps (history file, compendium, research map, and finalizing `main`'s git state) and stops only when one of its failure-handling table's hard-stop conditions is hit (detached HEAD, an in-progress merge/conflict, a dirty non-`main` branch, diverged history, an unexpected push rejection, an auth failure, or anything else ambiguous) — those conditions and their handling are unchanged from before.
 
-This is scoped to `session-finish` only. `task-start`/`task-complete`'s own per-task `**Mode:** Assisted | Autonomous` field, stored in each task file, is a completely separate mechanism and still governs whether `task-complete`'s PR-gated phases require an explicit user request or can self-complete.
+This is scoped to `session-finish` only. `task-start`/`task-complete`'s own per-task `mode: Assisted | Autonomous` frontmatter key, stored in each task file, is a completely separate mechanism and still governs whether `task-complete`'s PR-gated phases require an explicit user request or can self-complete.
 
 ---
 
@@ -157,6 +157,16 @@ This is distinct from `smaqit-extensions`' own `.github/workflows/post-merge-rel
 
 ## Task Management
 
+**How is task metadata stored in a task file?**
+
+As YAML frontmatter, since v1.18.0 (the guard rejecting legacy files landed in v2.0.0). Flat keys — `status`, `mode`, `parent`, `pr`, `created`, `started`, `completed` — in a `---` block before the `# Title` heading. Keys are omitted entirely when not applicable (no `null`, no commented placeholders); `parent` is a quoted zero-padded string (`"020"`), `pr` a bare int, dates quoted. Enum text is unchanged from the previous format (`Not Started`, `In Progress`, `PR Open`, `Completed`, `Abandoned`, `Blocked`, `Assisted`, `Autonomous`). The single canonical template is `skills/smaqit.task-create/assets/TASK_TEMPLATE.md`.
+
+`## Issue Triage Context`'s own `**Mode:** Auto | Skip` field is a **different, unrelated mechanism** in the body, parsed by `task-context.sh` for `smaqit.utils.triage-issues`. It remains bold-markdown and is unaffected. Moving the header `mode` into frontmatter is what removed the former ambiguity between the two same-named fields — the resolver now scopes its reads to the frontmatter block, so the body's `Mode` can never be picked up by accident.
+
+There is **no backward compatibility**: `9_resolve_task_lifecycle.sh` rejects a task file with no frontmatter block outright, with a message naming the file and the required migration. This is deliberate — every extractor returns empty for a frontmatter-less file, and empty is indistinguishable from "legitimately absent", so a legacy-format child task would otherwise resolve silently as a standalone owner and be handed its own branch, worktree, and release PR. A project upgrading from an earlier version must convert its existing task files; the conversion touches only the header block, leaving everything from the first `##` heading onward byte-identical.
+
+---
+
 **Why are task files and PLANNING.md excluded from task worktrees?**
 
 Task state (`.smaqit/tasks/PLANNING.md` and individual `NNN_*.md` files) lives exclusively on the main branch. Task worktrees exclude `.smaqit/tasks/` via sparse checkout so no worktree ever has a local copy of task state.
@@ -183,7 +193,7 @@ Implementation changes in a task worktree are deliberately left uncommitted unti
 
 For an owner (standalone or parent) task, completion is PR-gated and runs in two phases, because PR review is asynchronous and can't be waited out inside a single invocation. A child task is entirely unaffected — it still just commits into the shared parent worktree and updates task-file bookkeeping, with no PR and no release of its own.
 
-**Phase 1** (Status `In Progress`): commits the implementation, computes the task's own release version via `release-analysis`'s Task mode (fetches `origin/main` fresh and treats any other task's currently-pending version as already claimed), pushes the branch, opens a PR titled `Prepare release vX.Y.Z`, pushes a `(pending vX.Y.Z · PR #NNN)`-annotated entry to `CHANGELOG.md`'s `[Unreleased]` section directly on `main`, then rebases the branch and promotes that entry into a real `## [X.Y.Z]` section on the branch itself (so the merged PR carries the changelog change and `post-merge-release.yml`'s release-notes extraction has something to find). The task's status becomes `PR Open`, recording the PR number in a `**PR:**` field. Assisted mode stops here; Autonomous mode immediately self-merges (`gh pr merge --merge`) and falls straight into Phase 2.
+**Phase 1** (Status `In Progress`): commits the implementation, computes the task's own release version via `release-analysis`'s Task mode (fetches `origin/main` fresh and treats any other task's currently-pending version as already claimed), pushes the branch, opens a PR titled `Prepare release vX.Y.Z`, pushes a `(pending vX.Y.Z · PR #NNN)`-annotated entry to `CHANGELOG.md`'s `[Unreleased]` section directly on `main`, then rebases the branch and promotes that entry into a real `## [X.Y.Z]` section on the branch itself (so the merged PR carries the changelog change and `post-merge-release.yml`'s release-notes extraction has something to find). The task's status becomes `PR Open`, recording the PR number in a `pr:` frontmatter key. Assisted mode stops here; Autonomous mode immediately self-merges (`gh pr merge --merge`) and falls straight into Phase 2.
 
 **Phase 2** (Status `PR Open`, re-entrant): confirms the PR actually merged via `gh pr view --json state,mergedAt` — never inferred any other way — pulls `main`, flips status to `Completed`, removes the worktree, and force-deletes (`-D`, not `-d`) the **local** branch only. `-D` is required because GitHub's own merge confirmation is authoritative regardless of merge strategy, and a squash merge (or Phase 1's own rebase) leaves the local branch tip unable to satisfy `-d`'s ancestry check. The remote branch is never deleted — it's kept indefinitely as an audit trail of every merged/released task.
 

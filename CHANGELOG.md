@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Legacy task files rejected instead of silently mis-parsed; format break signalled as a major version** (pending v2.0.0 · PR #127) — `9_resolve_task_lifecycle.sh` now refuses any task file with no YAML frontmatter block instead of reading its absent keys as "no parent, no mode" and resolving a legacy child task as a standalone owner; quoted frontmatter values are read correctly; v1.18.0 is marked superseded.
+
 ## [1.18.0] - 2026-08-15
 
 ### Changed

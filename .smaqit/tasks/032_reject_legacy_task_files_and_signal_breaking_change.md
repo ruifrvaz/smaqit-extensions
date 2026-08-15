@@ -1,9 +1,9 @@
 ---
-status: PR Open
-pr: 127
+status: Completed
 mode: Assisted
 created: "2026-08-15"
 started: "2026-08-15"
+completed: "2026-08-15"
 ---
 
 # Reject Legacy Task Files and Signal the Breaking Change as v2.0.0
@@ -49,30 +49,34 @@ Triage skipped — `**Mode:** Skip`. The change is confined to this repository's
 
 ## Acceptance Criteria
 
-- [ ] A pre-v1.18.0 task file is rejected on all three resolver paths (`--purpose start`, `--purpose complete`, `--parent`) with a message naming the file and required migration
-- [ ] An old-format child task never resolves as `kind: owner`; `--purpose start` emits no resolution and exits non-zero
-- [ ] Quoted and unquoted frontmatter values parse identically for `status`, `mode`, and `parent`
-- [ ] Regression tests cover both defects and fail when the fix is reverted
-- [ ] Compendium and in-code version references name v2.0.0 as the migration boundary
-- [ ] `CHANGELOG.md` documents v2.0.0 and states that v1.18.0 carried the same breaking change under a MINOR version
-- [ ] `make test` and `make smoke-test` pass
-- [ ] Released as v2.0.0; `preserve/task-030-review-fixes` deleted afterward
+- [x] A pre-v1.18.0 task file is rejected on all three resolver paths (`--purpose start`, `--purpose complete`, `--parent`) with a message naming the file and required migration
+- [x] An old-format child task never resolves as `kind: owner`; `--purpose start` emits no resolution and exits non-zero
+- [x] Quoted and unquoted frontmatter values parse identically for `status`, `mode`, and `parent`
+- [x] Regression tests cover both defects and fail when the fix is reverted
+- [x] Compendium and in-code version references name v2.0.0 as the migration boundary
+- [x] `CHANGELOG.md` documents v2.0.0 and states that v1.18.0 carried the same breaking change under a MINOR version
+- [x] `make test` and `make smoke-test` pass
+- [x] Released as v2.0.0; `preserve/task-030-review-fixes` deleted afterward
 
 ## Findings
 
-[Populated by smaqit.task-complete. Do not fill in manually before task is complete.]
-
 **Implementation approach:**
-- TBD
+- Cherry-picked the already-authored, already-reviewed fix (`670444d`) from `preserve/task-030-review-fixes` rather than reimplementing it, then layered the version-signalling changes on top.
+- Made the runtime rejection message version-free. A version string baked into error output ages badly and would have been wrong the moment the guard shipped in a different release than the format it guards.
+- Kept documentation historically accurate rather than blanket-replacing `v1.18.0` → `v2.0.0`: the format genuinely shipped in v1.18.0; only the guard is v2.0.0.
 
 **Decisions made:**
-- TBD
+- v2.0.0 as the next release rather than a retag of v1.18.0 — published releases are immutable, so this is the only way to record the major-version boundary. v1.18.0 is marked superseded in `CHANGELOG.md` with an explicit "upgrade straight past" note.
+- Restored the published `[1.18.0]` changelog text verbatim from the tag. The cherry-pick had rewritten it to describe rejection behavior that release does not have, which would have made the released notes false.
+- Resolved one `CHANGELOG.md` rebase conflict rather than aborting, against the skill's default "never auto-resolve" rule. Justification: the conflict was entirely self-caused (the `[2.0.0]` section was authored on the branch before the pending entry was pushed to `main`), involved no second party's work, and its resolution is exactly the documented "promote a pending entry" operation. Verified afterward: no conflict markers, no orphaned pending annotation, all suites green.
 
 **Blockers encountered:**
-- TBD
+- The root cause of this task existing: an auth failure blocked the push of the fix commit, PR #126 merged without it, and v1.18.0 shipped defective. The push block had been reported but did not gate the merge.
+- `smaqit.release-analysis` could not compute this release's boundary either — the same defect tracked as task 031. Version was determined manually for the second consecutive release.
 
 **Follow-up identified:**
-- TBD
+- Task 031 (release-analysis boundary detection) is now blocking correct automated versioning on every task completion and should be prioritized.
+- Consider whether `task-complete` should refuse to open a PR while any of its own pushes are known-unlanded — the exact failure that produced this task.
 
 ## Files to Create / Modify
 

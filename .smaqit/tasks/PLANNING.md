@@ -6,7 +6,6 @@ Central task tracking and planning for smaqit-extensions.
 
 | ID | Title | Status | Created |
 |----|-------|--------|---------|
-| 032 | Reject Legacy Task Files and Signal the Breaking Change as v2.0.0 | PR Open | 2026-08-15 |
 | 031 | Fix Release-Analysis Boundary Detection for PR-Gated Releases | Not Started | 2026-08-15 |
 | 028 | Benchmark Glossary Skill Invocation | Not Started | 2026-08-14 |
 | 002 | Fix Changelog Extraction for Cumulative Releases | Not Started | 2026-02-13 |
@@ -17,6 +16,7 @@ Central task tracking and planning for smaqit-extensions.
 
 | ID | Title | Status | Created | Completed |
 |----|-------|--------|---------|-----------|
+| 032 | Reject Legacy Task Files and Signal the Breaking Change as v2.0.0 | Completed | 2026-08-15 | 2026-08-15 |
 | 030 | Task File YAML Frontmatter Migration | Completed | 2026-08-15 | 2026-08-15 |
 | 029 | Relax Session-Finish Push Confirmation Gate | Completed | 2026-08-14 | 2026-08-15 |
 | 027 | PR-Gated Task Completion & Per-Task Releases | Completed | 2026-08-14 | 2026-08-14 |

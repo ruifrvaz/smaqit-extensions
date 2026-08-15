@@ -1,5 +1,6 @@
 ---
-status: In Progress
+status: PR Open
+pr: 126
 mode: Assisted
 created: "2026-08-15"
 started: "2026-08-15"
@@ -91,29 +92,33 @@ This is a **fix-forward, no-legacy-support change**: the worktree lifecycle reso
 
 ## Acceptance Criteria
 
-- [ ] `skills/smaqit.task-create/assets/TASK_TEMPLATE.md` carries the full frontmatter schema and is the only canonical task template in the repo
-- [ ] `task-create`, `task-start`, `task-complete` write frontmatter fields instead of bold-markdown lines; all three `RULES.md` copies stay byte-identical and reflect the new syntax
-- [ ] `9_resolve_task_lifecycle.sh`'s `task_status`/`task_mode`/`task_parent`/`task_branch_name` correctly parse frontmatter-formatted task files, with no legacy/fallback parsing path
-- [ ] `## Issue Triage Context`'s `Mode: Auto|Skip` field and `task-context.sh` are unchanged
-- [ ] `.smaqit/templates/` no longer exists in this repo and is no longer scaffolded/installed into any consumer project
-- [ ] Every existing task file in `.smaqit/tasks/` is backfilled to the new frontmatter format
-- [ ] `make test` and `make smoke-test` pass
+- [x] `skills/smaqit.task-create/assets/TASK_TEMPLATE.md` carries the full frontmatter schema and is the only canonical task template in the repo
+- [x] `task-create`, `task-start`, `task-complete` write frontmatter fields instead of bold-markdown lines; all three `RULES.md` copies stay byte-identical and reflect the new syntax
+- [x] `9_resolve_task_lifecycle.sh`'s `task_status`/`task_mode`/`task_parent`/`task_branch_name` correctly parse frontmatter-formatted task files, with no legacy/fallback parsing path
+- [x] `## Issue Triage Context`'s `Mode: Auto|Skip` field and `task-context.sh` are unchanged
+- [x] `.smaqit/templates/` no longer exists in this repo and is no longer scaffolded/installed into any consumer project
+- [x] Every existing task file in `.smaqit/tasks/` is backfilled to the new frontmatter format
+- [x] `make test` and `make smoke-test` pass
 
 ## Findings
 
-[Populated by smaqit.task-complete. Do not fill in manually before task is complete.]
-
 **Implementation approach:**
-- TBD
+- Implemented Phases A–D directly in the task worktree (schema, canonical template, four consuming skills + three synced `RULES.md` copies, resolver script rewrite with a new `_frontmatter_block()` helper, full `.smaqit/templates/` retirement across `installer/main.go`/`installer/Makefile`/root `Makefile`/`scripts/smoke-test-installer.sh`/`README.md`), then rewrote both affected hermetic test suites for frontmatter fixtures.
+- Phase E's mandatory corpus backfill (30 task files) ran on the primary checkout via a one-time Python conversion script, since `.smaqit/tasks/` is sparse-excluded from every task worktree — the only path this content can ever be written through. Dry-run reviewed before applying; committed locally, left unpushed for review rather than auto-pushed like `task-start`'s routine single-field metadata commits.
+- Verified end-to-end against real production data (not just hermetic fixtures): ran the rewritten resolver script directly against several real backfilled task files, confirming correct status/mode/branch-name resolution.
 
 **Decisions made:**
-- TBD
+- Frontmatter is flat (no `metadata:` nesting), matching `.smaqit/references/project-research.md`'s project-data precedent rather than skill/agent source-file convention.
+- All 7 fields, including the 3 dates, moved to frontmatter — a scoped, explicit exception to `project-research.md`'s own choice to exclude dates, made because the instruction covered the whole header block.
+- No backward-compatibility fallback in the resolver, confirmed by the user mid-session; `## Issue Triage Context`'s own `Mode: Auto|Skip` field stays untouched, also confirmed by the user after reviewing its live usage (task 029).
+- `installer/templates/copilot-instructions.template.md` — discovered mid-implementation to be a genuinely *committed* stale leftover (not just local build staleness) from before the `AGENTS.template.md` migration — deleted along with the rest of the retired `installer/templates/` directory.
 
 **Blockers encountered:**
-- TBD
+- First push attempt (task-start's metadata commit) failed 3/3 with a 403 permission error from the configured GitHub PAT, not a routine collision — stopped and reported per the bounded-retry loop's own "STOP on a non-conflicting repeated rejection" rule; resolved once the user fixed their token and asked to retry.
+- Two test files not in the original Files-to-Modify list broke on the first `make test` run after the resolver rewrite: `tests/skills/test-triage-issues.sh` (fixture-checked the now-deleted `.smaqit/templates/task.template.md`) and root `Makefile`'s `clean` target (dead `installer/templates/` reference). Both fixed; full suite green afterward.
 
 **Follow-up identified:**
-- TBD
+- None blocking. `pr` frontmatter as a bare int (vs. a `"#NNN"` string) and keeping the frontmatter-fallback question closed indefinitely were both flagged as low-stakes, reversible choices during planning — no action needed unless the team wants to revisit either later.
 
 ## Files to Create / Modify
 
@@ -138,7 +143,9 @@ This is a **fix-forward, no-legacy-support change**: the worktree lifecycle reso
 | `.smaqit/tasks/PLANNING.md` | Modify — update Notes section's PR field reference |
 | `tests/skills/test-parent-task-lifecycle.sh` | Modify — frontmatter fixtures/assertions |
 | `tests/skills/test-task-complete-pr-lifecycle.sh` | Modify — frontmatter fixtures/assertions; single-template check |
-| `CHANGELOG.md` | Modify — breaking-change entry |
+| `tests/skills/test-triage-issues.sh` | Modify — not in original scope; found broken by the templates retirement, fixed |
+| `Makefile` (root) | Modify — not in original scope; `clean` target's dead `installer/templates/` reference removed |
+| `CHANGELOG.md` | Deliberately not modified — `task-complete` Phase 1 generates the pending entry itself (task 027's mechanism); a hand-written entry here would be an orphaned duplicate |
 
 ## Notes
 

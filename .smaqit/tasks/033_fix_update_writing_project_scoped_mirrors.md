@@ -1,6 +1,7 @@
 ---
-status: In Progress
+status: PR Open
 mode: Assisted
+pr: 128
 created: "2026-08-15"
 started: "2026-08-16"
 ---
@@ -41,26 +42,28 @@ TBD — to be confirmed during assessment.
 
 ## Acceptance Criteria
 
-- [ ] `smaqit-extensions update`, run in a project with no project-scoped agent/skill mirrors and no `--scope project` opt-in, does not create `.agents/`, `.claude/skills/` or `.claude/agents/` or `.claude/commands/`, `.codex/agents/`, `.github/agents/`, or `.github/skills/`
-- [ ] `update`'s reinit path and `init`'s scope selection are verifiably the same code path (or share the same scope-decision logic), not parallel implementations that can drift again
-- [ ] A regression test covers this scenario
-- [ ] `make test` and the installer smoke test pass
+- [x] `smaqit-extensions update`, run in a project with no project-scoped agent/skill mirrors and no `--scope project` opt-in, does not create `.agents/`, `.claude/skills/` or `.claude/agents/` or `.claude/commands/`, `.codex/agents/`, `.github/agents/`, or `.github/skills/`
+- [x] `update`'s reinit path and `init`'s scope selection are verifiably the same code path (or share the same scope-decision logic), not parallel implementations that can drift again
+- [x] A regression test covers this scenario
+- [x] `make test` and the installer smoke test pass
 
 ## Findings
 
-[Populated by smaqit.task-complete. Do not fill in manually before task is complete.]
-
 **Implementation approach:**
-- TBD
+- Confirmed the root cause exactly matched the task's hypothesis: `checkAndReInitWithBinary` (the post-self-update reinit path) re-execed the fresh binary with `install --scope project <dir>` — the internal/testing full-mirror install — instead of the scope-aware `init` path.
+- Converged both reinit routes onto the exact function `init` uses: `checkAndReInitWithBinary` now re-execs `init <dir>`; `checkAndReInit` (the same-version, no-download path) now calls `scaffoldProject` directly instead of the narrower `scaffoldSmaqit`. Both writer functions are create-if-absent, so the convergence is safe.
+- Fixed the existing `TestCheckAndReInitWithBinaryRunsFreshProcess` test, which had asserted the buggy `install --scope project` invocation as the expected behavior — this is why the defect survived task 023's global-install migration untested.
+- Added `TestScaffoldProjectCreatesOnlyProjectTrackingPaths`, asserting the shared scaffold path creates only the four documented project-tracking paths and none of the five mirror paths.
 
 **Decisions made:**
-- TBD
+- Converge on `scaffoldProject`/`init` rather than adding a new scope-check branch inside the reinit functions — satisfies the acceptance criterion that both paths are "verifiably the same code path," not parallel implementations that can drift again.
+- Kept the `checkAndReInit` (no-download) same-version path in scope for the fix even though the task's reported repro was specifically the post-download path — both were doing the narrower `scaffoldSmaqit` call, and leaving one unfixed would have re-introduced exactly this kind of drift.
 
 **Blockers encountered:**
-- TBD
+- None.
 
 **Follow-up identified:**
-- TBD
+- None — the `install --scope project` internal/testing alias itself is intentionally retained for smoke tests and explicit opt-in; no further scope work is implied by this fix.
 
 ## Files to Create / Modify
 

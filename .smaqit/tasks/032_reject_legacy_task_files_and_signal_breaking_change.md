@@ -1,5 +1,6 @@
 ---
-status: In Progress
+status: PR Open
+pr: 127
 mode: Assisted
 created: "2026-08-15"
 started: "2026-08-15"

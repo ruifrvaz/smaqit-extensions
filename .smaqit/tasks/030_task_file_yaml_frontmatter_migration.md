@@ -113,6 +113,13 @@ This is a **fix-forward, no-legacy-support change**: the worktree lifecycle reso
 - No backward-compatibility fallback in the resolver, confirmed by the user mid-session; `## Issue Triage Context`'s own `Mode: Auto|Skip` field stays untouched, also confirmed by the user after reviewing its live usage (task 029).
 - `installer/templates/copilot-instructions.template.md` — discovered mid-implementation to be a genuinely *committed* stale leftover (not just local build staleness) from before the `AGENTS.template.md` migration — deleted along with the rest of the retired `installer/templates/` directory.
 
+**Post-PR review pass (Opus):**
+- Caught a serious defect in the shipped Phase 1 code: "no legacy support" had been implemented as *doesn't parse* rather than *rejects*, and the failure profile was inconsistent — `--purpose complete` and `--parent` errored, but `--purpose start` returned a wrong answer with exit 0. An old-format **child** resolved as `kind: owner`, `parent: null`, mode silently defaulted, which would have handed it its own branch, worktree, and eventually its own release PR. Root cause: every extractor returns empty for a frontmatter-less file, and empty is indistinguishable from "legitimately absent". Fixed with `require_frontmatter()` gating all three read paths; child-scan warns and skips instead.
+- Second defect: only `task_parent()` stripped surrounding quotes, so `status: "Completed"` — equally valid YAML, and consistent with the schema's own quoting of dates and parent IDs — silently failed to match. Extraction unified through `_frontmatter_value()`.
+- Both regressions now covered in `test-parent-task-lifecycle.sh`, and each test was confirmed to fail with the fix reverted. The gap that let these ship: every existing suite exercised only new-format files, so the explicit no-legacy contract was never itself tested.
+- Compendium corrected (3 stale claims) and given an entry documenting the new format and its hard-fail behavior.
+- Incidental: child-scan no longer warns on `PLANNING.md`.
+
 **Blockers encountered:**
 - First push attempt (task-start's metadata commit) failed 3/3 with a 403 permission error from the configured GitHub PAT, not a routine collision — stopped and reported per the bounded-retry loop's own "STOP on a non-conflicting repeated rejection" rule; resolved once the user fixed their token and asked to retry.
 - Two test files not in the original Files-to-Modify list broke on the first `make test` run after the resolver rewrite: `tests/skills/test-triage-issues.sh` (fixture-checked the now-deleted `.smaqit/templates/task.template.md`) and root `Makefile`'s `clean` target (dead `installer/templates/` reference). Both fixed; full suite green afterward.

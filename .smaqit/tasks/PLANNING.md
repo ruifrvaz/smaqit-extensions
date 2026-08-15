@@ -6,6 +6,7 @@ Central task tracking and planning for smaqit-extensions.
 
 | ID | Title | Status | Created |
 |----|-------|--------|---------|
+| 031 | Fix Release-Analysis Boundary Detection for PR-Gated Releases | Not Started | 2026-08-15 |
 | 030 | Task File YAML Frontmatter Migration | PR Open | 2026-08-15 |
 | 028 | Benchmark Glossary Skill Invocation | Not Started | 2026-08-14 |
 | 002 | Fix Changelog Extraction for Cumulative Releases | Not Started | 2026-02-13 |

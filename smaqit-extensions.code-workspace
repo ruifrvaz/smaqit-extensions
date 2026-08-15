@@ -3,10 +3,6 @@
     {
       "name": "main",
       "path": "."
-    },
-    {
-      "name": "task/030-task-file-yaml-frontmatter-migration",
-      "path": "../smaqit-extensions-wt-task-030-task-file-yaml-frontmatter-migration"
     }
   ],
   "settings": {

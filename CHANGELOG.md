@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **`update` no longer writes project-scoped agent/skill mirrors** (pending v2.0.1 · PR #128) — its post-self-update reinit now shares `init`'s scope-only scaffold path, so it never writes `.agents/`, `.claude/`, `.codex/`, `.github/agents/`, or `.github/skills/` into a project that never opted into `install --scope project`.
+
 ## [2.0.0] - 2026-08-15
 
 Major version marking the task-file format break. The format change itself shipped in v1.18.0 under a MINOR version — that was wrong: it invalidates every existing task file with no automatic migration. A published release cannot be retagged, so v2.0.0 is where that boundary is recorded, and it carries the guard that makes the break safe. **Upgrade from v1.17.x straight to v2.0.0.**

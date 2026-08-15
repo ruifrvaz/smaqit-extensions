@@ -1,9 +1,9 @@
 ---
-status: PR Open
-pr: 126
+status: Completed
 mode: Assisted
 created: "2026-08-15"
 started: "2026-08-15"
+completed: "2026-08-15"
 ---
 
 # Task File YAML Frontmatter Migration

@@ -7,7 +7,6 @@ Central task tracking and planning for smaqit-extensions.
 | ID | Title | Status | Created |
 |----|-------|--------|---------|
 | 031 | Fix Release-Analysis Boundary Detection for PR-Gated Releases | Not Started | 2026-08-15 |
-| 030 | Task File YAML Frontmatter Migration | PR Open | 2026-08-15 |
 | 028 | Benchmark Glossary Skill Invocation | Not Started | 2026-08-14 |
 | 002 | Fix Changelog Extraction for Cumulative Releases | Not Started | 2026-02-13 |
 | 007 | Create smaqit MCP Server (PoC) | Not Started | 2026-05-09 |
@@ -17,6 +16,7 @@ Central task tracking and planning for smaqit-extensions.
 
 | ID | Title | Status | Created | Completed |
 |----|-------|--------|---------|-----------|
+| 030 | Task File YAML Frontmatter Migration | Completed | 2026-08-15 | 2026-08-15 |
 | 029 | Relax Session-Finish Push Confirmation Gate | Completed | 2026-08-14 | 2026-08-15 |
 | 027 | PR-Gated Task Completion & Per-Task Releases | Completed | 2026-08-14 | 2026-08-14 |
 | 025 | Reduce Triage Issue Payloads | Completed | 2026-08-13 | 2026-08-14 |

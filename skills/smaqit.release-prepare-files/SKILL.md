@@ -2,7 +2,7 @@
 name: smaqit.release-prepare-files
 description: Validate git state and prepare all files (CHANGELOG.md, version files) for release
 metadata:
-  version: "0.7.0"
+  version: "0.8.0"
 ---
 
 # Release Prepare Files
@@ -89,24 +89,38 @@ grep "## \\[X.Y.Z\\]" CHANGELOG.md
 
 **A. Collect all changes since last release (reconciliation source):**
 
-The release workflows create exact release-marker commits in two compatible forms: `"Release vX.Y.Z"` for local releases and `"Prepare release vX.Y.Z"` for PR-based releases. Use the most recent marker of either form as the **authoritative boundary** — it is more reliable than git tags (absent in shallow clones) and more precise than PR merge timestamps (which can be incorrectly ordered).
+**Every release is tagged `vX.Y.Z`**, whichever flow produced it, so tags are the **authoritative boundary** — see `smaqit.release-analysis`' Step 1 for the full rationale. Release-marker commits (`"Release vX.Y.Z"`, `"Prepare release vX.Y.Z"`) are a fallback only: under the PR-gated per-task release model that string exists solely as a PR title, so in a repository that has released through both eras the marker-commit history silently stops at its last pre-PR-gated release.
 
-**Step 2A-1 — Deepen the clone so the boundary commit is reachable:**
+**Step 2A-1 — Deepen the clone and fetch tags so the boundary is reachable:**
 ```bash
+git fetch origin main 2>/dev/null || true
+git fetch --tags --force --quiet 2>/dev/null || true
 git fetch --unshallow 2>/dev/null || git fetch --depth=2147483647 2>/dev/null || true
 ```
 
 **Step 2A-2 — Find the boundary SHA:**
-```bash
-# List all exact local and PR release markers, most recent first
-git log --format="%H %s" | grep -iE "^[0-9a-f]+ (Prepare release|Release) v[0-9]+\.[0-9]+\.[0-9]+$"
-```
-- **If HEAD is a release-marker commit** (agent is already on a prepared release commit) — take the **second** entry.
-- **Otherwise** — take the **first** entry.
 
-Store as `<boundary-sha>`. Confirm:
+Resolve against `origin/main` rather than local `HEAD`, matching `release-analysis`' staleness hardening — a local `HEAD` can lag the remote tip and yield a boundary that silently re-includes already-released work:
+```bash
+# Most recent release tag reachable from the fetched remote tip
+git describe --tags --abbrev=0 origin/main
+```
+- **If the tip is itself tagged** (agent is already on a prepared release commit) — take the **next-older** tag: `git describe --tags --abbrev=0 "$(git describe --tags --abbrev=0 origin/main)^"`.
+- **Otherwise** — use the tag above.
+
+Dereference it to a commit and store as `<boundary-sha>`:
+```bash
+git rev-list -n1 "<tag>"
+```
+
+Confirm:
 ```bash
 git log -1 --oneline "<boundary-sha>"
+```
+
+**Fallback (no tags exist):** fall back to the marker-commit search, taking the second entry when `HEAD` is itself a marker commit and the first otherwise:
+```bash
+git log origin/main --format="%H %s" | grep -iE "^[0-9a-f]+ (Prepare release|Release) v[0-9]+\.[0-9]+\.[0-9]+$"
 ```
 
 **Step 2A-3 — Collect commits after the boundary:**
@@ -125,12 +139,7 @@ git log "<boundary-sha>..HEAD" --no-merges --pretty=format:"%h %s"
 
 The remaining commits are the real changelog delta.
 
-**Fallback (no release-marker commits found):** use git tags:
-```bash
-git fetch --tags --quiet 2>/dev/null || true
-git tag --sort=-v:refname | head -1
-# Then: git log <last-tag>..HEAD --merges/--no-merges
-```
+**Fallback (neither tags nor release-marker commits — new repository):** treat the full history as the delta and use `v0.0.0` as the baseline.
 
 **B. Reconcile `[Unreleased]` section with collected changes:**
 
@@ -274,6 +283,6 @@ version_synced: true
 - Version files are optional - CHANGELOG.md is the only required file
 - Keep a Changelog format uses version WITHOUT 'v' prefix in headers (e.g., `## [0.3.0]`), but git tags use 'v' prefix (e.g., `v0.3.0`)
 - For PR-based releases, validation rules are slightly relaxed (feature branch OK)
-- **Exact release-marker commits are the canonical boundary** — always deepen the clone first; locate the most recent local `"Release vX.Y.Z"` or PR `"Prepare release vX.Y.Z"` marker and use its SHA as the lower bound for `git log`
+- **Release tags are the canonical boundary** — always deepen the clone and `git fetch --tags --force` first, then resolve the most recent tag reachable from `origin/main` (`git describe --tags --abbrev=0`) and dereference it with `git rev-list -n1` for the lower bound. Marker commits are a fallback for tagless repositories only; under the PR-gated release model no marker commit is ever written
 - **Reconciliation is mandatory:** always cross-check `[Unreleased]` against the commit delta before promoting; the `[Unreleased]` section is often incomplete or empty
 - Uncommitted changes in working tree are acceptable - `release-git-local` handles commit grouping

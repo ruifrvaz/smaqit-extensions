@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-08-16
+
 ### Fixed
 - **`update` no longer writes project-scoped agent/skill mirrors** (pending v2.0.1 · PR #128) — its post-self-update reinit now shares `init`'s scope-only scaffold path, so it never writes `.agents/`, `.claude/`, `.codex/`, `.github/agents/`, or `.github/skills/` into a project that never opted into `install --scope project`.
 - **Release boundary is detected from git tags instead of release-marker commits** (pending v2.0.2 · PR #129) — under the PR-gated per-task release model, `Prepare release vX.Y.Z` exists only as a PR title, so the marker regex never matched the merge commit GitHub actually writes and the boundary silently skipped back to the last pre-PR-gated release. `release-analysis` and `release-prepare-files` now resolve the boundary via `git describe --tags` against `origin/main`, keep the marker regex as a tagless fallback, and derive the version baseline from the highest reachable tag as a separate lookup so out-of-order per-task tags cannot regress a suggestion below an already-released version.

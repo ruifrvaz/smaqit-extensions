@@ -45,9 +45,45 @@ func TestCheckAndReInitWithBinaryRunsFreshProcess(t *testing.T) {
 	if err != nil {
 		t.Fatalf("fresh process did not write marker: %v", err)
 	}
-	wantArgs := "args=install --scope project " + projectDir
+	wantArgs := "args=init " + projectDir
 	if !strings.Contains(string(payload), wantArgs) {
 		t.Fatalf("fresh process received wrong arguments: got %q, want payload containing %q", payload, wantArgs)
+	}
+	// Regression (task 033): update's reinit must never request a
+	// project-scoped agent/skill install.
+	if strings.Contains(string(payload), "--scope project") {
+		t.Fatalf("fresh process was asked for a project-scoped install: %q", payload)
+	}
+}
+
+// Regression (task 033): the scaffold path shared by `init` and `update`'s
+// reinit must create project tracking only — never the project-scoped
+// agent/skill mirror trees that `install --scope project` opts into.
+func TestScaffoldProjectCreatesOnlyProjectTrackingPaths(t *testing.T) {
+	projectDir := t.TempDir()
+	scaffoldProject(projectDir)
+
+	for _, want := range []string{
+		filepath.Join(".smaqit", "tasks"),
+		filepath.Join(".smaqit", "history"),
+		filepath.Join(".smaqit", "user-testing"),
+		filepath.Join(".github", "workflows"),
+	} {
+		if _, err := os.Stat(filepath.Join(projectDir, want)); err != nil {
+			t.Errorf("expected scaffolded path %s: %v", want, err)
+		}
+	}
+
+	for _, forbidden := range []string{
+		".agents",
+		".claude",
+		filepath.Join(".codex"),
+		filepath.Join(".github", "agents"),
+		filepath.Join(".github", "skills"),
+	} {
+		if _, err := os.Stat(filepath.Join(projectDir, forbidden)); err == nil {
+			t.Errorf("scaffolding created project-scoped mirror path %s", forbidden)
+		}
 	}
 }
 

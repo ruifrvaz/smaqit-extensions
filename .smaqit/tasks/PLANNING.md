@@ -6,8 +6,8 @@ Central task tracking and planning for smaqit-extensions.
 
 | ID | Title | Status | Created |
 |----|-------|--------|---------|
-| 033 | Fix `update` Writing Project-Scoped Agent/Skill Mirrors Despite Documenting Itself as Global-Only | In Progress | 2026-08-15 |
-| 031 | Fix Release-Analysis Boundary Detection for PR-Gated Releases | In Progress | 2026-08-15 |
+| 033 | Fix `update` Writing Project-Scoped Agent/Skill Mirrors Despite Documenting Itself as Global-Only | PR Open | 2026-08-15 |
+| 031 | Fix Release-Analysis Boundary Detection for PR-Gated Releases | PR Open | 2026-08-15 |
 | 028 | Benchmark Glossary Skill Invocation | Not Started | 2026-08-14 |
 | 002 | Fix Changelog Extraction for Cumulative Releases | Not Started | 2026-02-13 |
 | 007 | Create smaqit MCP Server (PoC) | Not Started | 2026-05-09 |

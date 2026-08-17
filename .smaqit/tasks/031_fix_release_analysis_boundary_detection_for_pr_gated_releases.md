@@ -1,5 +1,6 @@
 ---
-status: In Progress
+status: PR Open
+pr: 129
 mode: Assisted
 created: "2026-08-15"
 started: "2026-08-16"
@@ -87,31 +88,39 @@ No resolved repository is an authoritative tracker for the specific mechanism th
 
 ## Acceptance Criteria
 
-- [ ] `release-analysis`'s Step 1c reliably finds the correct boundary for a repo whose most recent release went through the PR-gated flow (task 027+), without requiring manual override
-- [ ] Works correctly for a mix of old-style batch releases (literal `Release vX.Y.Z`/`Prepare release vX.Y.Z` commits) and new-style PR-gated releases (title-only, no matching commit) in the same history
-- [ ] No regression for the existing batch-mode boundary search used by `release-git-local`
-- [ ] Verified against this repo's own real history — replaying task 030's completion point yields `v1.17.2` where the old regex yielded `v1.17.1` (`fb133be`), and the current tip resolves to `v2.0.0` (`41c7c88`)
-- [ ] Falls back to the marker-commit regex in a tagless repo, and to `v0.0.0`/`v0.1.0` in a repo with neither tags nor markers
-- [ ] `<boundary-sha>` and `<last-version>` are derived from separate lookups, so an out-of-order tag sequence never produces a version baseline below an already-released version
-- [ ] `release-prepare-files` Step 2A-2 carries the same tag-primary detection and searches `origin/main` rather than local `HEAD`
-- [ ] Regression test covers mixed-era history and the out-of-order-tag divergence, and is wired into `make test`
-- [ ] `make test` and `make smoke-test` pass
+- [x] `release-analysis`'s Step 1c reliably finds the correct boundary for a repo whose most recent release went through the PR-gated flow (task 027+), without requiring manual override
+- [x] Works correctly for a mix of old-style batch releases (literal `Release vX.Y.Z`/`Prepare release vX.Y.Z` commits) and new-style PR-gated releases (title-only, no matching commit) in the same history
+- [x] No regression for the existing batch-mode boundary search used by `release-git-local`
+- [x] Verified against this repo's own real history — replaying task 030's completion point yields `v1.17.2` where the old regex yielded `v1.17.1` (`fb133be`), and the current tip resolves to `v2.0.0` (`41c7c88`)
+- [x] Falls back to the marker-commit regex in a tagless repo, and to `v0.0.0`/`v0.1.0` in a repo with neither tags nor markers
+- [x] `<boundary-sha>` and `<last-version>` are derived from separate lookups, so an out-of-order tag sequence never produces a version baseline below an already-released version
+- [x] `release-prepare-files` Step 2A-2 carries the same tag-primary detection and searches `origin/main` rather than local `HEAD`
+- [x] Regression test covers mixed-era history and the out-of-order-tag divergence, and is wired into `make test`
+- [x] `make test` and `make smoke-test` pass
 
 ## Findings
 
-[Populated by smaqit.task-complete. Do not fill in manually before task is complete.]
-
 **Implementation approach:**
-- TBD
+- Replaced the marker-commit regex with `git describe --tags --abbrev=0 origin/main` → `git rev-list -n1` in `release-analysis` Step 1c, demoting the regex to Fallback 1 and adding `v0.0.0`/`v0.1.0` as Fallback 2.
+- Split Step 1d into an independent lookup (`git tag --merged origin/main --sort=-v:refname | head -1`) rather than parsing the boundary commit message.
+- Added `git fetch --tags --force` to Step 1a, which is what makes the tag approach safe in the shallow clones that originally motivated preferring commits.
+- Applied the same structure to `release-prepare-files` Step 2A-1/2A-2 and corrected both skills' Important Notes, which asserted the now-inverted claim that marker commits are "more reliable than git tags."
+- Wrote `tests/skills/test-release-analysis-boundary-detection.sh` as a reference implementation over three fixture repos (mixed-era, out-of-order tags, tagless), since skills are Markdown instructions rather than executable code — matching the precedent set by `test-release-analysis-pending-versions.sh`.
 
 **Decisions made:**
-- TBD
+- Tags over the two rejected alternatives: a release-time marker commit cannot repair the three releases already landed and would add a CI push to `main`; `gh` PR-title lookup needs network and auth to compute a version and is blind to local `release-git-local` releases.
+- Boundary and version baseline kept as genuinely separate lookups. Under per-task releases, PRs merge in review order rather than version order, so the topologically-latest and highest-numbered tags legitimately diverge; conflating them lets the next suggestion regress below an already-released version, which Step 1e cannot catch because the collision is released rather than pending.
+- Scope widened to realign `release-prepare-files` Step 2A-2 from local `HEAD` to `origin/main` — flagged to the user as a scope decision before implementing, and accepted as a one-line change to a line already being rewritten.
+- Test asserts the *old* regex disagrees with the tag lookup on mixed-era history, so the test proves the bug rather than merely agreeing with the new implementation.
 
 **Blockers encountered:**
-- TBD
+- A 403 on `git push origin main` interrupted the pre-start commits. Both commits were held locally and the push succeeded on retry without any workaround; the underlying cause (fine-grained PAT scope) was diagnosed but not conclusively resolved, and it recurred from the same cause that kept task 032's fix out of PR #126.
+- Concurrent session activity in the same primary checkout throughout: task 032 was completed and task 033 created, started, and moved to `PR Open` by a peer session mid-task. Handled by committing the peer's uncommitted task-033 state as its own commit before touching `PLANNING.md`, so neither session's work was swept into the other's.
 
 **Follow-up identified:**
-- TBD
+- Task 002 ("Fix Changelog Extraction for Cumulative Releases") plausibly overlaps this fix and may now be partly or wholly subsumed — worth re-reading before starting it.
+- Triage coverage for this task was weak: no resolved repository is an authoritative tracker for `git describe`/`git tag` semantics (`git/git` is a read-only mirror, Bash upstream is not on GitHub, GitHub Actions resolved to the template gallery). The `github-issues.sh` resolver returning a plausible-but-wrong repository for such tools may be worth its own task.
+- The recurring `git push` 403 on `main` is unresolved and has now cost time in two separate tasks; it warrants its own investigation.
 
 ## Files to Create / Modify
 

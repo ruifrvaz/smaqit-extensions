@@ -1,6 +1,7 @@
 ---
-status: In Progress
+status: PR Open
 mode: Assisted
+pr: 130
 created: "2026-08-18"
 started: "2026-08-18"
 ---
@@ -46,28 +47,30 @@ Separately, `skills/smaqit.utils.worktree/scripts/5_create_worktrees.sh`'s spars
 
 ## Acceptance Criteria
 
-- [ ] `7_build_workspace.sh` preserves any pre-existing `folders` entry whose path is not `.` or a `../<project>-wt-*` worktree slug, across both a worktree-add and worktree-remove regeneration
-- [ ] `7_build_workspace.sh` preserves any pre-existing `settings` key beyond the managed `files.exclude` block
-- [ ] `5_create_worktrees.sh`'s sparse-checkout exclusion list excludes the root `*.code-workspace` file from every newly created task worktree
-- [ ] New regression coverage in `tests/skills/test-worktree-layout.sh` fails against the pre-fix scripts and passes after the fix
-- [ ] Existing worktree/workspace tests continue passing unmodified (`test-parent-task-lifecycle.sh`, `test-task-complete-pr-lifecycle.sh`)
-- [ ] `make test` and `make smoke-test` pass
+- [x] `7_build_workspace.sh` preserves any pre-existing `folders` entry whose path is not `.` or a `../<project>-wt-*` worktree slug, across both a worktree-add and worktree-remove regeneration
+- [x] `7_build_workspace.sh` preserves any pre-existing `settings` key beyond the managed `files.exclude` block
+- [x] `5_create_worktrees.sh`'s sparse-checkout exclusion list excludes the root `*.code-workspace` file from every newly created task worktree
+- [x] New regression coverage in `tests/skills/test-worktree-layout.sh` fails against the pre-fix scripts and passes after the fix
+- [x] Existing worktree/workspace tests continue passing unmodified (`test-parent-task-lifecycle.sh`, `test-task-complete-pr-lifecycle.sh`)
+- [x] `make test` and `make smoke-test` pass
 
 ## Findings
 
-[Populated by smaqit.task-complete. Do not fill in manually before task is complete.]
-
 **Implementation approach:**
-- TBD
+- Rewrote `7_build_workspace.sh` to read the existing workspace file first, split its `folders` into a managed set (`.` and `../<project>-wt-*` worktree slugs, fully regenerated from `git worktree list`) and a foreign set (everything else, preserved as-is), then output `managed + foreign`. `settings` is deep-merged (`existing.settings * {"files.exclude": {...}}`) instead of overwritten.
+- Added `'!/*.code-workspace'` to `5_create_worktrees.sh`'s sparse-checkout pattern list, matching the existing `.smaqit/tasks/` exclusion rationale.
+- Extended `tests/skills/test-worktree-layout.sh` in place (no new Makefile target): the fixture repo now commits a placeholder `.code-workspace` before any worktree exists, so sparse-exclusion regressions are actually observable; a new block injects a foreign folder + setting, removes the worktree, rebuilds, and asserts both survived while the removed worktree's own entry dropped.
+- Updated `SKILL.md` Step 7, Gotcha #8, and Gotcha #11 to document the merge/preserve behavior and the new exclusion; bumped `metadata.version` `1.4.0` → `1.5.0`.
 
 **Decisions made:**
-- TBD
+- Verified the new test assertions fail against the pre-fix scripts and pass against the fix, in two isolated checks — reverting only `7_build_workspace.sh` (folder/setting preservation fails) and reverting only `5_create_worktrees.sh` (sparse-exclusion fails) — confirming each half of the fix is independently covered, not just the combination.
+- Kept the exact scope from planning: no repositioning of foreign folders relative to managed ones beyond "managed first, foreign after," and no remediation of already-created worktrees predating the fix (both explicitly accepted trade-offs in Design Decisions).
 
 **Blockers encountered:**
-- TBD
+- A 403 on `git push origin main` during task-start's metadata push, resolved by the user switching their local PAT; no workaround attempted per this repo's standing instruction.
 
 **Follow-up identified:**
-- TBD
+- None — the task's own Notes already flagged the low-severity, self-resolving nature of pre-existing worktrees keeping a stale workspace-file copy.
 
 ## Files to Create / Modify
 

@@ -3,14 +3,6 @@
     {
       "name": "main",
       "path": "."
-    },
-    {
-      "name": "task/031-fix-release-analysis-boundary-detection-for-pr-gated-releases",
-      "path": "../smaqit-extensions-wt-task-031-fix-release-analysis-boundary-detection-for-pr-gated-releases"
-    },
-    {
-      "name": "task/033-fix-update-writing-project-scoped-agent-skill-mirrors-despite-documenting-itself-as-global-only",
-      "path": "../smaqit-extensions-wt-task-033-fix-update-writing-project-scoped-agent-skill-mirrors-despite-documenting-itself-as-global-only"
     }
   ],
   "settings": {

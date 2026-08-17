@@ -101,9 +101,13 @@ Only tagged releases. `update` fetches the latest GitHub Release and downloads i
 
 ---
 
-**Does `smaqit-extensions update`/`init` distinguish its own source repo from a consumer project when scaffolding?**
+**Does `smaqit-extensions update`/`init` write project-scoped agent/skill mirrors into a project that never opted in?**
 
-No — not currently. Both check only whether `.smaqit/` exists in the target directory (`installer/main.go`, `checkAndReInitWithBinary` and `checkAndReInit`), with no check for "this directory is smaqit-extensions' own checkout." Since this repository also maintains its own `.smaqit/` for task tracking, running `update` (or `init`) from inside it re-creates the committed-dogfooding-mirror pattern removed in v1.14.3 — `.github/agents/`, `.github/skills/`, `.claude/`, `.codex/agents/`, `.agents/skills/` — plus resurrects an orphaned `copilot-instructions.template.md`. Everything created this way is untracked by git, so it's always safe to `rm -rf` the resulting paths; nothing is lost. This is unrelated to binary-replacement staleness (see "Why does self-update launch a fresh binary for project reinitialization?") — it reproduces identically regardless of which binary version runs it.
+No — not since v2.0.1 (task 033). Previously, `update`'s post-self-update reinit path (`checkAndReInitWithBinary`) re-execed the fresh binary with `install --scope project <dir>` — the internal/testing full-mirror install — instead of the scope-only path `init` itself already used correctly. Both of `update`'s reinit routes (`checkAndReInitWithBinary`, post-download; `checkAndReInit`, same-version) now converge on `scaffoldProject`, the exact function `init` calls, so `update` (v2.0.1+) never writes `.agents/`, `.claude/`, `.codex/`, `.github/agents/`, or `.github/skills/` unless the project explicitly used `install --scope project`. `init` itself was never affected by this specific bug — it has called `scaffoldProject` directly since the v1.14.0 fix described in "Why does self-update launch a fresh binary for project reinitialization?".
+
+This also resolves the previously-observed behavior of `update` run inside smaqit-extensions' own checkout (this repository maintains its own `.smaqit/` for task tracking): it no longer re-creates the committed-dogfooding-mirror pattern removed in v1.14.3, since `update` no longer calls `install --scope project` at all. Neither `update` nor `init` distinguishes "this is smaqit-extensions' own source checkout" from any other consumer project with `.smaqit/` — both still just check for `.smaqit/`'s presence (`installer/main.go`, `checkAndReInitWithBinary` and `checkAndReInit`) — but since neither performs project-scoped mirror installation by default anymore, this no longer has the consequence it once did. If it did happen (e.g. from a pre-fix binary, see the caveat below), everything created is untracked by git and always safe to `rm -rf`; nothing is lost.
+
+**Caveat verified live (2026-08-17):** upgrading from a pre-v2.0.1 binary still reproduces the old bug exactly once, on that specific transition run — see "Why does self-update launch a fresh binary for project reinitialization?" for why.
 
 ---
 
@@ -154,6 +158,8 @@ Two durable lessons live in this history: a reported-but-unresolved push failure
 Agents, skills, and templates are compiled into the Go binary with `go:embed`. Replacing the executable file does not change the already-running process image, so reinitializing in-process after a download would reinstall stale embedded content and omit newly added files.
 
 After replacing the executable, the update path launches the new binary as a subprocess to run project initialization. Paths where no replacement occurs can safely reinitialize in-process because their embedded content has not changed.
+
+**Transitional caveat, verified live (2026-08-17):** launching a fresh binary avoids stale *embedded content* (agents/skills/templates), but the *decision* of which arguments to pass that subprocess is made by the currently-running process's own compiled logic — not the new binary's. So a bug in that specific decision (e.g. task 033's `install --scope project` vs. `init` bug) still fires exactly once: on the transition run where an old, already-loaded, pre-fix binary is the one doing the updating. Confirmed by reproducing task 033's bug on a v2.0.0→v2.0.2 update, verifying the fix genuinely shipped in the tagged v2.0.2 source (`git show v2.0.2:installer/main.go`), then re-running `update` from the now-installed fixed binary and confirming clean behavior. This is inherent to any self-replacing binary's in-process logic, not a flaw in a specific fix, and isn't retroactively fixable for already-distributed old binaries — the bug simply stops recurring after that one transition.
 
 ---
 

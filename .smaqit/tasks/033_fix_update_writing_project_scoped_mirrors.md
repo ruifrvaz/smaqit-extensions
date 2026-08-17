@@ -1,9 +1,9 @@
 ---
-status: PR Open
+status: Completed
 mode: Assisted
-pr: 128
 created: "2026-08-15"
 started: "2026-08-16"
+completed: "2026-08-17"
 ---
 
 # Fix `update` Writing Project-Scoped Agent/Skill Mirrors Despite Documenting Itself as Global-Only
@@ -63,7 +63,8 @@ TBD — to be confirmed during assessment.
 - None.
 
 **Follow-up identified:**
-- None — the `install --scope project` internal/testing alias itself is intentionally retained for smoke tests and explicit opt-in; no further scope work is implied by this fix.
+- None for this task's own scope — the `install --scope project` internal/testing alias itself is intentionally retained for smoke tests and explicit opt-in.
+- Separately observed during Phase 2: v2.0.1's published GitHub Release notes were polluted with task 031's still-pending `(pending v2.0.2 · PR #129)` entry. Root cause: a `main`-into-branch merge on PR #128 (after task 031 had pushed its own pending entry to `main`, before PR #128 merged) nested task 031's unpromoted bullet under this PR's `## [2.0.1]` header via a line-based git merge that can't distinguish version sections. Task 033's own change is unaffected and shipped correctly; this is a pending-entry-promotion race between concurrent PR-gated releases, out of this task's scope. No task filed yet.
 
 ## Files to Create / Modify
 

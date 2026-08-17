@@ -51,7 +51,9 @@ for branch in $(echo "$input_json" | jq -r 'keys[]'); do
     # exclusively on the primary checkout — see 9_resolve_task_lifecycle.sh —
     # so worktrees never carry a mutable copy that could diverge and conflict
     # on merge. `set` enables worktree-specific sparse config itself, so no
-    # separate init can leave a transient root-only checkout behind.
+    # separate init can leave a transient root-only checkout behind. The root
+    # `.code-workspace` file is excluded for the same reason — Step 7 always
+    # runs from the primary checkout, so a worktree never needs its own copy.
     if sparse_error="$(git -C "$wt_path" sparse-checkout set --no-cone \
       '/*' \
       '!.github/agents/' \
@@ -62,6 +64,7 @@ for branch in $(echo "$input_json" | jq -r 'keys[]'); do
       '!.agents/skills/' \
       '!.codex/agents/' \
       '!.smaqit/tasks/' \
+      '!/*.code-workspace' \
       2>&1)"; then
       created="$(echo "$created" | jq --arg b "$branch" --arg p "$wt_path" '. + {($b): $p}')"
     else

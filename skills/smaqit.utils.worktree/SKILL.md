@@ -2,7 +2,7 @@
 name: smaqit.utils.worktree
 description: "Sync Git worktrees and update the VS Code multi-root workspace, or set up worktrees for task branches. For interactive sync, presents local and remote branches and asks which branches to sync. Then creates missing sibling worktrees, detects and removes safe orphans, and keeps the project workspace in sync. Also migrates VS Code chat sessions when switching from a single-folder project to the generated multi-root workspace. Use after task branch creation, task completion, workspace migration, or when worktree folders are missing from VS Code Explorer. Triggers: `worktree.sync`, `worktree.migrate-sessions`."
 metadata:
-  version: "1.4.0"
+  version: "1.5.0"
 ---
 
 # smaqit Utils: Git Worktree Manager
@@ -134,9 +134,9 @@ Run the workspace build script. It reads the current Git worktree state directly
 bash [SMAQIT_SKILLS_DIR]/smaqit.utils.worktree/scripts/7_build_workspace.sh
 ```
 
-The script is self-contained — it re-enumerates worktrees from `git worktree list` on every invocation, so the workspace file always reflects actual disk state regardless of earlier steps. Idempotent: same Git state always produces the same output.
+The script is self-contained — it re-enumerates worktrees from `git worktree list` on every invocation, so the `main` + worktree portion of the workspace file always reflects actual disk state regardless of earlier steps. It reads the existing file first and preserves anything it doesn't own: a `folders` entry whose path isn't `.` or a `../<project>-wt-*` worktree slug (e.g. a manually-added sibling repo), and any `settings` key beyond the managed `files.exclude` block. Idempotent: same Git state plus the same foreign content always produces the same output.
 
-If there are no active worktrees, the folders array contains only `main`.
+If there are no active worktrees, the folders array contains only `main` plus any preserved foreign entries.
 
 ### 8. Write settings (omitted — merged into Step 7)
 
@@ -251,10 +251,10 @@ For a child task, none of this cleanup runs. Child completion records criteria, 
 5. **Orphan safety.** Double-check that the branch is confirmed gone from `git branch --list` before removing a worktree. Accidental removal causes data loss.
 6. **Full workflow is idempotent.** Running the skill multiple times with the same branch selection produces the same result — existing worktrees are skipped, orphans are cleaned, and the workspace file is regenerated from current state. No duplicate worktrees or stale entries.
 7. **Invocation behavior.** `task-start` supplies its branch automatically. Direct `worktree.sync` requires user selection before creating worktrees.
-8. **The workspace file is Git-committed.** Commit the updated workspace with other changes to keep it versioned.
+8. **The workspace file is Git-committed.** Commit the updated workspace with other changes to keep it versioned. Regeneration (Step 7) merges rather than overwrites: only the `main` + worktree folders and the `files.exclude` setting are managed and rebuilt from Git state on every run — any other folder or setting already in the file is read back and preserved.
 9. **VS Code must be reopened** with the root workspace file after it is created or updated for the new folder layout to appear.
 10. **Session migration when switching workspaces.** Switching to a multi-root workspace creates a new VS Code storage entry. Invoke `worktree.migrate-sessions` explicitly if existing chat sessions should be copied.
-11. **Generated mirrors and task state are excluded from task worktrees.** Sparse checkout excludes `.github/agents/`, `.github/skills/`, `.claude/agents/`, `.claude/commands/`, `.claude/skills/`, `.agents/skills/`, and `.codex/agents/` defensively, plus `.smaqit/tasks/` to keep task state single-sourced on primary. Under the default global install, a project has none of those agent/skill paths at all — they only exist for a project that ran `install --scope project`, this repository included, since it carries no committed dogfooding mirrors of its own. Project-owned paths such as `.github/workflows/` and the rest of `.smaqit/` remain available.
+11. **Generated mirrors, task state, and the workspace file are excluded from task worktrees.** Sparse checkout excludes `.github/agents/`, `.github/skills/`, `.claude/agents/`, `.claude/commands/`, `.claude/skills/`, `.agents/skills/`, and `.codex/agents/` defensively, plus `.smaqit/tasks/` to keep task state single-sourced on primary, plus the root `*.code-workspace` file itself — Step 7 always runs from the primary checkout (Gotcha #16), so a worktree never needs its own copy. Under the default global install, a project has none of those agent/skill paths at all — they only exist for a project that ran `install --scope project`, this repository included, since it carries no committed dogfooding mirrors of its own. Project-owned paths such as `.github/workflows/` and the rest of `.smaqit/` remain available.
 12. **Task branches modify canonical source, not generated mirrors.** Regenerate platform mirrors from canonical sources during the normal synchronization step.
 13. **Existing unregistered directories are preserved.** Report the conflict for user review; do not remove the directory automatically.
 14. **Parent tasks own Git resources.** A child task joins its active parent's registered branch/worktree and inherits its mode. Only a standalone or parent task can merge, remove a worktree, delete a branch, or rebuild the workspace.

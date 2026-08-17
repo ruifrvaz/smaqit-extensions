@@ -2,7 +2,7 @@
 name: smaqit.release-analysis
 description: Collect changes, assess severity, and suggest next version for a release
 metadata:
-  version: "0.8.0"
+  version: "0.9.0"
 ---
 
 # Release Analysis
@@ -23,55 +23,75 @@ Use this skill at the start of a release workflow to:
 
 ### Step 1: Find the Release Boundary Commit
 
-The release workflows create exact release-marker commits in two compatible forms: `"Release vX.Y.Z"` for local releases and `"Prepare release vX.Y.Z"` for PR-based releases. Use the most recent marker of either form as the **authoritative lower boundary** for the current release delta. It is more reliable than git tags (absent in shallow clones) and more precise than PR merge timestamps (which can be incorrectly ordered).
+**Every release is tagged `vX.Y.Z`**, whichever flow produced it: `release-git-local` tags directly, and `post-merge-release.yml` tags on a merged release PR. Tags are therefore the **authoritative lower boundary** for the current release delta, and the only marker that survives both release eras.
 
-**Step 1a — Fetch and deepen so all history is visible and current:**
+Release-marker *commits* are not. They exist in two forms — `"Release vX.Y.Z"` (local) and `"Prepare release vX.Y.Z"` (PR-based) — but since the PR-gated per-task release model shipped, that exact string only ever appears as a **PR title**. The merge commit GitHub actually writes reads `Merge pull request #NNN from owner/branch`, which no marker pattern matches. A repository that has released through both eras therefore has a marker-commit history that silently stops at its last pre-PR-gated release. The regex is retained below only as a fallback for a repository with no tags at all.
+
+**Step 1a — Fetch and deepen so all history and tags are visible and current:**
 
 ```bash
 git fetch origin main 2>/dev/null || true
+git fetch --tags --force --quiet 2>/dev/null || true
 git fetch --unshallow 2>/dev/null || git fetch --depth=2147483647 2>/dev/null || true
 ```
 
+Fetching tags is **not optional** — it is what makes the tag-based boundary reliable in the shallow clones that originally motivated preferring commits over tags. `--force` prevents a moved tag leaving a stale local ref.
+
 The explicit `git fetch origin main` is not optional, in either mode: without it, the boundary search below walks whatever `origin/main` your local refs happened to have cached, which can be stale by the time of a second, concurrent invocation — the exact bug that would otherwise let two sibling tasks compute the same "next" version. Always fetch immediately before searching, never rely on a fetch performed earlier in the session.
 
-**Step 1b — Check whether HEAD itself is a release-marker commit** (Batch mode only; Task mode's `<task-branch>` is never itself a release-marker commit, skip this check):
+**Step 1b — Check whether the analysis tip is itself the latest release** (Batch mode only; Task mode's `<task-branch>` is never itself a released commit, skip this check):
 
 ```bash
-git log -1 --format="%s"
+git describe --tags --exact-match origin/main 2>/dev/null
 ```
+
+A match means `origin/main`'s tip *is* the most recent release, so that tag must not also serve as the delta's lower bound — Step 1c steps back one tag.
 
 **Step 1c — Find the boundary SHA:**
 
-Search **`origin/main`'s history**, not local `HEAD` or the task branch — this is the fix for the staleness bug above, and applies identically in both modes:
+Resolve against **`origin/main`**, not local `HEAD` or the task branch — this is the fix for the staleness bug above, and applies identically in both modes:
 
 ```bash
-# List every exact local or PR release marker in reverse-chronological order, from the fetched remote tip
-git log origin/main --format="%H %s" | grep -iE "^[0-9a-f]+ (Prepare release|Release) v[0-9]+\.[0-9]+\.[0-9]+$"
+# Most recent release tag reachable from the fetched remote tip
+git describe --tags --abbrev=0 origin/main
 ```
 
-- **Batch mode, HEAD is a release-marker commit** — take the **second** entry from the list above (the one immediately before the current release).
-- **Otherwise (Batch mode without a marker at HEAD, or Task mode)** — take the **first** entry.
+- **Batch mode, the tip is itself tagged** (Step 1b matched) — take the **next-older** tag instead:
+  ```bash
+  git describe --tags --abbrev=0 "$(git describe --tags --abbrev=0 origin/main)^"
+  ```
+- **Otherwise (Batch mode with an untagged tip, or Task mode)** — use the tag from the command above.
 
-Store the result as `<boundary-sha>`.
+Dereference the chosen tag to its commit and store that as `<boundary-sha>`:
+```bash
+git rev-list -n1 "<tag>"
+```
+`git rev-list -n1` resolves annotated and lightweight tags identically, so both tagging styles work unchanged.
 
 Confirm it with:
 ```bash
 git log -1 --oneline "<boundary-sha>"
 ```
 
-**Step 1d — Extract the last-released version** from the boundary commit message:
+**Step 1d — Determine the last-released version.**
+
+This is a **separate lookup from Step 1c**, not a re-read of the boundary commit — the two answer different questions and can legitimately disagree:
+
 ```bash
-git log -1 --format="%s" "<boundary-sha>" | grep -oE "v[0-9]+\.[0-9]+\.[0-9]+"
+git tag --merged origin/main --sort=-v:refname | head -1
 ```
 
 Store as `<last-version>` (e.g., `v1.1.2`).
 
-**Fallback (no release-marker commits exist — new repository):**
+Step 1c asks *"where does this release's delta begin?"* — answered by the **topologically latest** reachable tag. Step 1d asks *"what version must the next one exceed?"* — answered by the **highest-numbered** reachable tag. Under the per-task release model, each task's PR claims its version before merging and PRs merge in review order, not version order, so tags land out of numeric sequence by design. If PR #200 claims v2.1.0 and merges first, then PR #201 claims v2.0.1 and merges second, the topologically latest tag is `v2.0.1` while the highest is `v2.1.0`. Deriving the version baseline from the boundary commit would then suggest `v2.0.2` — **below the already-released v2.1.0**. Step 1e's pending-claim check does not catch this: by then the colliding version is released and promoted, no longer a pending annotation.
+
+**Fallback 1 (no tags — a repository that has only ever released via marker commits):**
 ```bash
-git fetch --tags --quiet 2>/dev/null || true
-git tag --sort=-v:refname | head -1
+git log origin/main --format="%H %s" | grep -iE "^[0-9a-f]+ (Prepare release|Release) v[0-9]+\.[0-9]+\.[0-9]+$"
 ```
-If tags are also empty, use `v0.0.0` as baseline and suggest `v0.1.0`.
+Take the second entry when Batch mode's tip is itself a marker commit, the first otherwise; use its SHA as `<boundary-sha>` and parse `<last-version>` from its message with `grep -oE "v[0-9]+\.[0-9]+\.[0-9]+"`.
+
+**Fallback 2 (neither tags nor markers — new repository):** use `v0.0.0` as baseline and suggest `v0.1.0`.
 
 **Step 1e — Pending-version awareness (Task mode only):**
 
@@ -184,7 +204,7 @@ rationale: "New features added (release agent), no breaking changes detected"
 **Output fields:**
 - `changes`: Complete list of changes since the last release boundary, one entry per PR or meaningful commit. Use conventional changelog types: `Added`, `Changed`, `Fixed`, `Removed`, `Deprecated`, `Security`. Each entry must be a self-contained description suitable for pasting directly into `CHANGELOG.md`. Include a `reference` (PR number or commit SHA) for traceability.
 - `severity`: MAJOR, MINOR, or PATCH
-- `latest_version`: Version extracted from the boundary release-marker commit (e.g., `v1.1.2`)
+- `latest_version`: Highest release version reachable from `origin/main`, from Step 1d's own lookup (e.g., `v1.1.2`) — not re-read from the boundary commit, which can name a lower version when tags land out of order
 - `suggested_version`: Next version following semver rules, adjusted past any pending-claimed collision in Task mode
 - `rationale`: Brief explanation of the severity assessment
 - `mode`: `batch` or `task` (Task mode also echoes `task_branch` and, if a collision was avoided, the claimed version(s) skipped)
@@ -196,8 +216,9 @@ rationale: "New features added (release agent), no breaking changes detected"
 - This skill only **analyzes and suggests** - it does not modify any files
 - The suggested version is a recommendation that must be approved before use
 - Session history files (`.smaqit/history/`) are optional - if they don't exist, rely on git log
-- **Exact release-marker commits are the canonical boundary** — local releases use `"Release vX.Y.Z"` and PR-based releases use `"Prepare release vX.Y.Z"`; use the most recent marker of either form in preference to git tags or PR timestamps
-- **Shallow clones:** always deepen before querying git log; the boundary-commit approach still works as long as the previous release-marker commit is reachable
+- **Release tags are the canonical boundary** — every release is tagged `vX.Y.Z` regardless of which flow produced it, so tags are the only marker that spans both the batch and PR-gated eras. Marker commits (`"Release vX.Y.Z"`, `"Prepare release vX.Y.Z"`) are a fallback for tagless repositories only: under the PR-gated model that string exists solely as a PR title, and the merge commit GitHub writes (`Merge pull request #NNN from …`) matches no marker pattern
+- **`<boundary-sha>` and `<last-version>` are separate lookups** (Steps 1c and 1d) — topologically latest reachable tag for the delta, highest-numbered reachable tag for the version baseline. They diverge whenever tags land out of numeric order, which the per-task release model produces by design
+- **Shallow clones:** always deepen *and* `git fetch --tags --force` before resolving; the tag-based boundary depends on tags being present locally, which is precisely what the fetch guarantees
 - **Always fetch `origin/main` immediately before searching, never reuse an earlier fetch in the same session** — the boundary and pending-version checks (Step 1a, 1c, 1e) must reflect the remote's current tip, not a cached local ref, so two tasks completing minutes apart never compute the same version
 - Focus on user-facing changes; internal implementation details should not drive severity
 - When in doubt between severities, prefer conservative (e.g., MINOR over MAJOR)

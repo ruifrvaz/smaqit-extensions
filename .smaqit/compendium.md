@@ -117,6 +117,19 @@ No. The installer (fresh install or `update`) copies and overwrites files from t
 
 ---
 
+**What breaks when the globally-installed skills are older than the task-file format on disk?**
+
+Less than you would expect, and not uniformly — which is the danger. Skills execute from the global install (`~/.claude/skills/`, `~/.agents/skills/`), so a repository whose task files were migrated to YAML frontmatter (v1.18.0) while the install is still pre-v1.18.0 runs a lifecycle resolver that parses the old `**Status:** …` bold-markdown format and reads **empty** for every field.
+
+Empty is not an error, and the failure splits by entry point:
+
+- **`task-start` can silently succeed with a correct-looking answer.** For a standalone, parentless, Assisted task, every field the stale resolver defaults from empty happens to coincide with the truth — `kind: owner`, `parent: null`, `mode: Assisted` — so it exits 0 and hands back a valid resolution. Verified live on task 031 against a v1.17.2 install.
+- **`task-complete` fails cleanly.** `find_active_task()` gates on status matching an allowed set, and empty matches nothing, so both phases refuse to resolve the task.
+
+So a stale install blocks *finishing* a task rather than *starting* one, and the start path is the one that can quietly return a wrong answer for any task whose real shape differs from the defaults (a child task most of all). This is the same "empty is indistinguishable from legitimately absent" hazard that v2.0.0's `require_frontmatter()` guard was written to eliminate — but that guard lives in the *new* resolver, so it cannot protect a project running the old one. Run `smaqit-extensions update` before task lifecycle work when the install may be behind; check with `smaqit-extensions version` against the latest release rather than assuming.
+
+---
+
 ## Session Management
 
 **Does `smaqit.session-finish` still have Assisted/Autonomous modes, or a `--autonomous` flag?**
@@ -171,6 +184,18 @@ This is distinct from `smaqit-extensions`' own `.github/workflows/post-merge-rel
 
 ---
 
+**How does `release-analysis` locate the boundary for the current release?**
+
+From git tags, since v2.0.2. `git describe --tags --abbrev=0 origin/main` gives the most recent reachable release tag, and `git rev-list -n1 <tag>` dereferences it to `<boundary-sha>` (working identically for annotated and lightweight tags). Tags are the only marker spanning both release eras: `release-git-local` tags directly, and `post-merge-release.yml` tags on a merged release PR.
+
+The former mechanism — searching for a commit whose message exactly matches `Prepare release vX.Y.Z` or `Release vX.Y.Z` — is retained only as a fallback for a repository with no tags at all, with `v0.0.0`/`v0.1.0` as a final fallback for a new one. It was replaced because under the PR-gated per-task model that string exists **only as a PR title**: the merge commit GitHub writes reads `Merge pull request #NNN from owner/branch`, which no marker pattern matches. A repository that has released through both eras therefore has a marker-commit history that silently stops at its last pre-PR-gated release — on this repository the search had been resolving to `v1.17.1`, three releases stale, which task 030 hit live and had to override by hand.
+
+`<last-version>` is a **separate lookup**, not a re-read of the boundary commit: `git tag --merged origin/main --sort=-v:refname | head -1`. The two answer different questions — the boundary asks where the delta begins (topologically latest), the baseline asks what the next version must exceed (highest-numbered) — and they legitimately diverge whenever tags land out of numeric order, which per-task releases produce by design. Conflating them lets a suggestion regress below an already-released version, and the pending-claim check cannot catch that case because the colliding version is released and promoted rather than pending.
+
+Tags must be fetched explicitly (`git fetch --tags --force`) before resolving; this is what makes the approach safe in the shallow clones that originally motivated preferring commits over tags. `release-prepare-files`' Step 2A-2 carries the same detection and, also since v2.0.2, searches `origin/main` rather than local `HEAD`.
+
+---
+
 ## Task Management
 
 **How is task metadata stored in a task file?**
@@ -213,7 +238,7 @@ For an owner (standalone or parent) task, completion is PR-gated and runs in two
 
 **Phase 2** (Status `PR Open`, re-entrant): confirms the PR actually merged via `gh pr view --json state,mergedAt` — never inferred any other way — pulls `main`, flips status to `Completed`, removes the worktree, and force-deletes (`-D`, not `-d`) the **local** branch only. `-D` is required because GitHub's own merge confirmation is authoritative regardless of merge strategy, and a squash merge (or Phase 1's own rebase) leaves the local branch tip unable to satisfy `-d`'s ancestry check. The remote branch is never deleted — it's kept indefinitely as an audit trail of every merged/released task.
 
-Each PR is also that task's release: merging it is what triggers `post-merge-release.yml`'s existing tag + GitHub Release automation, just now firing per-task instead of per manually-triggered batch. `CHANGELOG.md` can hold several tasks' pending entries at once, each promoted independently by its own PR merge — so tags can land out of numeric order, and this is expected. See also: "How does a project get post-merge release automation (tag + GitHub Release) after installing smaqit-extensions?"
+Each PR is also that task's release: merging it is what triggers `post-merge-release.yml`'s existing tag + GitHub Release automation, just now firing per-task instead of per manually-triggered batch. `CHANGELOG.md` can hold several tasks' pending entries at once, each promoted independently by its own PR merge — so tags can land out of numeric order, and this is expected. Since v2.0.2, `release-analysis` accounts for that ordering explicitly (see "How does `release-analysis` locate the boundary for the current release?"). Two per-task releases in flight at once can still collide on `CHANGELOG.md` and require a manual merge-conflict resolution; if that resolution is imperfect, a released section can retain another task's `(pending …)` annotation, which then appears verbatim in the published GitHub Release notes — v2.0.1's notes carry exactly that. See also: "How does a project get post-merge release automation (tag + GitHub Release) after installing smaqit-extensions?"
 
 A task's own file (its Description, Implementation Steps, Files to Create/Modify) is a plan written at task-creation time — it is not itself the completion mechanism and can go stale if it predates a later change to that mechanism. In particular, a task file should never instruct a manually-authored `CHANGELOG.md` entry: `task-complete` Phase 1 always generates and pushes the pending-annotated entry itself, and a hand-written one would sit as an orphaned, never-promoted duplicate. When a task file's own steps conflict with the currently-installed `task-complete`/`task-start` skill behavior, the installed skill is authoritative — verify by reading it directly rather than assuming the task file is current.
 

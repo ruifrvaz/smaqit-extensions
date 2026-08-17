@@ -7,8 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.3] - 2026-08-18
+
 ### Fixed
-- **`.code-workspace` regeneration no longer discards content it doesn't own** (pending v2.0.3 · PR #130) — `7_build_workspace.sh` now preserves any manually-added folder (e.g. a sibling repo) and any custom `settings` key across every `task-start`/`task-complete` regeneration, and the workspace file is excluded from task-worktree sparse checkouts since it's only ever written from the primary checkout.
+- **`.code-workspace` regeneration no longer discards content it doesn't own** — `7_build_workspace.sh` now preserves any manually-added folder (e.g. a sibling repo) and any custom `settings` key across every `task-start`/`task-complete` regeneration, and the workspace file is excluded from task-worktree sparse checkouts since it's only ever written from the primary checkout.
 
 ## [2.0.1] - 2026-08-16
 

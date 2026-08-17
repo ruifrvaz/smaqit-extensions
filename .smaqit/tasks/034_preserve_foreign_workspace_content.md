@@ -1,6 +1,8 @@
 ---
-status: Not Started
+status: In Progress
+mode: Assisted
 created: "2026-08-18"
+started: "2026-08-18"
 ---
 
 # Preserve Foreign Content When Regenerating the `.code-workspace` File
@@ -39,8 +41,8 @@ Separately, `skills/smaqit.utils.worktree/scripts/5_create_worktrees.sh`'s spars
 5. Run `make test-worktree-layout`, then full `make test` and `make smoke-test`; confirm `tests/skills/test-parent-task-lifecycle.sh` and `tests/skills/test-task-complete-pr-lifecycle.sh` still pass unmodified — their fixtures have no foreign folders, so their exact-equality assertions (e.g. `.folders | length == 2`) are unaffected by the merge logic.
 
 ## Known Issues Triage
-
-[Populated by smaqit.task-start via smaqit.utils.triage-issues. Do not edit manually.]
+**Triaged:** 2026-08-18
+**Result:** Skip — explicitly marked in task's Issue Triage Context (`Mode: Skip`). Internal bash/jq worktree-tooling fix with no third-party dependency surface; no search performed.
 
 ## Acceptance Criteria
 

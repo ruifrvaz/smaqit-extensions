@@ -3,6 +3,10 @@
     {
       "name": "main",
       "path": "."
+    },
+    {
+      "name": "task/034-preserve-foreign-content-when-regenerating-the-code-workspace-file",
+      "path": "../smaqit-extensions-wt-task-034-preserve-foreign-content-when-regenerating-the-code-workspace-file"
     }
   ],
   "settings": {

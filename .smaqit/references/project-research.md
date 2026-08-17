@@ -79,3 +79,11 @@ version: "1.0.0"
 | GitHub CLI (gh) | Manual | https://cli.github.com/manual/ |
 | GitHub Actions | Workflow triggers | https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows |
 | Semantic Versioning | Specification | https://semver.org/spec/v2.0.0.html |
+
+## Task 034 — Preserve Foreign Content When Regenerating the `.code-workspace` File
+
+**Context fingerprint:** sha256:ee9d6b8f95f8e8804ee6252d0f356d9efc637a16a3ad8c4a62f83cda01c5e122
+**Refreshed:** 2026-08-18
+
+| Tool | Section | URL |
+|------|---------|-----|

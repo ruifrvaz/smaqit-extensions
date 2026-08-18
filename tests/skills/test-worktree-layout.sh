@@ -53,6 +53,11 @@ create_fixture_repo() {
     "$repo/.agents/skills/generated.md" \
     "$repo/.codex/agents/generated.toml" \
     "$repo/project.txt"
+  # A tracked placeholder workspace file, committed before any worktree is
+  # created, so a regression that stops excluding it from sparse checkout
+  # would actually show up in the new worktree's checkout.
+  echo '{"folders": [{"name": "main", "path": "."}], "settings": {}}' \
+    > "$repo/$(basename "$repo").code-workspace"
   git -C "$repo" init -q -b main
   git -C "$repo" config user.email test@example.invalid
   git -C "$repo" config user.name test
@@ -91,6 +96,7 @@ assert_missing "$fixture_worktree/.claude/commands"
 assert_missing "$fixture_worktree/.claude/skills"
 assert_missing "$fixture_worktree/.agents/skills"
 assert_missing "$fixture_worktree/.codex/agents"
+assert_missing "$fixture_worktree/repo.code-workspace"
 
 (cd "$fixture_repo" && bash "$global_scripts/7_build_workspace.sh") >/dev/null
 workspace_file="$fixture_repo/repo.code-workspace"
@@ -99,6 +105,26 @@ jq -e '.settings["files.exclude"] == {"**/bin/**": true, "**/obj/**": true}' "$w
   || fail "Workspace hides platform paths"
 jq -e '.folders | length == 2 and .[0].name == "main" and .[1].name == "task/019-layout"' "$workspace_file" >/dev/null \
   || fail "Workspace folders do not reflect the created worktree"
+
+# Inject content this script doesn't own — a manually-added sibling repo
+# folder and a custom setting — then remove the worktree and rebuild. Both
+# must survive; only the removed worktree's own folder entry should drop.
+jq '.folders += [{"name": "local-llm", "path": "../local-llm"}] | .settings["myCustomSetting"] = true' \
+  "$workspace_file" > "$workspace_file.tmp"
+mv "$workspace_file.tmp" "$workspace_file"
+
+git -C "$fixture_repo" worktree remove "$fixture_worktree"
+git -C "$fixture_repo" branch -D "$fixture_branch" >/dev/null
+
+(cd "$fixture_repo" && bash "$global_scripts/7_build_workspace.sh") >/dev/null
+jq -e '.folders | length == 2
+    and (map(.name) | index("main") != null)
+    and (map(.name) | index("local-llm") != null)
+    and (map(.name) | index("task/019-layout") | not)' "$workspace_file" >/dev/null \
+  || fail "Foreign folder did not survive workspace regeneration, or the removed worktree's entry lingered"
+jq -e '.settings["myCustomSetting"] == true
+    and .settings["files.exclude"] == {"**/bin/**": true, "**/obj/**": true}' "$workspace_file" >/dev/null \
+  || fail "Foreign setting did not survive workspace regeneration"
 
 failure_repo="$fixture_root/failure-repo"
 failure_branch='task/019-sparse-failure'

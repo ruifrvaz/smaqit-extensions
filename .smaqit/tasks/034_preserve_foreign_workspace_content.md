@@ -1,9 +1,9 @@
 ---
-status: PR Open
+status: Completed
 mode: Assisted
-pr: 130
 created: "2026-08-18"
 started: "2026-08-18"
+completed: "2026-08-18"
 ---
 
 # Preserve Foreign Content When Regenerating the `.code-workspace` File

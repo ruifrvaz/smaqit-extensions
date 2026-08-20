@@ -1,9 +1,9 @@
 ---
-status: PR Open
+status: Abandoned
 mode: Assisted
-pr: 131
 created: "2026-08-20"
 started: "2026-08-20"
+completed: "2026-08-21"
 ---
 
 # Confidentiality pre-commit hook (cross-domain secrets/PII scanner)
@@ -167,6 +167,8 @@ None.
 
 ## Findings
 
+**Abandoned 2026-08-21, PR #131 closed unmerged.** Fully implemented and verified (see below), but abandoned after a post-implementation discussion surfaced a structural conflict on any project running both this hook and `agentic-cms`'s `ac-classify` pre-commit hook: `ac-classify` deliberately *passes* a `docs/`/`wiki/` page once its content is rated and acknowledged (its whole governance model is "sensitive is fine if declared and reviewed"), while this hook has no rating/ack awareness at all and would re-block the exact same content forever, requiring a second, disconnected exemption (`confidentiality-scan-ignore`) with no shared state between the two tools. That's a permanent per-page maintenance burden on any project adopting both, not a one-time integration cost — concluded it adds more friction than the value of the broader net it provides. Decision: keep classification/secret-detection scoped to `agentic-cms`'s `ac-classify` rather than ship a second, uncoordinated gate.
+
 **Implementation approach:**
 - Ported the CREDENTIAL/FINANCIAL/PII pattern set from `agentic-cms`'s `ac-classify` C2/C3 heuristic floor, independently reimplemented in POSIX-ERE bash (bash 3.2 / BSD-grep compatible, no `\s`/`\b`/associative arrays) since macOS ships bash 3.2 by default
 - `installConfidentialityHook`/`installConfidentialityGitHook` in `installer/main.go` implement the three distinct update semantics: force-overwrite script, seed-once exclude-list (`writeFileIfMissing`), and bespoke namespaced-managed-block logic for `.git/hooks/pre-commit` (create fresh / idempotent replace-in-place / append-after-foreign-content)
@@ -185,13 +187,17 @@ None.
 - No other blockers; the opt-in pivot was a design refinement from user review, not an implementation obstacle
 
 **Follow-up identified:**
-- `agentic-cms`'s own task 012 (separate repo) shrinks to tier-1-only once this ships — per this task's own Notes, `agentic-cms` docs should point users at this hook instead of reimplementing a broader net a third time
+- Superseded by the abandonment above: `agentic-cms` task 012 does **not** shrink or defer to this hook — this repo's Notes section (below) and the `agentic-cms` task file should be corrected/left as-is rather than acted on, since this hook never shipped
 - No other follow-up filed in this repo
 
 ## Notes
 
-Downstream effect on `agentic-cms` (separate repo, not touched by this
+**Superseded — see Findings' Abandoned note.** The paragraph below was
+written when this task was still planned to ship; it no longer applies.
+Kept for context on the original reasoning, not as current guidance.
+
+~~Downstream effect on `agentic-cms` (separate repo, not touched by this
 task): its own task 012 shrinks to tier-1-only (docs/wiki
 frontmatter-based scope declaration) once this ships, and its docs should
 point CMS users at this hook for the broader cross-file net rather than
-reimplementing it a third time.
+reimplementing it a third time.~~

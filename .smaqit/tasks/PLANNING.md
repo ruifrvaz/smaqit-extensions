@@ -6,7 +6,6 @@ Central task tracking and planning for smaqit-extensions.
 
 | ID | Title | Status | Created |
 |----|-------|--------|---------|
-| 035 | Confidentiality Pre-Commit Hook (Cross-Domain Secrets/PII Scanner) | PR Open | 2026-08-20 |
 | 028 | Benchmark Glossary Skill Invocation | Not Started | 2026-08-14 |
 | 002 | Fix Changelog Extraction for Cumulative Releases | Not Started | 2026-02-13 |
 | 007 | Create smaqit MCP Server (PoC) | Not Started | 2026-05-09 |
@@ -46,6 +45,12 @@ Central task tracking and planning for smaqit-extensions.
 | 023 | Global User-Level Installation with Agent-Specific Adapters | Completed | 2026-08-10 | 2026-08-10 |
 | 024 | Fix Worktree Script Repo-Root Resolution for Global Install | Completed | 2026-08-11 | 2026-08-11 |
 | 026 | Session-Finish Main Branch Finalization | Completed | 2026-08-14 | 2026-08-14 |
+
+## Abandoned Tasks
+
+| ID | Title | Date | Reason |
+|----|-------|------|--------|
+| 035 | Confidentiality Pre-Commit Hook (Cross-Domain Secrets/PII Scanner) | 2026-08-21 | Fully implemented and PR-open (#131), but abandoned before merge: structural conflict with `agentic-cms`'s `ac-classify` pre-commit hook on `docs/`/`wiki/` content — the two share no ack/allow state, so any page `ac-classify` rates and acknowledges as fine would be permanently re-blocked by this hook, requiring a disconnected, hand-maintained parallel exemption. Concluded it adds more friction than value; classification/secret-detection stays scoped to `agentic-cms`. |
 
 ## Notes
 

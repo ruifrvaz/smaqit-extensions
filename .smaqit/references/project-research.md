@@ -87,3 +87,16 @@ version: "1.0.0"
 
 | Tool | Section | URL |
 |------|---------|-----|
+
+## Task 035 — Confidentiality Pre-Commit Hook (Cross-Domain Secrets/PII Scanner)
+
+**Context fingerprint:** sha256:04bee3edca7edcfda5465474b0a09994efcdb47958fc8486a9fbbaa531406c58
+**Refreshed:** 2026-08-20
+
+| Tool | Section | URL |
+|------|---------|-----|
+| Go | Documentation | https://go.dev/doc/ |
+| Go | `embed` package | https://pkg.go.dev/embed |
+| Bash | Manual | https://man7.org/linux/man-pages/man1/bash.1.html |
+| Git | githooks | https://git-scm.com/docs/githooks |
+| Git | git-diff | https://git-scm.com/docs/git-diff |

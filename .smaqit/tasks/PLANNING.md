@@ -6,6 +6,7 @@ Central task tracking and planning for smaqit-extensions.
 
 | ID | Title | Status | Created |
 |----|-------|--------|---------|
+| 035 | Confidentiality Pre-Commit Hook (Cross-Domain Secrets/PII Scanner) | In Progress | 2026-08-20 |
 | 028 | Benchmark Glossary Skill Invocation | Not Started | 2026-08-14 |
 | 002 | Fix Changelog Extraction for Cumulative Releases | Not Started | 2026-02-13 |
 | 007 | Create smaqit MCP Server (PoC) | Not Started | 2026-05-09 |

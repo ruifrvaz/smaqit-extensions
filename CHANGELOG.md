@@ -7,8 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-08-20
+
 ### Added
-- **Confidentiality pre-commit hook** (pending v2.1.0 · PR #131) — scans staged content for credential/PII/financial-figure patterns and blocks the commit on a match, installed opt-in via a new `--with-hooks` flag on `init`/`update`/`install --scope project`, with a companion `smaqit.hooks.confidentiality-scan` skill for manual invocation.
+- **Confidentiality pre-commit hook** — scans staged content for credential/PII/financial-figure patterns and blocks the commit on a match, installed opt-in via a new `--with-hooks` flag on `init`/`update`/`install --scope project`, with a companion `smaqit.hooks.confidentiality-scan` skill for manual invocation.
 
 ## [2.0.3] - 2026-08-18
 

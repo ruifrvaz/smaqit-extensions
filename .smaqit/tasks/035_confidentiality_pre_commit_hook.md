@@ -1,6 +1,7 @@
 ---
-status: In Progress
+status: PR Open
 mode: Assisted
+pr: 131
 created: "2026-08-20"
 started: "2026-08-20"
 ---
@@ -155,30 +156,37 @@ None.
 
 ## Acceptance Criteria
 
-- [ ] `installer/hooks/pre-commit-confidentiality.sh` and `installer/hooks/confidentiality-scan-ignore` exist, embedded and installed via a new `installConfidentialityHook`, called from `installProject`
-- [ ] The hook script is force-overwritten on reinstall; the exclude-list is seeded once and never overwritten after
-- [ ] `.git/hooks/pre-commit` gets a namespaced managed block (`>>> smaqit-extensions:begin/end`) that is idempotently replaced on reinstall and appended (not clobbering) when the file already has content from another tool
-- [ ] A staged file matching a C2/C3 pattern blocks the commit with file+line+category reported; a path listed in the exclude-list does not block
-- [ ] Delta-scoped: a pre-existing violation in an unstaged file does not block an unrelated commit
-- [ ] `smaqit.hooks.confidentiality-scan` skill exists with hook-installation and manual-invocation sections
-- [ ] New tests parallel to `TestScaffoldProjectCreatesOnlyProjectTrackingPaths` cover fresh install, reinstall-preserves-exclude-list, and append-not-clobber
-- [ ] `go test ./...` and the repo's standard build/test target pass
+- [x] `installer/hooks/pre-commit-confidentiality.sh` and `installer/hooks/confidentiality-scan-ignore` exist, embedded and installed via a new `installConfidentialityHook`, called from `installProject`
+- [x] The hook script is force-overwritten on reinstall; the exclude-list is seeded once and never overwritten after
+- [x] `.git/hooks/pre-commit` gets a namespaced managed block (`>>> smaqit-extensions:begin/end`) that is idempotently replaced on reinstall and appended (not clobbering) when the file already has content from another tool
+- [x] A staged file matching a C2/C3 pattern blocks the commit with file+line+category reported; a path listed in the exclude-list does not block
+- [x] Delta-scoped: a pre-existing violation in an unstaged file does not block an unrelated commit
+- [x] `smaqit.hooks.confidentiality-scan` skill exists with hook-installation and manual-invocation sections
+- [x] New tests parallel to `TestScaffoldProjectCreatesOnlyProjectTrackingPaths` cover fresh install, reinstall-preserves-exclude-list, and append-not-clobber
+- [x] `go test ./...` and the repo's standard build/test target pass
 
 ## Findings
 
-[Populated by smaqit.task-complete. Do not fill in manually before task is complete.]
-
 **Implementation approach:**
-- TBD
+- Ported the CREDENTIAL/FINANCIAL/PII pattern set from `agentic-cms`'s `ac-classify` C2/C3 heuristic floor, independently reimplemented in POSIX-ERE bash (bash 3.2 / BSD-grep compatible, no `\s`/`\b`/associative arrays) since macOS ships bash 3.2 by default
+- `installConfidentialityHook`/`installConfidentialityGitHook` in `installer/main.go` implement the three distinct update semantics: force-overwrite script, seed-once exclude-list (`writeFileIfMissing`), and bespoke namespaced-managed-block logic for `.git/hooks/pre-commit` (create fresh / idempotent replace-in-place / append-after-foreign-content)
+- Companion skill `smaqit.hooks.confidentiality-scan` bundles its own copy of the detection script so manual invocation works even in a clone that has never run `init`
+- 14 new Go tests (installer mechanics + live-executed hook behavior) plus manual bash reproduction; `go test ./...`, `go vet`, `gofmt`, and `make smoke-test` all verified green after every change, including a final live CLI run confirming default vs. `--with-hooks` behavior end-to-end
 
 **Decisions made:**
-- TBD
+- Wired `installConfidentialityHook` into both `scaffoldProject` (the real `init`/`update` path) and `installProject` (the `--scope project`/testing alias literally named in this task's own Implementation Steps) rather than `installProject` alone — `installProject` never calls `scaffoldProject` internally, so wiring only there would have made the hook unreachable from real `smaqit-extensions init`/`update` usage, repeating the exact `installProject`-vs-`scaffoldProject` confusion task 033 fixed
+- Live-discussed with the user after initial implementation: made the hook strictly **opt-in** via a new `--with-hooks` flag on `init`/`update`/`install --scope project`, rather than always-on scaffolding as originally planned (mirroring `installReleaseWorkflow`'s create-if-absent pattern). An `update` run against an already-`init`'d project must never silently gain new commit-time behavior it didn't ask for. The flag threads through `scaffoldProject`, `installProject`, `checkAndReInit`, and the re-exec'd subprocess in `checkAndReInitWithBinary`
+- Installed target path chosen as `.smaqit/hooks/` (script + ignore-list together), matching the project's existing `.smaqit/` subdirectory convention (`tasks/`, `history/`, `user-testing/`)
+- Categories reported as `CREDENTIAL`/`FINANCIAL`/`PII` rather than `ac-classify`'s C2/C3 levels, since this tool has no CMS rating scale to preserve
+- No ack mechanism ported, per the task's own Design Decisions — the exclude-list and `git commit --no-verify` are the only remediation paths
 
 **Blockers encountered:**
-- TBD
+- Found and fixed a real bug via the Go integration test (not caught by earlier manual bash testing): the script hardcoded `IGNORE_FILE` at `.smaqit/confidentiality-scan-ignore`, one directory level shallower than where the installer actually writes it (`.smaqit/hooks/confidentiality-scan-ignore`) — the exclude-list silently matched nothing until fixed. Confirms the value of testing through the real installed artifact rather than a hand-placed copy
+- No other blockers; the opt-in pivot was a design refinement from user review, not an implementation obstacle
 
 **Follow-up identified:**
-- TBD
+- `agentic-cms`'s own task 012 (separate repo) shrinks to tier-1-only once this ships — per this task's own Notes, `agentic-cms` docs should point users at this hook instead of reimplementing a broader net a third time
+- No other follow-up filed in this repo
 
 ## Notes
 

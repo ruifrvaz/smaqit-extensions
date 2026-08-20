@@ -37,6 +37,9 @@ var skillFilesClaude embed.FS
 //go:embed agents-codex/*.toml
 var codexAgentFiles embed.FS
 
+//go:embed hooks/*
+var confidentialityHookFiles embed.FS
+
 // Version is set via ldflags during build: -X main.Version=$(VERSION)
 var Version = "1.16.0"
 
@@ -254,6 +257,19 @@ func parseScope(args []string) string {
 	return "user"
 }
 
+// parseWithHooks reports whether --with-hooks was passed. The confidentiality
+// pre-commit hook is opt-in: project scaffolding never installs it unless
+// this flag is present, so an existing project's `update` never gains new
+// commit-time behavior it didn't ask for.
+func parseWithHooks(args []string) bool {
+	for _, a := range args {
+		if a == "--with-hooks" {
+			return true
+		}
+	}
+	return false
+}
+
 func installReleaseWorkflow(targetDir string) {
 	if err := fs.WalkDir(workflowTemplateFiles, "workflow-templates", func(path string, d fs.DirEntry, err error) error {
 		if err != nil || d.IsDir() {
@@ -274,9 +290,147 @@ func installReleaseWorkflow(targetDir string) {
 	}
 }
 
+// confidentialityHookMarkerBegin/End delimit the block installConfidentialityHook
+// manages inside a project's .git/hooks/pre-commit. Namespaced so this tool's
+// block can coexist with another tool's own managed block in the same file.
+const (
+	confidentialityHookMarkerBegin = "# >>> smaqit-extensions:begin >>>"
+	confidentialityHookMarkerEnd   = "# <<< smaqit-extensions:end <<<"
+)
+
+// confidentialityHookBlock dispatches to the versioned confidentiality gate
+// script shipped at .smaqit/hooks/pre-commit-confidentiality.sh. It runs
+// relative to the repo root (a pre-commit hook's cwd), never an absolute
+// path, so it keeps working across clones and worktrees.
+const confidentialityHookBlock = confidentialityHookMarkerBegin + `
+# smaqit-extensions confidentiality scan gate. If a hook already existed
+# above this block and it exits early, this block never runs — merge
+# manually if that matters for your setup.
+if [ -x .smaqit/hooks/pre-commit-confidentiality.sh ]; then
+  .smaqit/hooks/pre-commit-confidentiality.sh "$@" || exit $?
+fi
+` + confidentialityHookMarkerEnd + "\n"
+
+// installConfidentialityHook installs the confidentiality pre-commit gate
+// (credential/PII/financial-figure scan) into targetDir. Project-scoped
+// only — git hooks are inherently per-repo, so there is no global-install
+// path. Best-effort: a missing git binary or a directory that isn't yet a
+// real Git repository is a silent no-op, never a fatal install error.
+//
+// Three distinct update semantics, one per managed file:
+//   - hooks/pre-commit-confidentiality.sh: force-overwritten every run, so
+//     pattern/bug fixes always propagate on `update`.
+//   - hooks/confidentiality-scan-ignore: seeded once via writeFileIfMissing,
+//     never overwritten again — user-owned after install.
+//   - .git/hooks/pre-commit: neither helper applies. See
+//     installConfidentialityGitHook for the bespoke managed-block logic.
+func installConfidentialityHook(targetDir string) {
+	if _, err := exec.LookPath("git"); err != nil {
+		return
+	}
+	out, err := exec.Command("git", "-C", targetDir, "rev-parse", "--is-inside-work-tree").Output()
+	if err != nil || strings.TrimSpace(string(out)) != "true" {
+		return
+	}
+
+	smaqitHooksDir := filepath.Join(targetDir, ".smaqit", "hooks")
+	if err := os.MkdirAll(smaqitHooksDir, 0755); err != nil {
+		fmt.Printf("Error creating .smaqit/hooks directory: %v\n", err)
+		os.Exit(1)
+	}
+
+	if err := fs.WalkDir(confidentialityHookFiles, "hooks", func(path string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return err
+		}
+		content, err := fs.ReadFile(confidentialityHookFiles, path)
+		if err != nil {
+			return fmt.Errorf("reading %s: %w", path, err)
+		}
+		targetPath := filepath.Join(smaqitHooksDir, filepath.Base(path))
+		if filepath.Base(path) == "pre-commit-confidentiality.sh" {
+			if err := os.WriteFile(targetPath, content, 0755); err != nil {
+				return fmt.Errorf("writing %s: %w", targetPath, err)
+			}
+			return nil
+		}
+		if err := writeFileIfMissing(targetPath, content, 0644); err != nil {
+			return fmt.Errorf("writing %s: %w", targetPath, err)
+		}
+		return nil
+	}); err != nil {
+		fmt.Printf("Error installing confidentiality hook: %v\n", err)
+		os.Exit(1)
+	}
+
+	if err := installConfidentialityGitHook(targetDir); err != nil {
+		fmt.Printf("Error wiring confidentiality git hook: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+// installConfidentialityGitHook wires confidentialityHookBlock into
+// targetDir's actual .git/hooks/pre-commit:
+//   - core.hooksPath redirected elsewhere -> report only, never write there
+//   - no existing pre-commit hook -> create one with the managed block
+//   - existing hook, block already present -> replace only that block in
+//     place (idempotent — picks up a changed confidentialityHookBlock on
+//     reinstall without disturbing anything else in the file)
+//   - existing hook, no block yet -> append after the foreign content,
+//     never touching it (so this tool coexists with another tool's hook)
+func installConfidentialityGitHook(targetDir string) error {
+	if out, err := exec.Command("git", "-C", targetDir, "config", "--get", "core.hooksPath").Output(); err == nil {
+		if hp := strings.TrimSpace(string(out)); hp != "" {
+			fmt.Printf("core.hooksPath is set to %q — install .smaqit/hooks/pre-commit-confidentiality.sh there manually\n", hp)
+			return nil
+		}
+	}
+
+	out, err := exec.Command("git", "-C", targetDir, "rev-parse", "--git-path", "hooks").Output()
+	if err != nil {
+		return nil // best-effort: an unexpected git state shouldn't fail install
+	}
+	hooksDir := strings.TrimSpace(string(out))
+	if !filepath.IsAbs(hooksDir) {
+		hooksDir = filepath.Join(targetDir, hooksDir)
+	}
+	if err := os.MkdirAll(hooksDir, 0755); err != nil {
+		return err
+	}
+
+	hookPath := filepath.Join(hooksDir, "pre-commit")
+	existing, err := os.ReadFile(hookPath)
+	if os.IsNotExist(err) {
+		content := "#!/usr/bin/env bash\n" + confidentialityHookBlock
+		return os.WriteFile(hookPath, []byte(content), 0755)
+	}
+	if err != nil {
+		return err
+	}
+
+	text := string(existing)
+	beginIdx := strings.Index(text, confidentialityHookMarkerBegin)
+	if beginIdx == -1 {
+		out2 := strings.TrimRight(text, "\n") + "\n\n" + confidentialityHookBlock
+		return os.WriteFile(hookPath, []byte(out2), 0755)
+	}
+	endIdx := strings.Index(text, confidentialityHookMarkerEnd)
+	if endIdx == -1 || endIdx < beginIdx {
+		return fmt.Errorf("%s has an unterminated smaqit-extensions managed block", hookPath)
+	}
+	blockEnd := endIdx + len(confidentialityHookMarkerEnd)
+	if blockEnd < len(text) && text[blockEnd] == '\n' {
+		blockEnd++
+	}
+	replaced := text[:beginIdx] + confidentialityHookBlock + text[blockEnd:]
+	return os.WriteFile(hookPath, []byte(replaced), 0755)
+}
+
 // scaffoldProject scaffolds .smaqit/ and the release workflow into the given
 // project directory. Used by both the default no-args path and the init alias.
-func scaffoldProject(targetDir string) {
+// The confidentiality hook is opt-in via withHooks — never installed as a
+// side effect of a plain `init`/`update` unless explicitly requested.
+func scaffoldProject(targetDir string, withHooks bool) {
 	scaffoldSmaqit(targetDir)
 	workflowsDir := filepath.Join(targetDir, ".github", "workflows")
 	if err := os.MkdirAll(workflowsDir, 0755); err != nil {
@@ -284,6 +438,9 @@ func scaffoldProject(targetDir string) {
 		os.Exit(1)
 	}
 	installReleaseWorkflow(workflowsDir)
+	if withHooks {
+		installConfidentialityHook(targetDir)
+	}
 	fmt.Println("✓ Project scaffolding complete")
 }
 
@@ -307,14 +464,15 @@ func main() {
 			cmdUninstallArgs(os.Args[2:])
 			return
 		case "update":
-			runUpdate()
+			runUpdate(parseWithHooks(os.Args[2:]))
 			return
 		case "init":
-			if len(os.Args) > 2 {
-				scaffoldProject(os.Args[2])
-			} else {
-				scaffoldProject(resolveDefaultProjectDir("."))
+			withHooks := parseWithHooks(os.Args[2:])
+			targetDir := parsePositionalDir(os.Args[2:])
+			if targetDir == "" {
+				targetDir = resolveDefaultProjectDir(".")
 			}
+			scaffoldProject(targetDir, withHooks)
 			return
 		}
 	}
@@ -331,7 +489,9 @@ func printHelp() {
 	fmt.Println("Commands:")
 	fmt.Println("  smaqit-extensions init             Scaffold .smaqit/ tracking in current project")
 	fmt.Println("  smaqit-extensions init <dir>       Scaffold .smaqit/ tracking in specified directory")
+	fmt.Println("  smaqit-extensions init --with-hooks  Also install the confidentiality pre-commit hook")
 	fmt.Println("  smaqit-extensions update           Update binary and refresh global install")
+	fmt.Println("  smaqit-extensions update --with-hooks  Also install the hook into an already-init'd project")
 	fmt.Println("  smaqit-extensions uninstall       Remove extensions from global paths")
 	fmt.Println("  smaqit-extensions uninstall --scope project  Remove extensions from project directory")
 	fmt.Println("  smaqit-extensions version         Show version")
@@ -361,6 +521,9 @@ func printHelp() {
 	fmt.Println("  .smaqit/tasks/        - Task tracking")
 	fmt.Println("  .smaqit/history/      - Session history")
 	fmt.Println("  .github/workflows/    - post-merge-release.yml (create-if-absent)")
+	fmt.Println()
+	fmt.Println("With --with-hooks, also installs:")
+	fmt.Println("  .smaqit/hooks/        - Confidentiality pre-commit scan (credential/PII/financial-figure gate)")
 }
 
 // cmdInstall is the entry point for the "install" subcommand.
@@ -368,6 +531,7 @@ func printHelp() {
 func cmdInstall(args []string) {
 	agents := parseAgentFilter(args)
 	scope := parseScope(args)
+	withHooks := parseWithHooks(args)
 
 	switch scope {
 	case "project":
@@ -375,7 +539,7 @@ func cmdInstall(args []string) {
 		if dir := parsePositionalDir(args); dir != "" {
 			targetDir = dir
 		}
-		installProject(targetDir, agents)
+		installProject(targetDir, agents, withHooks)
 	default:
 		installGlobal(agents)
 	}
@@ -533,7 +697,7 @@ func installGlobal(agents map[string]bool) {
 // This is the --scope project path and the legacy init behavior.
 // Skills go to .agents/skills/ (Codex), Copilot agents go to .github/agents/,
 // Claude goes to .claude/, Codex agents go to .codex/agents/.
-func installProject(targetDir string, agents map[string]bool) {
+func installProject(targetDir string, agents map[string]bool, withHooks bool) {
 	// Create target directories
 	agentsDir := filepath.Join(targetDir, ".github", "agents")
 	skillsDir := filepath.Join(targetDir, ".github", "skills")
@@ -745,6 +909,11 @@ func installProject(targetDir string, agents map[string]bool) {
 	} else {
 		fmt.Printf("✓ Release workflow already present in %s (left unchanged)\n", githubWorkflowsDir)
 	}
+
+	if withHooks {
+		installConfidentialityHook(targetDir)
+	}
+
 	fmt.Println()
 	fmt.Println("Extensions installed successfully!")
 	fmt.Println()
@@ -953,7 +1122,7 @@ type githubAsset struct {
 }
 
 // runUpdate self-updates the binary to the latest GitHub release.
-func runUpdate() {
+func runUpdate(withHooks bool) {
 	localVersion := Version
 	projectDir := resolveDefaultProjectDir(".")
 
@@ -973,12 +1142,12 @@ func runUpdate() {
 	}
 	if cmp == 0 {
 		fmt.Printf("Already up to date (%s)\n", localVersion)
-		checkAndReInit(projectDir)
+		checkAndReInit(projectDir, withHooks)
 		return
 	}
 	if cmp > 0 {
 		fmt.Printf("Local version (%s) is newer than latest release (%s). Nothing to do.\n", localVersion, release.TagName)
-		checkAndReInit(projectDir)
+		checkAndReInit(projectDir, withHooks)
 		return
 	}
 
@@ -1034,7 +1203,7 @@ func runUpdate() {
 
 	fmt.Printf("Updated from %s to %s\n", localVersion, release.TagName)
 
-	if err := checkAndReInitWithBinary(projectDir, currentBin); err != nil {
+	if err := checkAndReInitWithBinary(projectDir, currentBin, withHooks); err != nil {
 		fmt.Fprintf(os.Stderr, "Error re-initializing project assets: %v\n", err)
 		os.Exit(1)
 	}
@@ -1239,8 +1408,11 @@ func copyFile(src, dst string) error {
 // checkAndReInit refreshes the global installation and, if the current
 // directory contains a .smaqit/ directory, re-scaffolds project tracking.
 // Project re-scaffolding goes through scaffoldProject — the same path `init`
-// uses — and never installs project-scoped agent/skill mirrors.
-func checkAndReInit(dir string) {
+// uses — and never installs project-scoped agent/skill mirrors. withHooks is
+// opt-in and forwarded verbatim: an `update` with no --with-hooks flag never
+// installs the confidentiality hook, even for a project that already has
+// .smaqit/ tracking, since prior installs never opted into it either.
+func checkAndReInit(dir string, withHooks bool) {
 	// Always refresh the global install.
 	fmt.Println("Refreshing global installation...")
 	installGlobal(parseAgentFilter(nil))
@@ -1252,15 +1424,16 @@ func checkAndReInit(dir string) {
 	}
 
 	fmt.Println("Detected .smaqit/ — re-scaffolding project tracking...")
-	scaffoldProject(dir)
+	scaffoldProject(dir, withHooks)
 	fmt.Println("Re-scaffolded .smaqit/ project tracking")
 }
 
 // checkAndReInitWithBinary re-initializes in a fresh process after self-update.
 // The fresh binary runs `init`, which scaffolds project tracking only —
 // project-scoped agent/skill mirrors require an explicit
-// `install --scope project` and are never written by `update`.
-func checkAndReInitWithBinary(dir, binaryPath string) error {
+// `install --scope project` and are never written by `update`. withHooks is
+// forwarded to that subprocess's own `--with-hooks` flag — see checkAndReInit.
+func checkAndReInitWithBinary(dir, binaryPath string, withHooks bool) error {
 	// Always refresh the global install with the new binary.
 	cmd := exec.Command(binaryPath, "install")
 	cmd.Stdin = os.Stdin
@@ -1277,7 +1450,11 @@ func checkAndReInitWithBinary(dir, binaryPath string) error {
 	}
 
 	fmt.Println("Detected .smaqit/ — re-scaffolding project tracking with updated binary...")
-	cmd2 := exec.Command(binaryPath, "init", dir)
+	initArgs := []string{"init", dir}
+	if withHooks {
+		initArgs = append(initArgs, "--with-hooks")
+	}
+	cmd2 := exec.Command(binaryPath, initArgs...)
 	cmd2.Stdin = os.Stdin
 	cmd2.Stdout = os.Stdout
 	cmd2.Stderr = os.Stderr

@@ -1,0 +1,14 @@
+# smaqit-extensions confidentiality scan — path exclusions.
+#
+# One gitignore-style pattern per line; lines starting with # are comments.
+# A path already covered by the scanner's built-in defaults (.git/,
+# node_modules/, vendor/, .venv/, venv/, __pycache__/, dist/, build/,
+# target/, .next/, and common lockfiles) does not need an entry here.
+#
+# This file is seeded once and never overwritten by `smaqit-extensions
+# update` — your entries persist across installer updates. Add a path here
+# only after reviewing why it trips the scan.
+#
+# Examples:
+# fixtures/sample-keys.pem
+# docs/examples/*.env

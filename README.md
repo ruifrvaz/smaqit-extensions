@@ -58,6 +58,9 @@ A single `curl .../install.sh | bash` installs all three targets globally. Each 
 - **smaqit.utils.triage-issues** - Search upstream GitHub repos for known issues before implementation begins (`task.triage [id]`)
 - **smaqit.utils.worktree** - Sync branch worktrees and the VS Code multi-root workspace
 
+#### Git Hooks
+- **smaqit.hooks.confidentiality-scan** - Scan staged content for credential/PII/financial-figure patterns and explain the installed confidentiality pre-commit gate (`confidentiality.scan`)
+
 ### Utility Agents
 
 - **@smaqit.release.local** (Copilot) / **/smaqit.release.local** (Claude Code) / **smaqit.release.local** (Codex subagent) - Automated release management (local development)
@@ -82,17 +85,21 @@ curl -fsSL https://raw.githubusercontent.com/ruifrvaz/smaqit-extensions/main/ins
 
 The installer downloads the binary and installs agents and skills globally:
 
-- `~/.agents/skills/` - 29 workflow skills (shared by GitHub Copilot + Codex)
+- `~/.agents/skills/` - 30 workflow skills (shared by GitHub Copilot + Codex)
 - `~/.copilot/agents/` - 3 utility agents (GitHub Copilot)
 - `~/.claude/agents/` - 3 utility subagents (Claude Code)
 - `~/.claude/commands/` - 3 slash commands, one per subagent
-- `~/.claude/skills/` - 29 workflow skills (Claude Code)
+- `~/.claude/skills/` - 30 workflow skills (Claude Code)
 - `~/.codex/agents/` - 3 project custom agents (standalone TOML)
 
 Running `smaqit-extensions init` in a project additionally scaffolds:
 
 - `.smaqit/` — task tracking (PLANNING.md), session history
 - `.github/workflows/post-merge-release.yml` — generic, project-agnostic release automation (tag + GitHub Release; no build step). Deployed create-if-absent: `init` and `update` never overwrite an existing copy, so local edits (e.g. adding a build/artifact-upload step) are always preserved.
+
+Passing `--with-hooks` to `init` or `update` additionally installs a per-repo confidentiality scan gate — opt-in, since a git hook changes commit-time behavior and `update` must never surprise an existing project with it:
+
+- `.smaqit/hooks/` + a managed block in `.git/hooks/pre-commit` — blocks commits that stage credential-, PII-, or financial-figure-shaped content. The detection script is force-overwritten on every `init --with-hooks`/`update --with-hooks` (fixes always propagate); the exclude-list (`confidentiality-scan-ignore`) is seeded once and then user-owned. Coexists with any pre-existing `.git/hooks/pre-commit` content via a namespaced managed block — see `smaqit.hooks.confidentiality-scan`.
 
 **Environment overrides:**
 
@@ -119,7 +126,9 @@ The `smaqit-extensions` binary also accepts CLI commands:
 ```bash
 smaqit-extensions init                    # Scaffold .smaqit/ tracking in current project
 smaqit-extensions init <dir>              # Scaffold .smaqit/ tracking in specified directory
+smaqit-extensions init --with-hooks       # Also install the confidentiality pre-commit hook
 smaqit-extensions update                  # Update binary and refresh global install
+smaqit-extensions update --with-hooks     # Also install the hook into an already-init'd project
 smaqit-extensions uninstall               # Remove extensions from global paths
 smaqit-extensions uninstall --scope project  # Remove extensions from project directory
 smaqit-extensions version                 # Show version

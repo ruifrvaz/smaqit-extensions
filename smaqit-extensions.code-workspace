@@ -3,10 +3,6 @@
     {
       "name": "main",
       "path": "."
-    },
-    {
-      "name": "task/035-confidentiality-pre-commit-hook-cross-domain-secrets-pii-scanner",
-      "path": "../smaqit-extensions-wt-task-035-confidentiality-pre-commit-hook-cross-domain-secrets-pii-scanner"
     }
   ],
   "settings": {

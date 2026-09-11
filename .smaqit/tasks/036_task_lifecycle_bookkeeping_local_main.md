@@ -1,6 +1,8 @@
 ---
-status: Not Started
+status: In Progress
 created: "2026-09-11"
+mode: Assisted
+started: "2026-09-11"
 ---
 
 # Move task-lifecycle bookkeeping commits off origin/main onto local main
@@ -113,7 +115,8 @@ never followed the same logic.
 
 ## Known Issues Triage
 
-[Populated by smaqit.task-start via smaqit.utils.triage-issues. Do not edit manually.]
+**Triaged:** 2026-09-11
+**Result:** Skipped — explicitly marked `Mode: Skip` in task Notes.
 
 ## Acceptance Criteria
 

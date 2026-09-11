@@ -4,7 +4,7 @@ version: "1.0.0"
 
 # Project Research Map
 **Project:** smaqit-extensions
-**Refreshed:** 2026-08-21
+**Refreshed:** 2026-09-11
 **Active task:** None
 
 | Tool | Section | URL |
@@ -100,3 +100,16 @@ version: "1.0.0"
 | Bash | Manual | https://man7.org/linux/man-pages/man1/bash.1.html |
 | Git | githooks | https://git-scm.com/docs/githooks |
 | Git | git-diff | https://git-scm.com/docs/git-diff |
+
+## Task 036 — Move task-lifecycle bookkeeping commits off origin/main onto local main
+
+**Context fingerprint:** sha256:b3b46e7a46051899ba9ab437f1a18304179240ee048b7b9527521327db6ef56d
+**Refreshed:** 2026-09-11
+
+| Tool | Section | URL |
+|------|---------|-----|
+| Bash | Manual | https://www.gnu.org/software/bash/manual/bash.html |
+| Git | Reference | https://git-scm.com/docs |
+| Git | git-worktree | https://git-scm.com/docs/git-worktree |
+| Git | git-rebase | https://git-scm.com/docs/git-rebase |
+| Git | git-merge | https://git-scm.com/docs/git-merge |

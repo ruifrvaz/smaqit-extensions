@@ -2,7 +2,7 @@
 name: smaqit.session-recap
 description: Summarize session progress as a structured table of accomplished and pending steps. Invoke when the user asks for a "recap of the session", "review of the session", or "progress on the session".
 metadata:
-  version: "0.4.0"
+  version: "0.4.1"
 ---
 
 # Session Recap

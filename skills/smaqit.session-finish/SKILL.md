@@ -2,7 +2,7 @@
 name: smaqit.session-finish
 description: End session by documenting the entire conversation. Use at session completion to create history entries.
 metadata:
-  version: "0.10.1"
+  version: "0.10.2"
 ---
 
 # Session Finish

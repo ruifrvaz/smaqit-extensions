@@ -85,6 +85,14 @@ Run `make smoke-test` from the repository root or `make -C installer smoke-test`
 
 ---
 
+**What is `.smaqit/bench/` (the `smaqit.bench-scaffold`/`smaqit.bench-run` harness) for, and when does it not apply?**
+
+It is a Codex-based harness for testing skill or agent *discovery and invocation* — whether an LLM, given a raw prompt that never names the skill, actually finds and invokes it. It stages the candidate skill as a "variant treatment" against a control and compares outcomes between them; it is fundamentally an A/B comparison mechanism, not a general-purpose test runner.
+
+It does not apply to a mechanical behavior question with no discovery angle and nothing to compare — for example, whether a git workflow behaves correctly under concurrent local access. Questions like that are validated directly instead: a hermetic test script under `tests/skills/`, or an ad-hoc live trial (e.g. two parallel subagents racing real skill mechanics against a throwaway fixture), neither of which involves Codex or the `.smaqit/bench/` manifest format.
+
+---
+
 ## Memory and Session Persistence
 
 **Why don't smaqit skills call a specific "memory" tool anymore?**

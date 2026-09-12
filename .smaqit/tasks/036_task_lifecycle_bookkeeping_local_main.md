@@ -1,9 +1,9 @@
 ---
-status: PR Open
+status: Completed
 created: "2026-09-11"
 mode: Assisted
 started: "2026-09-11"
-pr: 134
+completed: "2026-09-12"
 ---
 
 # Move task-lifecycle bookkeeping commits off origin/main onto local main
@@ -167,7 +167,7 @@ never followed the same logic.
 
 ## Notes
 
-- Origin: raised in a downstream repo (`Magnificah/infrastructure`) after tasks needed 6-8 PRs
+- Origin: raised in a downstream repo after tasks needed 6-8 PRs
   each, almost entirely bookkeeping, once that repo added required-PR-review branch protection on
   `main`. An initial framing wrongly assumed `smaqit-extensions` needed cross-machine/cloud-session
   coordination and rejected a local-`main` fix on that basis; the user corrected this directly —

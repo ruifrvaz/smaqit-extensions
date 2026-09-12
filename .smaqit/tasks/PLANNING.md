@@ -10,12 +10,12 @@ Central task tracking and planning for smaqit-extensions.
 | 002 | Fix Changelog Extraction for Cumulative Releases | Not Started | 2026-02-13 |
 | 007 | Create smaqit MCP Server (PoC) | Not Started | 2026-05-09 |
 | 010 | Publish smaqit-extensions as Copilot Marketplace Plugin | Not Started | 2026-05-09 |
-| 036 | Move Task-Lifecycle Bookkeeping Commits Off origin/main Onto Local main | PR Open | 2026-09-11 |
 
 ## Completed Tasks
 
 | ID | Title | Status | Created | Completed |
 |----|-------|--------|---------|-----------|
+| 036 | Move Task-Lifecycle Bookkeeping Commits Off origin/main Onto Local main | Completed | 2026-09-11 | 2026-09-12 |
 | 034 | Preserve Foreign Content When Regenerating the `.code-workspace` File | Completed | 2026-08-18 | 2026-08-18 |
 | 033 | Fix `update` Writing Project-Scoped Agent/Skill Mirrors Despite Documenting Itself as Global-Only | Completed | 2026-08-15 | 2026-08-17 |
 | 031 | Fix Release-Analysis Boundary Detection for PR-Gated Releases | Completed | 2026-08-15 | 2026-08-17 |

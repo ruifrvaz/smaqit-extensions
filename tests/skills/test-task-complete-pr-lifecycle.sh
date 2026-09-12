@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Hermetic checks for PR-gated task-complete: the two genuinely mechanical
-# behaviors (bounded fetch-rebase-retry push, squash-merge-safe local branch
-# deletion) exercised against real git fixtures, plus contract assertions on
-# the documented Phase 1/Phase 2 procedure across every file it touches.
+# Hermetic checks for PR-gated task-complete: the genuinely mechanical
+# behaviors (Phase 2's origin/main-into-local-main merge tolerating unpushed
+# bookkeeping ahead, squash-merge-safe local branch deletion) exercised
+# against real git fixtures, plus contract assertions on the documented
+# Phase 1/Phase 2 procedure across every file it touches.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -29,59 +30,103 @@ assert_eq() {
   [ "$actual" = "$expected" ] || fail "$message (expected [$expected], got [$actual])"
 }
 
-# --- Mechanical test 1: bounded fetch-rebase-retry push loop ---------------
+# --- Mechanical test 1: Phase 2 merges origin/main into local main, --------
+# tolerating unpushed bookkeeping ahead --------------------------------------
+# task-lifecycle bookkeeping (task-start Step 8; task-complete Steps 12, 14,
+# 18) commits to local `main` only and is never pushed — a genuinely local
+# operation between worktrees sharing one `.git`, not exercised against a
+# remote at all. The one place a real remote still matters is task-complete's
+# Phase 2 Step 17: after a PR merges on GitHub, the primary checkout must
+# bring that merge in via `git merge origin/main` (never a fast-forward-only
+# pull), because local `main` can legitimately be ahead with bookkeeping
+# commits `origin/main` doesn't have yet.
 
 REMOTE="$FIXTURE_ROOT/remote.git"
-CLONE_A="$FIXTURE_ROOT/clone-a"
-CLONE_B="$FIXTURE_ROOT/clone-b"
+PRIMARY="$FIXTURE_ROOT/primary"
 
 git init --bare -b main "$REMOTE" >/dev/null
-git clone --quiet "$REMOTE" "$CLONE_A"
-git clone --quiet "$REMOTE" "$CLONE_B"
-for clone in "$CLONE_A" "$CLONE_B"; do
-  git -C "$clone" config user.email "test@example.invalid"
-  git -C "$clone" config user.name "Smaqit Test"
-done
+git clone --quiet "$REMOTE" "$PRIMARY"
+git -C "$PRIMARY" config user.email "test@example.invalid"
+git -C "$PRIMARY" config user.name "Smaqit Test"
 
-printf 'seed\n' > "$CLONE_A/seed.txt"
-git -C "$CLONE_A" add seed.txt
-git -C "$CLONE_A" commit -q -m "seed"
-git -C "$CLONE_A" push -q origin main
-git -C "$CLONE_B" pull -q origin main
+printf 'seed\n' > "$PRIMARY/seed.txt"
+git -C "$PRIMARY" add seed.txt
+git -C "$PRIMARY" commit -q -m "seed"
+git -C "$PRIMARY" push -q origin main
 
-# Clone B pushes first, simulating a sibling task's metadata push landing
-# between Clone A's fetch and its own push attempt.
-printf 'b\n' > "$CLONE_B/b.txt"
-git -C "$CLONE_B" add b.txt
-git -C "$CLONE_B" commit -q -m "chore: start task 200"
-git -C "$CLONE_B" push -q origin main
+# A second clone stands in for GitHub merging this task's PR — a commit lands
+# on origin/main that the primary checkout has not fetched yet.
+MERGER="$FIXTURE_ROOT/merger-clone"
+git clone --quiet "$REMOTE" "$MERGER"
+git -C "$MERGER" config user.email "test@example.invalid"
+git -C "$MERGER" config user.name "Smaqit Test"
+printf 'feature\n' > "$MERGER/feature.txt"
+git -C "$MERGER" add feature.txt
+git -C "$MERGER" commit -q -m "feat: implement task 200 (merged PR)"
+git -C "$MERGER" push -q origin main
 
-# Clone A now has a stale origin/main locally and its own pending commit —
-# this is exactly task-start/task-complete's bounded retry loop from
-# smaqit.task-start SKILL.md Step 8, run verbatim against the fixture.
-printf 'a\n' > "$CLONE_A/a.txt"
-git -C "$CLONE_A" add a.txt
-git -C "$CLONE_A" commit -q -m "chore: start task 201"
+# Meanwhile the primary checkout committed its own task-lifecycle bookkeeping
+# locally — task-start's "chore: start task 201" — and never pushed it. Local
+# main is now ahead of the primary checkout's own view of origin/main, on a
+# divergent history from what origin/main just received.
+printf 'bookkeeping\n' > "$PRIMARY/planning.txt"
+git -C "$PRIMARY" add planning.txt
+git -C "$PRIMARY" commit -q -m "chore: start task 201"
 
 (
-  cd "$CLONE_A"
-  for attempt in 1 2 3; do
-    git push origin main >/dev/null 2>&1 && exit 0
-    if [ "$attempt" -eq 3 ]; then
-      echo "push failed after 3 attempts" >&2
-      exit 1
-    fi
-    git fetch origin main >/dev/null 2>&1
-    git rebase origin/main >/dev/null 2>&1 || { git rebase --abort; exit 1; }
-  done
-) || fail "bounded retry loop did not recover from a routine push collision"
+  cd "$PRIMARY"
+  git checkout -q main
+  git fetch -q origin main
+  git merge -q origin/main
+) || fail "Phase 2's merge did not converge local main ahead of origin/main with a real remote merge"
 
-git -C "$CLONE_A" fetch -q origin main
-[ "$(git -C "$CLONE_A" rev-parse main)" = "$(git -C "$CLONE_A" rev-parse origin/main)" ] \
-  || fail "clone A did not converge with origin/main after the retry loop"
-LOG="$(git -C "$CLONE_A" log --oneline main)"
-echo "$LOG" | grep -q "chore: start task 200" || fail "retry loop lost the sibling's commit (task 200)"
-echo "$LOG" | grep -q "chore: start task 201" || fail "retry loop lost its own commit (task 201)"
+LOG="$(git -C "$PRIMARY" log --oneline main)"
+echo "$LOG" | grep -q "chore: start task 201" || fail "the merge lost the primary checkout's own unpushed bookkeeping commit"
+echo "$LOG" | grep -q "feat: implement task 200 (merged PR)" || fail "the merge did not bring in origin/main's PR-merge commit"
+[ -f "$PRIMARY/planning.txt" ] && [ -f "$PRIMARY/feature.txt" ] \
+  || fail "the merged working tree is missing content from one side"
+
+# A genuine conflict — both sides touching the same file — must never
+# auto-resolve; task-complete Step 17 requires `git merge --abort` and a stop.
+CONFLICT_REMOTE="$FIXTURE_ROOT/conflict-remote.git"
+CONFLICT_PRIMARY="$FIXTURE_ROOT/conflict-primary"
+CONFLICT_MERGER="$FIXTURE_ROOT/conflict-merger"
+
+git init --bare -b main "$CONFLICT_REMOTE" >/dev/null
+git clone --quiet "$CONFLICT_REMOTE" "$CONFLICT_PRIMARY"
+git -C "$CONFLICT_PRIMARY" config user.email "test@example.invalid"
+git -C "$CONFLICT_PRIMARY" config user.name "Smaqit Test"
+printf 'line1\n' > "$CONFLICT_PRIMARY/shared.txt"
+git -C "$CONFLICT_PRIMARY" add shared.txt
+git -C "$CONFLICT_PRIMARY" commit -q -m "seed"
+git -C "$CONFLICT_PRIMARY" push -q origin main
+
+git clone --quiet "$CONFLICT_REMOTE" "$CONFLICT_MERGER"
+git -C "$CONFLICT_MERGER" config user.email "test@example.invalid"
+git -C "$CONFLICT_MERGER" config user.name "Smaqit Test"
+printf 'line1\nremote change\n' > "$CONFLICT_MERGER/shared.txt"
+git -C "$CONFLICT_MERGER" add shared.txt
+git -C "$CONFLICT_MERGER" commit -q -m "remote edit"
+git -C "$CONFLICT_MERGER" push -q origin main
+
+printf 'line1\nlocal change\n' > "$CONFLICT_PRIMARY/shared.txt"
+git -C "$CONFLICT_PRIMARY" add shared.txt
+git -C "$CONFLICT_PRIMARY" commit -q -m "local edit"
+
+(
+  cd "$CONFLICT_PRIMARY"
+  git fetch -q origin main
+  if git merge -q origin/main >/dev/null 2>&1; then
+    echo "merge unexpectedly succeeded on a genuine conflict" >&2
+    exit 1
+  fi
+  git merge --abort
+) || fail "a genuine merge conflict must abort cleanly, never auto-resolve"
+
+[ -z "$(git -C "$CONFLICT_PRIMARY" status --porcelain)" ] \
+  || fail "git merge --abort must leave a clean working tree"
+
+echo "[PASS] Phase 2 merges origin/main into local main across unpushed bookkeeping, and aborts cleanly on a genuine conflict"
 
 # --- Mechanical test 2: -d refuses a squash-merged branch, -D doesn't ------
 
@@ -114,7 +159,7 @@ git -C "$REPO" branch -D task/999-example >/dev/null 2>&1 \
 git -C "$REPO" branch --list task/999-example | grep -q . \
   && fail "branch still present after -D"
 
-echo "[PASS] bounded retry push loop and squash-safe branch deletion"
+echo "[PASS] squash-safe branch deletion"
 
 # --- Mechanical test 3: a child task never resolves as an owner ------------
 # task-complete's Step 3a/8 branch entirely on the resolver's `kind` field —
@@ -212,7 +257,7 @@ assert_contains "$TASK_COMPLETE" 'gh pr create --base main' "Phase 1 actually cr
 # The pending annotation names the PR, so the PR has to exist first. Assert
 # the ordering by line number, not just presence.
 pr_create_line="$(rg -n --fixed-strings 'gh pr create --base main' "$TASK_COMPLETE" | head -1 | cut -d: -f1)"
-pending_write_line="$(rg -n --fixed-strings 'Push the pending `CHANGELOG.md` entry directly to `main`' "$TASK_COMPLETE" | head -1 | cut -d: -f1)"
+pending_write_line="$(rg -n --fixed-strings 'Commit the pending `CHANGELOG.md` entry to local `main`' "$TASK_COMPLETE" | head -1 | cut -d: -f1)"
 [ -n "$pr_create_line" ] && [ -n "$pending_write_line" ] || fail "could not locate PR-create and pending-entry steps for ordering check"
 [ "$pr_create_line" -lt "$pending_write_line" ] \
   || fail "PR creation must precede writing the pending CHANGELOG entry — the annotation names the PR number"
@@ -233,8 +278,9 @@ assert_contains "$TASK_COMPLETE" 'Owner, Status `PR Open`' "Phase gate branches 
 assert_contains "$TASK_COMPLETE" '## Abandon Path' "abandon path is documented"
 assert_contains "$TASK_COMPLETE" 'Never reuse the version it claimed' "abandon path never reuses a burned version"
 assert_contains "$TASK_COMPLETE" 'explicit user request before *each* phase' "Assisted mode gates each phase independently"
-assert_contains "$TASK_START" 'Push this commit to `origin/main` immediately' "task-start pushes metadata immediately"
-assert_contains "$TASK_START" 'git rebase --abort; break; }' "task-start never auto-resolves a rebase conflict"
+assert_contains "$TASK_START" 'This commit stays local to `main` — never push it, and never open a PR for it' "task-start commits metadata locally, never pushes it"
+assert_contains "$TASK_START" 'never auto-resolve it. STOP and report the conflicting file and lines to the user' "task-start never auto-resolves a genuine local collision"
+assert_contains "$TASK_COMPLETE" 'git -C "<primary>" merge origin/main' "Phase 2 merges origin/main into local main, never a fast-forward-only pull"
 assert_contains "$WORKTREE_SKILL" 'Force-delete the **local** branch only: `git branch -D' "worktree cleanup docs match task-complete's -D policy"
 assert_contains "$WORKTREE_SKILL" 'Never delete the remote branch' "worktree cleanup docs never delete the remote branch"
 

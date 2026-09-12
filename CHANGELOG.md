@@ -7,8 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.4] - 2026-09-12
+
 ### Fixed
-- **Task-lifecycle bookkeeping commits stay local instead of pushing to `origin/main`** (pending v2.0.4 · PR #134) — `task-start` Step 8 and `task-complete` Steps 12/14/18 (and its Abandon Path) now commit task status, `PLANNING.md`, and pending `CHANGELOG.md` entries to local `main` only, never pushed. Git worktrees already share one `.git` object database and ref namespace, so the commit is visible across every worktree instantly with no push or fetch. This avoids needing 6-8 bookkeeping-only PRs per task in any downstream repo with required-PR-review branch protection on `main`. `task-complete` Step 13 now rebases onto local `main` instead of `origin/main`, and Step 17 merges `origin/main` into local `main` (replacing a fast-forward-only pull) since local `main` can legitimately sit ahead with unpushed bookkeeping after a PR merges.
+- **Task-lifecycle bookkeeping commits stay local instead of pushing to `origin/main`** — `task-start` Step 8 and `task-complete` Steps 12/14/18 (and its Abandon Path) now commit task status, `PLANNING.md`, and pending `CHANGELOG.md` entries to local `main` only, never pushed. Git worktrees already share one `.git` object database and ref namespace, so the commit is visible across every worktree instantly with no push or fetch. This avoids needing 6-8 bookkeeping-only PRs per task in any downstream repo with required-PR-review branch protection on `main`. `task-complete` Step 13 now rebases onto local `main` instead of `origin/main`, and Step 17 merges `origin/main` into local `main` (replacing a fast-forward-only pull) since local `main` can legitimately sit ahead with unpushed bookkeeping after a PR merges.
 
 ## [2.0.3] - 2026-08-18
 

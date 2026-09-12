@@ -113,9 +113,14 @@ assert_contains "$smoke_root/.github/agents/smaqit.release.local.agent.md" "$des
 assert_contains "$smoke_root/.claude/agents/smaqit.release.local.md" "$desktop_ssh_guidance" "Claude local-release agent desktop SSH recovery"
 assert_contains "$smoke_root/.codex/agents/smaqit.release.local.toml" "$desktop_ssh_guidance" "Codex local-release agent desktop SSH recovery"
 assert_contains "$smoke_root/.claude/skills/smaqit.release-git-local/SKILL.md" "$desktop_ssh_guidance" "Claude local-release skill desktop SSH recovery"
-assert_contains "$smoke_root/.claude/skills/smaqit.project-init/references/AGENTS.template.md" "$desktop_ssh_guidance" "Claude project-init AGENTS template desktop SSH recovery"
 assert_contains "$smoke_root/.claude/agents/smaqit.release.local.md" 'gpgconf --list-dirs agent-ssh-socket' "Claude agent GnuPG socket discovery"
 assert_contains "$smoke_root/.claude/agents/smaqit.release.local.md" 'keyring/ssh' "Claude agent GNOME Keyring socket discovery"
+
+if grep -Fq "$desktop_ssh_guidance" "$smoke_root/.claude/skills/smaqit.project-init/references/AGENTS.template.md"; then
+  echo "[ERROR] project-init AGENTS template must not force-inject desktop SSH recovery into every project (task 038)" >&2
+  exit 1
+fi
+echo "[OK] project-init AGENTS template no longer carries desktop SSH recovery boilerplate"
 
 if grep -R -E '(^|[[:space:]])export SSH_AUTH_SOCK=' \
   "$smoke_root/.github/agents/smaqit.release.local.agent.md" \
@@ -123,8 +128,7 @@ if grep -R -E '(^|[[:space:]])export SSH_AUTH_SOCK=' \
   "$smoke_root/.codex/agents/smaqit.release.local.toml" \
   "$smoke_root/.github/skills/smaqit.release-git-local" \
   "$smoke_root/.claude/skills/smaqit.release-git-local" \
-  "$smoke_root/.agents/skills/smaqit.release-git-local" \
-  "$smoke_root/.claude/skills/smaqit.project-init/references/AGENTS.template.md"; then
+  "$smoke_root/.agents/skills/smaqit.release-git-local"; then
   echo "[ERROR] Desktop Linux SSH recovery must not persist SSH_AUTH_SOCK" >&2
   exit 1
 fi
@@ -180,14 +184,15 @@ project_init_codex="$smoke_root/.agents/skills/smaqit.project-init/SKILL.md"
 
 assert_contains "$project_init_codex" 'AGENTS.md` — canonical shared project instructions' "project-init canonical AGENTS contract"
 assert_contains "$project_init_codex" 'Claude-only instructions' "project-init Claude import contract"
-assert_contains "$project_init_codex" 'relative symlink to' "project-init Copilot symlink contract"
-assert_contains "$project_init_codex" '../AGENTS.md' "project-init Copilot symlink target"
+assert_contains "$project_init_codex" 'There is no `.github/copilot-instructions.md` in this topology' "project-init no-symlink topology contract"
+assert_contains "$project_init_codex" 'delete `.github/copilot-instructions.md`' "project-init legacy-file removal contract"
 assert_contains "$project_init_codex" 'Do not stop merely because one or more instruction files already exist.' "project-init existing-file migration contract"
 assert_contains "$project_init_codex" 'Semantic merging must be performed through model inference' "project-init inferential merge contract"
 
 if grep -Fq 'Aborting to avoid overwriting' "$project_init_codex" ||
-  grep -Fq '**Never overwrite**' "$project_init_codex"; then
-  echo "[ERROR] Legacy project-init existing-file abort behavior remains" >&2
+  grep -Fq '**Never overwrite**' "$project_init_codex" ||
+  grep -Fq 'relative symlink to' "$project_init_codex"; then
+  echo "[ERROR] Legacy project-init existing-file abort or Copilot symlink behavior remains" >&2
   exit 1
 fi
 

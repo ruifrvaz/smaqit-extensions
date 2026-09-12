@@ -127,3 +127,17 @@ version: "1.0.0"
 | GitHub CLI (`gh`) | gh pr create | https://cli.github.com/manual/gh_pr_create |
 | GitHub CLI (`gh`) | gh pr list | https://cli.github.com/manual/gh_pr_list |
 | GitHub Branch Protection | About protected branches | https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches |
+
+## Task 038 — Fix Project-Init Scaffolding: Drop Copilot-Instructions Symlink, Trim Boilerplate, Add Baseline Workspace
+
+**Context fingerprint:** sha256:df6dd7a4842b50858915ad8acb5caca71f822b2051958e22910530f84b2d7a9d
+**Refreshed:** 2026-09-13
+
+| Tool | Section | URL |
+|------|---------|-----|
+| Go | Documentation | https://go.dev/doc/ |
+| GitHub Copilot custom instructions | Custom instructions support overview | https://docs.github.com/en/copilot/reference/custom-instructions-support |
+| GitHub Copilot custom instructions | Copilot CLI custom instructions | https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-custom-instructions |
+| GitHub Copilot custom instructions | Coding agent AGENTS.md changelog | https://github.blog/changelog/2025-08-28-copilot-coding-agent-now-supports-agents-md-custom-instructions/ |
+| Claude Code CLAUDE.md imports | Memory and @import docs | https://code.claude.com/docs/en/memory |
+| Visual Studio Code | Multi-root workspaces | https://code.visualstudio.com/docs/editing/workspaces/multi-root-workspaces |

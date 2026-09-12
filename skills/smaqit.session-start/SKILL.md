@@ -14,7 +14,7 @@ Start a new chat with full project context. Execute these steps IN ORDER:
 1. **Read core project files from start to finish** (in parallel, if they exist):
    - `README.md`
    - `CONTRIBUTING.md`
-   - `.github/copilot-instructions.md` (GitHub Copilot), `CLAUDE.md` (Claude Code), or `AGENTS.md` (Codex)
+   - `AGENTS.md` (canonical — read by Codex, Claude Code, and GitHub Copilot), plus `CLAUDE.md` for Claude-only additions
    - Project documentation directories (e.g., `docs/`, `documentation/`) — scan for index files like `README.md`, `index.md`, `architecture.md`, or ADRs in `adr/` subdirectories
    - Build/test entrypoints (whichever exist): `Makefile`, `package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`
 

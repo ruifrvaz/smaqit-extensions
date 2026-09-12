@@ -15,17 +15,18 @@ Both mechanisms are resolved once, at build time, by `scripts/generate-targets.p
 
 **How does `smaqit.project-init` synchronize instructions across tools?**
 
-Every platform receives the same inference-driven `smaqit.project-init` skill. The skill reads any existing `AGENTS.md`, `CLAUDE.md`, and `.github/copilot-instructions.md` together with repository evidence before writing. It semantically preserves and deduplicates explicit rules, keeps smaqit-owned scaffolding current, and asks the user before resolving irreconcilable instructions.
+Every platform receives the same inference-driven `smaqit.project-init` skill. The skill reads any existing `AGENTS.md` and `CLAUDE.md`, plus a legacy `.github/copilot-instructions.md` if one is still present, together with repository evidence before writing. It semantically preserves and deduplicates explicit rules, keeps smaqit-owned scaffolding current, and asks the user before resolving irreconcilable instructions.
 
 The synchronized topology is:
 
-- Root `AGENTS.md` is the canonical shared instruction document.
+- Root `AGENTS.md` is the canonical shared instruction document — read natively by Codex, Claude Code, and GitHub Copilot (VS Code Copilot Chat, the coding agent, and Copilot CLI all read a root `AGENTS.md`, per GitHub's own documentation).
 - Root `CLAUDE.md` starts with `@AGENTS.md` and contains only genuinely Claude-specific additions.
-- `.github/copilot-instructions.md` is a relative symlink to `../AGENTS.md`; distinct content from a pre-existing Copilot file is merged before replacement.
 
-Repeated initialization is expected to be idempotent. Claude Code may fail to resolve an ancestor import when launched from some repository subdirectories, so launch it from the project root if imported instructions are missing.
+There is no `.github/copilot-instructions.md` in this topology (since task 038). Earlier versions maintained it as a relative symlink to `../AGENTS.md`, but that design depended on the acting tool/platform being able to create a real OS symlink — a fragile assumption once GitHub confirmed every major Copilot surface reads root `AGENTS.md` directly, making the symlink unnecessary. A pre-existing `.github/copilot-instructions.md` (regular file or symlink, from an earlier smaqit version or hand-written) is treated purely as migration input: its unique content is folded into `AGENTS.md`, then the file is deleted — leaving it in place would give Copilot two divergent instruction sources, since Copilot reads both files when both exist.
 
-The `# Scaffolding` section seeded into `AGENTS.md` comes from `skills/smaqit.project-init/references/AGENTS.template.md` — a skill-bundled reference installed globally alongside the skill itself, never a project-scaffolded file. This means the template is always present wherever the skill is installed, regardless of a given project's `.smaqit/` scaffolding state. Every smaqit template now follows this same skill-bundled pattern: `.smaqit/templates/` was retired entirely in v1.18.0 and is no longer created in any project. Despite the name, `.github/copilot-instructions.md` never carries distinct Copilot-specific content; it is always the symlink described above.
+Repeated initialization is expected to be idempotent, including never recreating `.github/copilot-instructions.md`. Claude Code may fail to resolve an ancestor import when launched from some repository subdirectories, so launch it from the project root if imported instructions are missing.
+
+The `# Scaffolding` section seeded into `AGENTS.md` comes from `skills/smaqit.project-init/references/AGENTS.template.md` — a skill-bundled reference installed globally alongside the skill itself, never a project-scaffolded file. This means the template is always present wherever the skill is installed, regardless of a given project's `.smaqit/` scaffolding state. Every smaqit template now follows this same skill-bundled pattern: `.smaqit/templates/` was retired entirely in v1.18.0 and is no longer created in any project.
 
 ---
 

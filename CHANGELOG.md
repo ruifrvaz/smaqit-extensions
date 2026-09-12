@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-09-13
+
+### Added
+- **`smaqit-extensions init` scaffolds a baseline `.code-workspace`** — creates a minimal single-folder workspace file (create-if-absent), matching `7_build_workspace.sh`'s zero-worktree shape so a later `task-start` extends it cleanly instead of a project having no workspace file until its first task.
+
+### Fixed
+- **`smaqit.project-init` drops `.github/copilot-instructions.md` entirely** — GitHub's own docs confirm VS Code Copilot Chat, the coding agent, and Copilot CLI all read a root `AGENTS.md` natively, so the previous fragile OS-symlink design (`.github/copilot-instructions.md` → `../AGENTS.md`) is retired. A pre-existing legacy file's unique content is migrated into `AGENTS.md` and the file is then deleted, never left alongside it as a second divergent source.
+- **`AGENTS.template.md`'s Scaffolding section no longer force-injects irrelevant boilerplate** — the Desktop Linux SSH agent recovery paragraph and a list of smaqit-extensions' own repo-root source directories (`installer/`, `agents/`, `skills/`, `commands/`, `scripts/`) are no longer copied verbatim into every downstream project's canonical `AGENTS.md` — neither ever applies to a consuming project.
+
 ## [2.0.6] - 2026-09-12
 
 ### Fixed

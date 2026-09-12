@@ -1,9 +1,9 @@
 ---
-status: PR Open
+status: Completed
 created: "2026-09-12"
 mode: Assisted
 started: "2026-09-12"
-pr: 136
+completed: "2026-09-12"
 ---
 
 # Session-Finish Falls Back to a PR When Direct Push to origin/main Is Rejected

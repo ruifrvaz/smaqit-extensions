@@ -1,6 +1,7 @@
 ---
-status: In Progress
+status: PR Open
 mode: Assisted
+pr: 137
 created: "2026-09-13"
 started: "2026-09-13"
 ---
@@ -83,30 +84,33 @@ None.
 
 ## Acceptance Criteria
 
-- [ ] `AGENTS.template.md`'s `# Scaffolding` section no longer force-injects the Desktop Linux SSH Agent Recovery paragraph or the 11-item scope-project-only path list into every downstream project's canonical `AGENTS.md`
-- [ ] `smaqit.project-init`'s synchronized topology is `AGENTS.md` (canonical, read natively by Codex, Claude Code, and GitHub Copilot) + `CLAUDE.md` only — no `.github/copilot-instructions.md` symlink is ever created
-- [ ] A project with a pre-existing `.github/copilot-instructions.md` (regular file or symlink) has its unique content migrated into `AGENTS.md` and the now-redundant file deleted
-- [ ] `README.md` and `.smaqit/compendium.md` describe the new two-file topology, with no remaining reference to the copilot-instructions.md symlink as current behavior
-- [ ] No file in the repository references `.github/copilot-instructions.md` as an instruction source — including the 6 secondary skills' probe hints — with no legacy fallback retained anywhere
-- [ ] `smaqit-extensions init` (`scaffoldProject`) creates a baseline `<project-basename>.code-workspace` (main folder + bin/obj `files.exclude`) when none already exists, and never overwrites an existing one
-- [ ] `make test` and `make smoke-test` pass, including new assertions for the baseline workspace file (creation + idempotency)
-- [ ] `CHANGELOG.md` records both the topology change and the new workspace scaffolding
+- [x] `AGENTS.template.md`'s `# Scaffolding` section no longer force-injects the Desktop Linux SSH Agent Recovery paragraph or the 11-item scope-project-only path list into every downstream project's canonical `AGENTS.md`
+- [x] `smaqit.project-init`'s synchronized topology is `AGENTS.md` (canonical, read natively by Codex, Claude Code, and GitHub Copilot) + `CLAUDE.md` only — no `.github/copilot-instructions.md` symlink is ever created
+- [x] A project with a pre-existing `.github/copilot-instructions.md` (regular file or symlink) has its unique content migrated into `AGENTS.md` and the now-redundant file deleted
+- [x] `README.md` and `.smaqit/compendium.md` describe the new two-file topology, with no remaining reference to the copilot-instructions.md symlink as current behavior
+- [x] No file in the repository references `.github/copilot-instructions.md` as an instruction source — including the 6 secondary skills' probe hints — with no legacy fallback retained anywhere
+- [x] `smaqit-extensions init` (`scaffoldProject`) creates a baseline `<project-basename>.code-workspace` (main folder + bin/obj `files.exclude`) when none already exists, and never overwrites an existing one
+- [x] `make test` and `make smoke-test` pass, including new assertions for the baseline workspace file (creation + idempotency)
+- [x] `CHANGELOG.md` records both the topology change and the new workspace scaffolding
 
 ## Findings
 
-[Populated by smaqit.task-complete. Do not fill in manually before task is complete.]
-
 **Implementation approach:**
-- TBD
+- Trimmed `AGENTS.template.md`'s `# Scaffolding` section: removed the Desktop Linux SSH Agent Recovery paragraph entirely (that guidance already lives in `smaqit.release-git-local`'s own SKILL.md/agents) and collapsed the scope-project-only path list to the 7 paths a real `--scope project` install actually creates.
+- Rewrote `smaqit.project-init/SKILL.md`'s topology (now `AGENTS.md` + `CLAUDE.md` only) and Step 8 (migrate-then-delete a legacy `.github/copilot-instructions.md` instead of symlinking to it); bumped the skill to 0.7.0.
+- Updated the 6 secondary skills' generic instruction-probe hints, `README.md`, and `.smaqit/compendium.md` to the new topology, with zero remaining reference to `.github/copilot-instructions.md` as a current source anywhere in living documentation (history/CHANGELOG entries left untouched as immutable record).
+- Added `installBaselineWorkspace` to `installer/main.go` (wired into `scaffoldProject`, reusing the existing `writeFileIfMissing` create-if-absent helper) plus two new Go unit tests; added matching `scripts/smoke-test-installer.sh` assertions and fixed the ones that had gone stale against the new topology.
 
 **Decisions made:**
-- TBD
+- Dropped `.github/copilot-instructions.md` entirely with no legacy fallback anywhere, per direct user instruction, after verifying via GitHub's own docs that VS Code Copilot Chat, the coding agent, and Copilot CLI all read root `AGENTS.md` natively.
+- Baseline `.code-workspace` scaffolding lives in the Go binary (`scaffoldProject`), not the LLM-driven `project-init` skill, matching the existing `post-merge-release.yml` create-if-absent precedent.
+- Mid-implementation, removed `installer/`, `agents/`, `skills/`, `commands/`, `scripts/` from the template's scope-project-only path list per user follow-up — those are smaqit-extensions' own canonical source directories and never appear in any consuming project, even one that used `--scope project` (which only creates the `.github/`/`.claude/`/`.codex/`/`.agents/` mirror directories, never those bare-root names).
 
 **Blockers encountered:**
-- TBD
+- None.
 
 **Follow-up identified:**
-- TBD
+- None filed. The literal live protected-branch-repo trial noted as outstanding by tasks 036/037 is unrelated to this task and remains untouched.
 
 ## Files to Create / Modify
 

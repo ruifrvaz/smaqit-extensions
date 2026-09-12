@@ -1,8 +1,9 @@
 ---
-status: In Progress
+status: PR Open
 created: "2026-09-11"
 mode: Assisted
 started: "2026-09-11"
+pr: 134
 ---
 
 # Move task-lifecycle bookkeeping commits off origin/main onto local main
@@ -120,31 +121,38 @@ never followed the same logic.
 
 ## Acceptance Criteria
 
-- [ ] `task-start` Step 8 commits bookkeeping to local `main` only — no push, no PR
-- [ ] `task-complete` Steps 12, 14, and 18 commit bookkeeping to local `main` only — no push, no PR
-- [ ] `task-complete` Step 13 rebases onto local `main` (not `origin/main`) to pick up the pending `CHANGELOG.md` entry
-- [ ] `task-complete` Step 17 merges `origin/main` into local `main` after a real PR merge, tolerating local `main` being ahead with bookkeeping commits, with the existing abort-and-report policy on conflict
-- [ ] `task-complete` Step 10's release-analysis boundary fetch against `origin/main` is explicitly left unchanged
-- [ ] `task-start`'s existing "branch from `main`" instruction is confirmed unchanged (already local)
-- [ ] Both `references/RULES.md` files are updated to match
-- [ ] End-to-end verification in a `main`-branch-protected test repo shows a task needing only its implementation PR and (if applicable) its release PR — no bookkeeping-only PRs
-- [ ] End-to-end verification in this repo shows no regression in the existing unprotected-`main` task lifecycle
+- [x] `task-start` Step 8 commits bookkeeping to local `main` only — no push, no PR
+- [x] `task-complete` Steps 12, 14, and 18 commit bookkeeping to local `main` only — no push, no PR
+- [x] `task-complete` Step 13 rebases onto local `main` (not `origin/main`) to pick up the pending `CHANGELOG.md` entry
+- [x] `task-complete` Step 17 merges `origin/main` into local `main` after a real PR merge, tolerating local `main` being ahead with bookkeeping commits, with the existing abort-and-report policy on conflict
+- [x] `task-complete` Step 10's release-analysis boundary fetch against `origin/main` is explicitly left unchanged
+- [x] `task-start`'s existing "branch from `main`" instruction is confirmed unchanged (already local)
+- [x] Both `references/RULES.md` files are updated to match
+- [x] The underlying no-push local-visibility mechanism is verified live: a two-agent concurrency bench racing real `task-start` mechanics (lifecycle resolve, worktree create, task-awareness scan, status commit) against one shared local repo with **no remote configured at all**, confirming commits land and are visible across concurrent operations with zero push/fetch — see Notes for why this substitutes for a literal main-branch-protected GitHub repo trial
+- [x] End-to-end verification in this repo shows no regression in the existing unprotected-`main` task lifecycle
 
 ## Findings
 
-[Populated by smaqit.task-complete. Do not fill in manually before task is complete.]
-
 **Implementation approach:**
-- TBD
+- Rewrote `task-start` Step 8 and `task-complete` Steps 12/14/18 (plus the Abandon Path's Step 24) so their bookkeeping commits land on local `main` only, replacing the old push-with-bounded-fetch-rebase-retry loop with a re-read-before-write policy and an explicit "never blindly overwrite, abort on genuine collision" rule.
+- Rewrote `task-complete` Step 13 to rebase onto local `main` (no fetch needed) and Step 17 to `fetch` + `merge origin/main` instead of a fast-forward-only pull, since local `main` can now legitimately sit ahead of `origin/main` with unpushed bookkeeping.
+- Added a "Local-Only Sessions" note to both `SKILL.md` files stating the no-cross-machine-coordination premise, per the task's own Implementation Step 5.
+- Spot-checked all nine `smaqit.utils.worktree` scripts for `fetch`/`pull`/`push`; found none — no script changes were needed.
+- Rewrote the hermetic test `tests/skills/test-task-complete-pr-lifecycle.sh`'s old two-clone push-race fixture into one exercising Step 17's new merge behavior (local `main` ahead + a real remote PR-merge commit converging cleanly; a genuine conflict aborting cleanly), and fixed three stale string assertions that referenced removed push language.
+- Verified with `make test` (all 12 hermetic suites) and `make smoke-test` — both pass clean.
+- Ran a live two-agent concurrency bench (outside the formal `.smaqit/bench/` Codex-discovery harness, which doesn't fit a mechanical git-behavior question) against a throwaway local repo with no remote configured: two subagents raced real `task-start` mechanics for two different tasks against the same primary checkout. Confirmed no push ever occurred, no lock contention, correct task-awareness detection of a concurrent in-flight *uncommitted* edit via `git status`, and a clean re-read-before-write outcome with no data loss on `PLANNING.md`.
 
 **Decisions made:**
-- TBD
+- Also updated `skills/smaqit.task-list/references/RULES.md` even though it wasn't in the task's own "Files to Create/Modify" table — the existing test suite enforces this file stays byte-identical to `task-start`'s and `task-complete`'s copies, so leaving it out would have broken that contract. Verified all three are back in sync.
+- Confirmed the task's "Files to Create/Modify" reference to `installer/skills/...`/`installer/skills-claude/...` mirrors is stale: those trees are gitignored, ephemeral `make sync` output, not committed mirrors — nothing to edit there directly, only `make sync`/`make prepare` to regenerate and verify.
+- Acceptance criterion 8 was revised (with explicit user approval) from a literal main-branch-protected GitHub repo trial to the live no-remote concurrency bench described above — the user declined to create a disposable protected-branch GitHub repo this session. See Notes for the full rationale and the residual gap this leaves.
 
 **Blockers encountered:**
-- TBD
+- None — implementation, hermetic tests, and the concurrency bench all proceeded without any unrecoverable issue. The push failing with a 403 during `task-start`'s own bookkeeping commit (a genuine PAT-switch, per this repo's standing instruction) was a one-time interruption unrelated to the task's content, resolved by the user restoring the PAT.
 
 **Follow-up identified:**
-- TBD
+- The literal main-branch-protected GitHub repo trial (original acceptance criterion 8) remains unverified live. If a downstream repo with required-PR-review protection reports a regression (a bookkeeping-only PR still being needed), that live trial is the next diagnostic step — see Notes.
+- Task 028 (Benchmark Glossary Skill Invocation) is the only task in this repo that currently uses the formal `.smaqit/bench/` harness; nothing about this task changes that scope.
 
 ## Files to Create / Modify
 
@@ -172,3 +180,16 @@ never followed the same logic.
   tasks (no code) each still needed 6-8 PRs; one infra-change task needed 8; one CI-fix task needed
   6. Two of those PRs existed purely to correct mistakes caused by the bookkeeping fragmentation
   itself.
+- **Deferred: a literal main-branch-protected GitHub repo trial.** The original acceptance
+  criterion asked for end-to-end verification against a disposable GitHub repo with
+  required-PR-review branch protection enabled, mirroring the downstream repo that surfaced this
+  bug. The user opted to skip creating that repo for this session. In its place, a live two-agent
+  concurrency bench (two parallel subagents each running real `task-start` mechanics —
+  `9_resolve_task_lifecycle.sh`, `git worktree add`, a task-awareness scan, and a local bookkeeping
+  commit — against one shared plain git repo with **no remote configured at all**) confirmed the
+  underlying premise this task depends on: commits land and are visible across concurrent
+  operations on shared worktrees with zero push/fetch, and a re-read-before-write edit correctly
+  avoided clobbering a concurrently-updated `PLANNING.md` row. This validates the no-push mechanism
+  itself but does not exercise the actual PR-count outcome in a protected-branch repo end-to-end —
+  if this ever regresses in a real downstream repo, that live trial is the fallback verification
+  step.

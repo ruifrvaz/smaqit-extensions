@@ -2,7 +2,7 @@
 name: smaqit.session-title
 description: Generate a succinct title for the current session based on work accomplished. Use when finishing sessions to create history file titles.
 metadata:
-  version: "0.4.0"
+  version: "0.4.1"
 ---
 
 # Session Title

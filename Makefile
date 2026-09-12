@@ -1,4 +1,4 @@
-.PHONY: sync clean test smoke-test test-worktree-layout test-parent-task-lifecycle test-project-research-verify-urls test-triage-issues test-task-complete-pr-lifecycle test-release-analysis-pending-versions test-release-analysis-boundary-detection
+.PHONY: sync clean test smoke-test test-worktree-layout test-parent-task-lifecycle test-project-research-verify-urls test-triage-issues test-task-complete-pr-lifecycle test-release-analysis-pending-versions test-release-analysis-boundary-detection test-recap-transcript-schema
 
 SKILLS := smaqit.session-start smaqit.project-diagnose smaqit.session-finish smaqit.session-assess smaqit.session-title smaqit.session-recap smaqit.task-create smaqit.task-list smaqit.task-complete smaqit.task-plan smaqit.task-refresh smaqit.task-start smaqit.test-create smaqit.test-complete smaqit.test-start smaqit.project-init smaqit.project-glossary smaqit.release-analysis smaqit.release-approval smaqit.release-prepare-files smaqit.release-git-local smaqit.release-git-pr smaqit.utils.read-pdf smaqit.utils.triage-issues smaqit.utils.worktree smaqit.project-research smaqit.project-recap smaqit.project-compendium smaqit.parity-assess
 
@@ -38,7 +38,10 @@ test-release-analysis-pending-versions:
 test-release-analysis-boundary-detection:
 	@bash tests/skills/test-release-analysis-boundary-detection.sh
 
-test: test-worktree-layout test-parent-task-lifecycle test-project-research-verify-urls test-triage-issues test-task-complete-pr-lifecycle test-release-analysis-pending-versions test-release-analysis-boundary-detection
+test-recap-transcript-schema:
+	@bash tests/skills/test-recap-transcript-schema.sh
+
+test: test-worktree-layout test-parent-task-lifecycle test-project-research-verify-urls test-triage-issues test-task-complete-pr-lifecycle test-release-analysis-pending-versions test-release-analysis-boundary-detection test-recap-transcript-schema
 
 smoke-test: test
 	@$(MAKE) -C installer smoke-test

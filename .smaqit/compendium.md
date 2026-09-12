@@ -150,9 +150,17 @@ So a stale install blocks *finishing* a task rather than *starting* one, and the
 
 **Does `smaqit.session-finish` still have Assisted/Autonomous modes, or a `--autonomous` flag?**
 
-No. `session.finish` takes no mode flag and behaves identically on every invocation: it proceeds directly through its routine steps (history file, compendium, research map, and finalizing `main`'s git state) and stops only when one of its failure-handling table's hard-stop conditions is hit (detached HEAD, an in-progress merge/conflict, a dirty non-`main` branch, diverged history, an unexpected push rejection, an auth failure, or anything else ambiguous) — those conditions and their handling are unchanged from before.
+No. `session.finish` takes no mode flag and behaves identically on every invocation: it proceeds directly through its routine steps (history file, compendium, research map, and finalizing `main`'s git state) and stops only when one of its failure-handling table's hard-stop conditions is hit (detached HEAD, an in-progress merge/conflict, a dirty non-`main` branch, diverged history, a push rejection not covered by the protected-branch fallback below, an auth failure, or anything else ambiguous) — those conditions and their handling are unchanged from before.
 
 This is scoped to `session-finish` only. `task-start`/`task-complete`'s own per-task `mode: Assisted | Autonomous` frontmatter key, stored in each task file, is a completely separate mechanism and still governs whether `task-complete`'s PR-gated phases require an explicit user request or can self-complete.
+
+---
+
+**What does `session-finish` do when its end-of-session push to `origin/main` is rejected?**
+
+Since v2.0.6 (task 037), it depends on why. `session-finish` always tries a direct `git push origin main` first — unchanged, zero added overhead on an unprotected `main`. If that push is rejected specifically for protected-branch reasons (GitHub's own wording: `GH006`, "protected branch", "Changes must be made through a pull request", or an equivalent required-review/required-status-check message), Step 7 falls back to a single reused branch, `chore/session-bookkeeping-sync`: it force-with-lease-pushes local `main`'s current tip onto that branch (`git push --force-with-lease origin main:refs/heads/chore/session-bookkeeping-sync` — no local branch is ever created for it) and opens or updates a PR from it, titled `chore: sync session bookkeeping` so it never matches `post-merge-release.yml`'s `Prepare release vX.Y.Z`/`Release vX.Y.Z` trigger pattern. It then stops and reports the PR link — it never self-merges that PR (a protected branch exists specifically to require human review) and never auto-resolves a conflict when a later session reconciles a merged one back into local `main` via `git fetch` + `git merge` (never `--ff-only`, since local `main` can legitimately be ahead with more bookkeeping by then).
+
+Every other push rejection — a 403/permission failure most of all — is untouched and still hits the plain STOP-and-report failure-handling path; it is never reclassified as the protected-branch case. This exists because task 036 moved task-lifecycle bookkeeping to local `main` only (never pushed), so local `main` now routinely ends a session ahead of `origin/main` by that session's own unpushed bookkeeping — on a protected `main`, `session-finish`'s own push would otherwise hit the identical rejection task 036 fixed everywhere else, with no path forward.
 
 ---
 

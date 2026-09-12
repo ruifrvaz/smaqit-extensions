@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -84,6 +85,60 @@ func TestScaffoldProjectCreatesOnlyProjectTrackingPaths(t *testing.T) {
 		if _, err := os.Stat(filepath.Join(projectDir, forbidden)); err == nil {
 			t.Errorf("scaffolding created project-scoped mirror path %s", forbidden)
 		}
+	}
+}
+
+// Task 038: scaffoldProject also creates a baseline single-folder
+// .code-workspace file, matching 7_build_workspace.sh's zero-worktree shape.
+func TestScaffoldProjectCreatesBaselineWorkspace(t *testing.T) {
+	projectDir := t.TempDir()
+	scaffoldProject(projectDir)
+
+	projectName := filepath.Base(projectDir)
+	workspacePath := filepath.Join(projectDir, projectName+".code-workspace")
+
+	var workspace codeWorkspace
+	data, err := os.ReadFile(workspacePath)
+	if err != nil {
+		t.Fatalf("expected baseline workspace file %s: %v", workspacePath, err)
+	}
+	if err := json.Unmarshal(data, &workspace); err != nil {
+		t.Fatalf("baseline workspace file is not valid JSON: %v", err)
+	}
+
+	if len(workspace.Folders) != 1 || workspace.Folders[0] != (workspaceFolder{Name: "main", Path: "."}) {
+		t.Errorf("expected a single main folder entry, got %+v", workspace.Folders)
+	}
+	if !workspace.Settings.FilesExclude["**/bin/**"] || !workspace.Settings.FilesExclude["**/obj/**"] {
+		t.Errorf("expected bin/obj files.exclude entries, got %+v", workspace.Settings.FilesExclude)
+	}
+}
+
+// Task 038: scaffoldProject must never overwrite an existing .code-workspace
+// file, regardless of its name or content — same create-if-absent contract
+// as installReleaseWorkflow.
+func TestScaffoldProjectPreservesExistingWorkspace(t *testing.T) {
+	projectDir := t.TempDir()
+	customPath := filepath.Join(projectDir, "custom-name.code-workspace")
+	customContent := []byte(`{"folders":[{"name":"main","path":"."}],"settings":{"locallyCustomized":true}}`)
+	if err := os.WriteFile(customPath, customContent, 0644); err != nil {
+		t.Fatalf("seed existing workspace file: %v", err)
+	}
+
+	scaffoldProject(projectDir)
+
+	got, err := os.ReadFile(customPath)
+	if err != nil {
+		t.Fatalf("existing workspace file disappeared: %v", err)
+	}
+	if string(got) != string(customContent) {
+		t.Errorf("existing workspace file was modified: got %q, want %q", got, customContent)
+	}
+
+	projectName := filepath.Base(projectDir)
+	defaultPath := filepath.Join(projectDir, projectName+".code-workspace")
+	if _, err := os.Stat(defaultPath); err == nil {
+		t.Errorf("scaffoldProject created a second workspace file at %s despite an existing one", defaultPath)
 	}
 }
 

@@ -43,7 +43,7 @@ A single `curl .../install.sh | bash` installs all three targets globally. Each 
 - **smaqit.release-git-pr** - Execute git operations for PR-based releases using the platform's authenticated push mechanism
 
 #### Project Management
-- **smaqit.project-init** - Inferentially merge existing project guidance into canonical `AGENTS.md`, synchronize Claude through `CLAUDE.md` → `@AGENTS.md`, and link `.github/copilot-instructions.md` to the canonical file
+- **smaqit.project-init** - Inferentially merge existing project guidance into canonical `AGENTS.md` (read natively by Codex, Claude Code, and GitHub Copilot), synchronize Claude through `CLAUDE.md` → `@AGENTS.md`, and remove any legacy `.github/copilot-instructions.md` once its content is represented in `AGENTS.md`
 - **smaqit.project-glossary** - Manage a per-project glossary (`list glossary`, `fetch from glossary`, `update glossary`, `remove from glossary`)
 - **smaqit.project-diagnose** - Scan project structure for gaps across testing, security, logging, monitoring, provisioning, and CI/CD domains (`project.diagnose`, `project.diagnose security --tasks`)
 - **smaqit.project-research** - Build and maintain a documentation topology map for the current project (`project.research`, `project.research [task-id]`)
@@ -93,6 +93,7 @@ Running `smaqit-extensions init` in a project additionally scaffolds:
 
 - `.smaqit/` — task tracking (PLANNING.md), session history
 - `.github/workflows/post-merge-release.yml` — generic, project-agnostic release automation (tag + GitHub Release; no build step). Deployed create-if-absent: `init` and `update` never overwrite an existing copy, so local edits (e.g. adding a build/artifact-upload step) are always preserved.
+- `<project>.code-workspace` — baseline single-folder VS Code workspace (`main` folder plus a `bin`/`obj` build-output exclude). Deployed create-if-absent: skipped entirely if any `*.code-workspace` file already exists. `smaqit.utils.worktree` later extends this same file with per-task worktree folders.
 
 **Environment overrides:**
 

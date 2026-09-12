@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **`session-finish` falls back to a PR instead of stopping when a direct push to `origin/main` is rejected for protected-branch reasons** (pending v2.0.6 · PR #136) — since task 036 moved task-lifecycle bookkeeping to local `main` only (never pushed), local `main` now routinely carries an entire session's worth of unpushed commits, so on a `main`-branch-protected downstream repo `session-finish`'s end-of-session push could hit the same rejection task 036 fixed elsewhere, with no path forward. Step 7 now checks first for an existing `chore/session-bookkeeping-sync` PR (open → stop and report; merged → reconcile local `main` via fetch+merge, never a fast-forward-only pull; absent → proceed normally). The direct push is still tried first, unchanged; only a protected-branch-specific rejection falls back to a force-with-lease refspec push onto that single reused branch and opens/updates a PR titled `chore: sync session bookkeeping` (deliberately avoiding the release-trigger title pattern), then stops — never self-merged, never deleted. Every other rejection, a 403/permission failure most of all, is unaffected.
+
 ## [2.0.4] - 2026-09-12
 
 ### Fixed

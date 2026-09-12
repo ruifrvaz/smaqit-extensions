@@ -3,10 +3,6 @@
     {
       "name": "main",
       "path": "."
-    },
-    {
-      "name": "task/036-move-task-lifecycle-bookkeeping-commits-off-origin-main-onto-local-main",
-      "path": "../smaqit-extensions-wt-task-036-move-task-lifecycle-bookkeeping-commits-off-origin-main-onto-local-main"
     }
   ],
   "settings": {

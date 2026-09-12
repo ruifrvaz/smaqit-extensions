@@ -19,8 +19,6 @@ for line in lines:
     t = obj.get('type')
     if t not in ('user', 'assistant'):
         continue
-    if t == 'user' and obj.get('origin', {}).get('kind') != 'human':
-        continue
 
     message = obj.get('message', {})
     content = message.get('content', '')

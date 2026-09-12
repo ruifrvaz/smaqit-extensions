@@ -1,9 +1,9 @@
 ---
-status: PR Open
+status: Completed
 mode: Assisted
-pr: 137
 created: "2026-09-13"
 started: "2026-09-13"
+completed: "2026-09-13"
 ---
 
 # Fix Project-Init Scaffolding: Drop Copilot-Instructions Symlink, Trim Boilerplate, Add Baseline Workspace

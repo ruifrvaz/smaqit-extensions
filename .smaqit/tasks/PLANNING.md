@@ -10,7 +10,7 @@ Central task tracking and planning for smaqit-extensions.
 | 002 | Fix Changelog Extraction for Cumulative Releases | Not Started | 2026-02-13 |
 | 007 | Create smaqit MCP Server (PoC) | Not Started | 2026-05-09 |
 | 010 | Publish smaqit-extensions as Copilot Marketplace Plugin | Not Started | 2026-05-09 |
-| 037 | Session-Finish Falls Back to a PR When Direct Push to origin/main Is Rejected | Not Started | 2026-09-12 |
+| 037 | Session-Finish Falls Back to a PR When Direct Push to origin/main Is Rejected | In Progress | 2026-09-12 |
 
 ## Completed Tasks
 

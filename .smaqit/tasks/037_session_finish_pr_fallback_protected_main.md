@@ -1,6 +1,8 @@
 ---
-status: Not Started
+status: In Progress
 created: "2026-09-12"
+mode: Assisted
+started: "2026-09-12"
 ---
 
 # Session-Finish Falls Back to a PR When Direct Push to origin/main Is Rejected
@@ -63,7 +65,8 @@ one end-of-session blocker instead of several scattered ones.
 
 ## Known Issues Triage
 
-[Populated by smaqit.task-start via smaqit.utils.triage-issues. Do not edit manually.]
+**Triaged:** 2026-09-12
+**Result:** Skipped — explicitly marked `Mode: Skip` in task Notes.
 
 ## Acceptance Criteria
 

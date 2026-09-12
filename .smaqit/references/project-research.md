@@ -113,3 +113,17 @@ version: "1.0.0"
 | Git | git-worktree | https://git-scm.com/docs/git-worktree |
 | Git | git-rebase | https://git-scm.com/docs/git-rebase |
 | Git | git-merge | https://git-scm.com/docs/git-merge |
+
+## Task 037 — Session-Finish Falls Back to a PR When Direct Push to origin/main Is Rejected
+
+**Context fingerprint:** sha256:7bcbe244dd362bf2901c5cefc3b4e8cc7f46c5fcd47a4809c3a91d36948e50fd
+**Refreshed:** 2026-09-12
+
+| Tool | Section | URL |
+|------|---------|-----|
+| Git | Reference | https://git-scm.com/docs |
+| Git | git-push | https://git-scm.com/docs/git-push |
+| GitHub CLI (`gh`) | Manual | https://cli.github.com/manual/ |
+| GitHub CLI (`gh`) | gh pr create | https://cli.github.com/manual/gh_pr_create |
+| GitHub CLI (`gh`) | gh pr list | https://cli.github.com/manual/gh_pr_list |
+| GitHub Branch Protection | About protected branches | https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches |

@@ -1,8 +1,9 @@
 ---
-status: In Progress
+status: PR Open
 created: "2026-09-12"
 mode: Assisted
 started: "2026-09-12"
+pr: 136
 ---
 
 # Session-Finish Falls Back to a PR When Direct Push to origin/main Is Rejected
@@ -70,37 +71,41 @@ one end-of-session blocker instead of several scattered ones.
 
 ## Acceptance Criteria
 
-- [ ] On an unprotected `main`, `session-finish`'s Step 7 behavior is unchanged — direct push succeeds, no bookkeeping-sync branch or PR is created
-- [ ] A push rejected for protected-branch reasons (GH006 / "protected branch" / "Changes must be made through a pull request") triggers the Phase 1 fallback: creates or updates the single reused `chore/session-bookkeeping-sync` branch/PR and reports its link, then stops
-- [ ] A push rejected for any other reason (auth failure, unrelated error) is unaffected and still hits the existing STOP-and-report path — explicitly verified this does not regress the standing 403/PAT-switch hard-stop instruction
-- [ ] The bookkeeping-sync PR's title never matches the `Prepare release vX.Y.Z`/`Release vX.Y.Z` pattern, so merging it never triggers `post-merge-release.yml`'s tag/release automation
-- [ ] A second consecutive rejection (a later session) updates the same existing open PR rather than opening a duplicate
-- [ ] Once the bookkeeping-sync PR merges, the next `session-finish` invocation reconciles local `main` via fetch+merge (never a fast-forward-only pull), tolerating local `main` having advanced further since the PR branch was last updated
-- [ ] A genuine merge conflict during that reconciliation aborts and reports — never auto-resolved
-- [ ] `session-finish` never attempts to self-merge the bookkeeping-sync PR under any condition
-- [ ] The bookkeeping-sync branch/PR is never deleted or closed by this flow — it persists indefinitely, reused across sessions
+- [x] On an unprotected `main`, `session-finish`'s Step 7 behavior is unchanged — direct push succeeds, no bookkeeping-sync branch or PR is created
+- [x] A push rejected for protected-branch reasons (GH006 / "protected branch" / "Changes must be made through a pull request") triggers the Phase 1 fallback: creates or updates the single reused `chore/session-bookkeeping-sync` branch/PR and reports its link, then stops
+- [x] A push rejected for any other reason (auth failure, unrelated error) is unaffected and still hits the existing STOP-and-report path — explicitly verified this does not regress the standing 403/PAT-switch hard-stop instruction
+- [x] The bookkeeping-sync PR's title never matches the `Prepare release vX.Y.Z`/`Release vX.Y.Z` pattern, so merging it never triggers `post-merge-release.yml`'s tag/release automation
+- [x] A second consecutive rejection (a later session) updates the same existing open PR rather than opening a duplicate
+- [x] Once the bookkeeping-sync PR merges, the next `session-finish` invocation reconciles local `main` via fetch+merge (never a fast-forward-only pull), tolerating local `main` having advanced further since the PR branch was last updated
+- [x] A genuine merge conflict during that reconciliation aborts and reports — never auto-resolved
+- [x] `session-finish` never attempts to self-merge the bookkeeping-sync PR under any condition
+- [x] The bookkeeping-sync branch/PR is never deleted or closed by this flow — it persists indefinitely, reused across sessions
 
 ## Findings
 
-[Populated by smaqit.task-complete. Do not fill in manually before task is complete.]
-
 **Implementation approach:**
-- TBD
+- Rewrote `session-finish/SKILL.md` Step 7 in place: added an unconditional pre-check for an existing `chore/session-bookkeeping-sync` PR (open → stop and report; merged → reconcile local `main` via fetch+merge, never `--ff-only`; absent → proceed normally), then classified push rejections in the "ahead of origin/main" branch — protected-branch wording (GH006, "protected branch", "Changes must be made through a pull request") falls back to a `git fetch` + `git push --force-with-lease origin main:refs/heads/chore/session-bookkeeping-sync` refspec push (creates the branch on first use, updates it in place thereafter, no local branch ever created) and opens/updates a PR titled `chore: sync session bookkeeping`; every other rejection (403 most of all) is untouched.
+- Added `tests/skills/test-session-finish-bookkeeping-sync.sh` (wired into `make test`): hermetic mechanical tests for the refspec create-then-update push, the merge-based reconciliation tolerating local `main` ahead, a genuine conflict aborting cleanly, plus contract assertions on the documented SKILL.md text (including the never-reclassify-403 guarantee and the release-trigger-avoidance of the PR title).
+- Verified `make test` (15 suites) and `make smoke-test` both pass — no regression to this repo's own unprotected-`main` behavior.
+- Per user feedback mid-task, removed an initial standalone "## Bookkeeping-Sync Fallback" section and folded its rationale directly into Step 7's own prose instead — the mechanism now lives entirely where it's used, with no separate cross-referenced section.
 
 **Decisions made:**
-- TBD
+- Live main-branch-protected GitHub repo trial was offered and declined again (same call as task 036) — accepted the hermetic test's mechanical coverage (refspec push, reconciliation merge, conflict-abort) plus the contract assertions on the SKILL.md text as sufficient verification. Unlike task 036, none of this task's acceptance criteria literally required the live trial, so no criterion was revised to accommodate the decision.
+- Used a single reused `chore/session-bookkeeping-sync` branch (force-with-lease refspec push, no local branch ever created) rather than a per-session branch, per the task's own design — keeps this as one rolling PR instead of an accumulating pile.
 
 **Blockers encountered:**
-- TBD
+- None.
 
 **Follow-up identified:**
-- TBD
+- The literal main-branch-protected GitHub repo trial remains unverified live for this task too (same residual gap as task 036's own criterion 8). If a downstream repo ever reports the fallback not firing or misbehaving, that live trial is the next diagnostic step.
 
 ## Files to Create / Modify
 
 | File | Action |
 |------|--------|
 | `skills/smaqit.session-finish/SKILL.md` | Modify |
+| `tests/skills/test-session-finish-bookkeeping-sync.sh` | Create (not in original plan — added for hermetic mechanical coverage) |
+| `Makefile` | Modify (wire the new test into `test`/`smoke-test`) |
 
 ## Notes
 

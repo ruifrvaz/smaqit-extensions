@@ -145,14 +145,14 @@ For skills that interact with tasks:
 - [ ] Store mode in task file metadata
 - [ ] Update task status to "In Progress"
 - [ ] Load RULES.md into context
-- [ ] Push the "In Progress" commit to `origin/main` immediately (bounded fetch-rebase-retry), not deferred to session-finish
+- [ ] Commit the "In Progress" status to local `main` immediately (re-read-before-write, never pushed), not deferred to session-finish
 
 ### task-complete
 - [ ] Read task file to get mode and current Status (`In Progress` vs `PR Open` selects Phase 1 vs Phase 2)
 - [ ] If assisted mode: check if user invoked *this specific phase* (via instruction context)
 - [ ] If autonomous mode: verify all criteria, then run both phases in one invocation with a self-merge in between
-- [ ] Phase 1, in this order: commit implementation → compute release version → push branch and `gh pr create` (title `Prepare release vX.Y.Z`) → push the `(pending vX.Y.Z · PR #NNN)` CHANGELOG entry to `main` (the PR must exist first; the annotation names it) → rebase the branch and promote that entry into a `## [X.Y.Z]` section on the branch → set status to "PR Open" with its PR number
-- [ ] Phase 2: re-check the mode gate for this phase, confirm `gh pr view` reports `MERGED`, pull main, update status to "Completed", clean up (worktree + local-only branch delete)
+- [ ] Phase 1, in this order: commit implementation → compute release version → push branch and `gh pr create` (title `Prepare release vX.Y.Z`) → commit the `(pending vX.Y.Z · PR #NNN)` CHANGELOG entry to local `main` (never pushed; the PR must exist first since the annotation names it) → rebase the branch onto local `main` and promote that entry into a `## [X.Y.Z]` section on the branch → set status to "PR Open" with its PR number
+- [ ] Phase 2: re-check the mode gate for this phase, confirm `gh pr view` reports `MERGED`, merge `origin/main` into local `main` (never a fast-forward-only pull — local `main` may legitimately be ahead with unpushed bookkeeping), update status to "Completed", clean up (worktree + local-only branch delete)
 - [ ] Move from Active to Completed in PLANNING.md
 
 ### task-list
@@ -166,7 +166,7 @@ For skills that interact with tasks:
 
 - Main's code is always merged via PR, never a direct local `git merge` — an owner task's branch and its release travel together as one PR (Phase 1 opens it; the PR title follows the same `Prepare release vX.Y.Z` convention the release skills already use, since that PR is also this task's release).
 - The PR must be created **before** its pending `CHANGELOG.md` entry is written to `main`, since the `(pending vX.Y.Z · PR #NNN)` annotation names the PR. The PR branch must then carry its own commit promoting that entry into a real `## [X.Y.Z]` section — without it the merged PR contributes no changelog change, the release-notes extraction finds nothing, and the pending annotation never clears from `main`.
-- `smaqit.task-start` and `smaqit.task-complete`'s pre-PR metadata commits push to `origin/main` immediately (bounded fetch-rebase-retry on collision) — never deferred to `session-finish`, so a parallel session sees current state without waiting for this session to end.
+- `smaqit.task-start` and `smaqit.task-complete`'s pre-PR metadata commits land on local `main` immediately (re-read-before-write on collision, never pushed) — never deferred to `session-finish`. Every task worktree shares this repository's single `.git` object database and ref namespace, so a parallel session sees current state the instant the commit lands, with no push or network operation needed.
 - Phase 2 confirms a merge exclusively via `gh pr view <PR#> --json state,mergedAt` — never inferred from local branch state, ancestry, or anything else.
 - Local branch cleanup force-deletes (`git branch -D`) once Phase 2 confirms `MERGED`, regardless of merge strategy (handles squash merges, which git's own `-d` ancestry check cannot recognize as merged). The remote branch is **never** deleted — it is retained indefinitely as an audit trail of every merged/released task.
 

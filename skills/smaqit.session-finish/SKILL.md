@@ -88,16 +88,34 @@ session.finish                     # Documents the session, then finalizes main'
    - Write the updated compendium atomically (overwrite the file); create the file if it does not exist.
    - Report: "Compendium updated — N entries added, M entries updated." (Skip this report if no candidate questions were found.)
 
-7. **Finalize main branch state** — runs after Step 6 regardless of whether a history file was written this session (main can still be behind `origin/main` from a prior session). Operates only on the primary checkout and only on `main`; never touches another worktree or branch. Resolve the primary checkout path via `git worktree list --porcelain` — never assume cwd is the primary checkout.
+7. **Finalize main branch state** — runs after Step 6 regardless of whether a history file was written this session. `main` can still be behind `origin/main` from a prior session, or — since task 036 moved task-lifecycle bookkeeping commits to local `main` only, never pushed — routinely ahead with an entire session's worth of unpushed task bookkeeping. Operates only on the primary checkout and only on `main`; never touches another worktree or branch. Resolve the primary checkout path via `git worktree list --porcelain` — never assume cwd is the primary checkout.
 
+   - **First, check for an existing bookkeeping-sync PR** left by a previous session's fallback: `gh pr list --head chore/session-bookkeeping-sync --state open`.
+     - No `chore/session-bookkeeping-sync` branch exists remotely at all → skip this check entirely and proceed to the normal decision tree below (the common case on every unprotected `main`, and the common case here even on a protected one until the fallback first fires).
+     - **An open PR is found** → report that it's still awaiting review and **STOP** here — do not proceed to the decision tree below, do not push anything, do not open a second PR.
+     - **No open PR, but the branch exists remotely** → check whether it was merged: `gh pr list --head chore/session-bookkeeping-sync --state merged --limit 1` (or `gh pr view <PR#> --json state,mergedAt` if the number is already known). If merged, reconcile local `main`: `git fetch origin main && git merge origin/main` — never `--ff-only` here, since local `main` may have advanced further with additional session/task bookkeeping since that branch was last updated. **A genuine merge conflict is never auto-resolved:** abort it (`git merge --abort`) and STOP, reporting the conflicting paths. On a clean reconcile (fast-forward or a real merge), continue into the normal decision tree below for anything left over. If neither open nor merged (e.g. closed unmerged), report the anomaly and STOP — do not guess.
    - Check the current branch and status (`git branch --show-current`, `git status --porcelain`). If already on `main`, clean, and in sync with `origin/main`, there is nothing to do.
    - If the situation is straightforward, resolve it directly:
      - On a different branch with a clean tree → `git checkout main`.
      - Uncommitted changes on `main` from files this run itself wrote (the Step 2 history file; `.smaqit/compendium.md` if Step 6 updated it; `.smaqit/references/project-research.md` if Step 4 refreshed it) → stage exactly those paths (never `git add -A` or a broader path) and commit.
      - Behind `origin/main` with no local commits of your own → `git fetch origin main && git pull --ff-only origin main`.
-     - Ahead of `origin/main` with nothing to pull → `git push origin main`.
-   - **If anything doesn't resolve cleanly on the first safe attempt, or the situation is ambiguous or risky** — a detached HEAD, an in-progress merge/conflict, a dirty branch other than `main`, diverged history, an unexpected push rejection, an authentication failure, or anything else you're not confident is safe — **STOP.** Report exactly what you observed and take no further action. Do not guess, retry, or improvise a fix.
-   - **Never attempt:** resolving a merge conflict, force-pushing, hard-resetting or discarding uncommitted work, rebasing, fixing an authentication/permission failure, or touching a branch or worktree other than the primary checkout's `main`. Report any of these situations to the user; do not solve them.
+     - Ahead of `origin/main` with nothing to pull → attempt `git push origin main` first, exactly as always:
+       - **Succeeds** → done; nothing else to do.
+       - **Rejected for protected-branch reasons** (stderr contains `GH006`, `protected branch`, or `Changes must be made through a pull request`, or an equivalent required-review/required-status-check message) → fall back to a reused sync branch instead of stopping outright:
+         ```bash
+         git fetch origin chore/session-bookkeeping-sync 2>/dev/null || true
+         git push --force-with-lease origin main:refs/heads/chore/session-bookkeeping-sync
+         ```
+         The fetch (harmless no-op the first time the branch doesn't exist yet) establishes the lease baseline; the push then creates the remote branch on its first use and force-with-lease-updates it on every later one — no local branch ever needs to be created for it. If an open PR already targets that branch, the push alone updates it in place — nothing further to do. Otherwise open one:
+         ```bash
+         gh pr create --base main --head chore/session-bookkeeping-sync \
+           --title "chore: sync session bookkeeping" \
+           --body "<what this carries — history file, compendium, research map, task bookkeeping>"
+         ```
+         That title deliberately never matches `Prepare release vX.Y.Z`/`Release vX.Y.Z`, so merging it never triggers `post-merge-release.yml`'s tag/release automation. Report the PR link and **STOP** — never self-merge it (a required-review protected branch exists specifically to force a human review), never retry the direct push, never delete or close the branch/PR afterward — it is deliberately long-lived and reused across sessions, not a one-shot branch to clean up.
+       - **Rejected for any other reason** (auth/permission failure, non-fast-forward/diverged history, or anything else not matching the protected-branch pattern above) → unchanged: fall straight into the STOP-and-report handling below. Never reclassify a 403/permission rejection as the protected-branch case — an auth failure means you lack push rights at all, which this fallback cannot fix and must not paper over.
+   - **If anything doesn't resolve cleanly on the first safe attempt, or the situation is ambiguous or risky** — a detached HEAD, an in-progress merge/conflict, a dirty branch other than `main`, diverged history, an unexpected push rejection not covered by the protected-branch fallback above, an authentication failure, or anything else you're not confident is safe — **STOP.** Report exactly what you observed and take no further action. Do not guess, retry, or improvise a fix.
+   - **Never attempt:** resolving a merge conflict, force-pushing `main` itself (a force-with-lease push to the dedicated `chore/session-bookkeeping-sync` branch is the one documented exception, never to `main`), hard-resetting or discarding uncommitted work, rebasing, fixing an authentication/permission failure, self-merging the bookkeeping-sync PR, or touching a branch or worktree other than the primary checkout's `main` and that one dedicated sync branch. Report any of these situations to the user; do not solve them.
 
 ## Requirements
 
@@ -115,7 +133,10 @@ session.finish                     # Documents the session, then finalizes main'
 | A non-`main` branch with a dirty tree | STOP. Report the branch and the uncommitted changes; do not switch branches or discard anything. |
 | `git pull --ff-only` fails despite an apparent clean fast-forward | STOP. Report the error; do not merge or rebase. |
 | Local `main` has diverged from `origin/main` | STOP. Report the ahead/behind situation; do not pull, merge, or rebase. |
-| `git push` is rejected unexpectedly | STOP. Report the rejection; do not retry, force-push, or pull-then-retry automatically. |
+| `git push origin main` is rejected for protected-branch reasons (`GH006`, "protected branch", "Changes must be made through a pull request", or equivalent) | Push/update the reused `chore/session-bookkeeping-sync` branch and open or update its PR (see Step 7), then STOP and report the PR link — never self-merge, never retry the direct push. |
+| `git push` is rejected for any other reason (including a 403/permission failure) | STOP. Report the rejection; do not retry, force-push, pull-then-retry, or reclassify it as the protected-branch case above. |
+| An open `chore/session-bookkeeping-sync` PR already exists | STOP. Report that it's awaiting review; do not push again or open a second PR. |
+| A genuine merge conflict reconciling a merged `chore/session-bookkeeping-sync` PR back into local `main` | STOP. Abort the merge (`git merge --abort`) and report the conflicting paths; never auto-resolve. |
 | Authentication/permission failure on fetch or push | STOP. Report the error; do not attempt credential or SSH-agent recovery. |
 | Uncommitted work found outside this run's own known output paths | Do not stage or commit it; report it and leave it untouched. |
 | Anything else that doesn't resolve cleanly on the first safe attempt | STOP. Report what you observed; do not guess or improvise a fix. |

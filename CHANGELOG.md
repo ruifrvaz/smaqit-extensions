@@ -7,8 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.6] - 2026-09-12
+
 ### Fixed
 - **`session-finish` falls back to a PR instead of stopping when a direct push to `origin/main` is rejected for protected-branch reasons** (pending v2.0.6 · PR #136) — since task 036 moved task-lifecycle bookkeeping to local `main` only (never pushed), local `main` now routinely carries an entire session's worth of unpushed commits, so on a `main`-branch-protected downstream repo `session-finish`'s end-of-session push could hit the same rejection task 036 fixed elsewhere, with no path forward. Step 7 now checks first for an existing `chore/session-bookkeeping-sync` PR (open → stop and report; merged → reconcile local `main` via fetch+merge, never a fast-forward-only pull; absent → proceed normally). The direct push is still tried first, unchanged; only a protected-branch-specific rejection falls back to a force-with-lease refspec push onto that single reused branch and opens/updates a PR titled `chore: sync session bookkeeping` (deliberately avoiding the release-trigger title pattern), then stops — never self-merged, never deleted. Every other rejection, a 403/permission failure most of all, is unaffected.
+
+## [2.0.5] - 2026-09-12
+
+### Fixed
+- **`recap.py` now matches the real Claude Code transcript schema** (PR #133) — the script (bundled identically in `smaqit.session-title`, `smaqit.session-finish`, and `smaqit.session-recap`) parsed a transcript schema that never matched the real on-disk Claude Code JSONL format, so it silently produced zero output and exited 0 exactly when its long-transcript fallback was needed most — no signal that extraction had failed. Parsing is corrected to match the real schema: top-level `type` is `"user"`/`"assistant"` (not `"user.message"`/`"assistant.message"`), and text lives at `message.content` as a list of typed blocks (joining `text` blocks, skipping `thinking`/`tool_use`/`tool_result`) — a tool-result-only record naturally has no `text` block, so it's already excluded with no extra filtering needed. An initial version of this fix also gated `"user"` records on `origin.kind == "human"` to exclude tool-result deliveries, but that filter was redundant for its stated purpose and wrong for everything else: every skill/slash-command-invocation turn has no `origin` field at all, so the filter silently dropped them too, including the `session.start` turn the session skills document as the guaranteed anchor of the session arc, and crashed on an explicit `"origin": null` record. A follow-up commit in the same PR removed the filter entirely; the shipped script has no origin-based filtering. The script also now fails loudly: if a non-empty transcript yields zero extracted turns, it warns on stderr and exits 1 instead of masquerading as "nothing notable happened" — an empty transcript remains a legitimate no-op. Adds `tests/skills/test-recap-transcript-schema.sh` (wired into `make test`), including a regression fixture for skill-invocation records so the anchor-dropping bug can't regress silently.
 
 ## [2.0.4] - 2026-09-12
 
@@ -716,7 +723,7 @@ Convert each `.smaqit/tasks/NNN_*.md` header block to YAML frontmatter — `stat
 - Go-based installer for cross-platform installation
 - Bash install script with version mode support
 
-[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.17.1...HEAD
+[Unreleased]: https://github.com/ruifrvaz/smaqit-extensions/compare/v2.0.5...HEAD
 [1.17.1]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.17.0...v1.17.1
 [1.17.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.16.0...v1.17.0
 [1.16.0]: https://github.com/ruifrvaz/smaqit-extensions/compare/v1.15.0...v1.16.0

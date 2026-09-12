@@ -25,7 +25,7 @@ If the task file is not found, ask the user to verify the task ID. Do not procee
 **Do not assume any specific toolchain.** Probe the project the same way `smaqit.session-start` does. Read whichever of the following exist (in parallel):
 
 **Build & test commands — probe in order:**
-1. `AGENTS.md`, `CLAUDE.md`, or `.github/copilot-instructions.md` — look for "Testing", "Build", or "Development" sections that document commands
+1. `AGENTS.md` or `CLAUDE.md` — look for "Testing", "Build", or "Development" sections that document commands
 2. `Makefile` — look for `build`, `test`, `check` targets
 3. `package.json` — look for `scripts.test`, `scripts.build`
 4. `pyproject.toml` / `tox.ini` / `pytest.ini` — infer pytest/tox commands
@@ -35,7 +35,7 @@ If the task file is not found, ask the user to verify the task ID. Do not procee
 8. `specs/stack/*.md` — look for documented build/test/run commands
 
 **Deploy/start commands — probe in order:**
-1. Project instructions (`AGENTS.md`/`CLAUDE.md`/`.github/copilot-instructions.md`) — look for "Deploy", "Start", "Run" sections
+1. Project instructions (`AGENTS.md`/`CLAUDE.md`) — look for "Deploy", "Start", "Run" sections
 2. `Makefile` — look for `deploy`, `start`, `run`, `up` targets
 3. `docker-compose.yml` / `Dockerfile` — infer `docker compose up`
 4. `scripts/start/`, `scripts/deploy/`, `scripts/run/` — check for start/deploy scripts

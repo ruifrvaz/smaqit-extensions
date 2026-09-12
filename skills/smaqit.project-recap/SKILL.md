@@ -24,7 +24,7 @@ Read the following files (whichever exist):
 - `pyproject.toml` or `requirements.txt` — top-level dependencies
 - `Cargo.toml` — package name, version, dependencies
 - `Makefile` — tool references and build targets
-- `.github/copilot-instructions.md` (GitHub Copilot), `CLAUDE.md` (Claude Code), or `AGENTS.md` (Codex) — stack hints, infrastructure context
+- `AGENTS.md` (canonical — read by Codex, Claude Code, and GitHub Copilot) or `CLAUDE.md` (Claude-only additions) — stack hints, infrastructure context
 
 Extract:
 - **Project name** (prefer README heading or manifest `name` field)

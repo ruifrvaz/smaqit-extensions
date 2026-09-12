@@ -274,8 +274,74 @@ func installReleaseWorkflow(targetDir string) {
 	}
 }
 
-// scaffoldProject scaffolds .smaqit/ and the release workflow into the given
-// project directory. Used by both the default no-args path and the init alias.
+// workspaceFolder is one entry in a .code-workspace file's "folders" array.
+type workspaceFolder struct {
+	Name string `json:"name"`
+	Path string `json:"path"`
+}
+
+// workspaceSettings is a .code-workspace file's "settings" object. Only the
+// managed files.exclude block is populated here — see installBaselineWorkspace.
+type workspaceSettings struct {
+	FilesExclude map[string]bool `json:"files.exclude"`
+}
+
+// codeWorkspace is the top-level shape of a .code-workspace file, matching
+// what smaqit.utils.worktree's 7_build_workspace.sh produces.
+type codeWorkspace struct {
+	Folders  []workspaceFolder `json:"folders"`
+	Settings workspaceSettings `json:"settings"`
+}
+
+// installBaselineWorkspace scaffolds a minimal single-folder .code-workspace
+// file at targetDir, create-if-absent — it never overwrites a project's own
+// workspace file, matching installReleaseWorkflow's precedent. Its shape
+// mirrors 7_build_workspace.sh's output for the zero-worktree case (a "main"
+// folder plus the bin/obj files.exclude block), so a later task-start
+// regenerating the file recognizes both and only adds worktree entries.
+func installBaselineWorkspace(targetDir string) {
+	matches, err := filepath.Glob(filepath.Join(targetDir, "*.code-workspace"))
+	if err != nil {
+		fmt.Printf("Error checking for existing workspace file: %v\n", err)
+		os.Exit(1)
+	}
+	if len(matches) > 0 {
+		return
+	}
+
+	absDir, err := filepath.Abs(targetDir)
+	if err != nil {
+		fmt.Printf("Error resolving project directory: %v\n", err)
+		os.Exit(1)
+	}
+	projectName := filepath.Base(absDir)
+
+	workspace := codeWorkspace{
+		Folders: []workspaceFolder{{Name: "main", Path: "."}},
+		Settings: workspaceSettings{
+			FilesExclude: map[string]bool{
+				"**/bin/**": true,
+				"**/obj/**": true,
+			},
+		},
+	}
+	content, err := json.MarshalIndent(workspace, "", "  ")
+	if err != nil {
+		fmt.Printf("Error building workspace file content: %v\n", err)
+		os.Exit(1)
+	}
+	content = append(content, '\n')
+
+	workspacePath := filepath.Join(targetDir, projectName+".code-workspace")
+	if err := writeFileIfMissing(workspacePath, content, 0644); err != nil {
+		fmt.Printf("Error writing workspace file %s: %v\n", workspacePath, err)
+		os.Exit(1)
+	}
+}
+
+// scaffoldProject scaffolds .smaqit/, the release workflow, and a baseline
+// .code-workspace into the given project directory. Used by both the default
+// no-args path and the init alias.
 func scaffoldProject(targetDir string) {
 	scaffoldSmaqit(targetDir)
 	workflowsDir := filepath.Join(targetDir, ".github", "workflows")
@@ -284,6 +350,7 @@ func scaffoldProject(targetDir string) {
 		os.Exit(1)
 	}
 	installReleaseWorkflow(workflowsDir)
+	installBaselineWorkspace(targetDir)
 	fmt.Println("✓ Project scaffolding complete")
 }
 
@@ -361,6 +428,7 @@ func printHelp() {
 	fmt.Println("  .smaqit/tasks/        - Task tracking")
 	fmt.Println("  .smaqit/history/      - Session history")
 	fmt.Println("  .github/workflows/    - post-merge-release.yml (create-if-absent)")
+	fmt.Println("  <project>.code-workspace - baseline single-folder VS Code workspace (create-if-absent)")
 }
 
 // cmdInstall is the entry point for the "install" subcommand.

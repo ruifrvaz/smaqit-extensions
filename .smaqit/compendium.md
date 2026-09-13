@@ -30,6 +30,14 @@ The `# Scaffolding` section seeded into `AGENTS.md` comes from `skills/smaqit.pr
 
 ---
 
+**Does the `smaqit.project-init` skill scaffold a baseline `.code-workspace` file?**
+
+No. `smaqit.project-init` (the LLM-driven skill) only synchronizes `AGENTS.md`/`CLAUDE.md` and scaffolds `docs/`, `assets/`, and `assets/raw/` — it contains no `.code-workspace` logic at all. The baseline single-folder workspace file (`main` folder plus a `bin`/`obj` `files.exclude` block) is created exclusively by `smaqit-extensions init` (the Go binary's `scaffoldProject`, via `installBaselineWorkspace`), create-if-absent, the same pattern used for `.github/workflows/post-merge-release.yml`.
+
+These are two distinct entry points that happen to share the word "init": the CLI command (`smaqit-extensions init`) versus the conversational skill (`smaqit.project-init`). In the documented install flow the CLI command always runs first — it scaffolds `.smaqit/` itself, which the skill's own root-resolution step expects to already exist — so the workspace file is already in place by the time anyone would invoke the skill. A project that only ever invokes the `project-init` skill directly, without `smaqit-extensions init` having run first, gets no workspace file from either path; this is a known, accepted gap rather than a bug to fix, since every documented install path runs `init` as part of setup. See also: "Does regenerating `.code-workspace` discard content it doesn't manage?"
+
+---
+
 **How does the installer's `[SMAQIT_SKILLS_DIR]` placeholder work?**
 
 A handful of skills reference their own install path in usage comments or example commands (e.g. `smaqit.project-diagnose`, `smaqit.utils.read-pdf`). Since a skill's install root differs by platform (`~/.agents/skills` for Copilot and Codex under the default global install, `~/.claude/skills` for Claude Code; `.github/skills`/`.agents/skills`/`.claude/skills` respectively under `--scope project`), any such self-reference is written in source using the literal placeholder `[SMAQIT_SKILLS_DIR]`. `scripts/generate-targets.py` resolves it when compiling each platform's ephemeral installer tree into `installer/`, so no installed output ever contains the literal placeholder.

@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Makefile carries a permanent marker confirming task 039's release mechanism round-trips cleanly** — added as part of task 040's live end-to-end verification of the v2.1.1 `task-start`/`task-complete` redesign.
+
 ## [2.1.1] - 2026-09-15
 
 ### Fixed

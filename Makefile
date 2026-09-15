@@ -1,5 +1,9 @@
 .PHONY: sync clean test smoke-test test-worktree-layout test-parent-task-lifecycle test-project-research-verify-urls test-triage-issues test-task-complete-pr-lifecycle test-release-analysis-claimed-versions test-release-analysis-boundary-detection test-recap-transcript-schema test-session-finish-bookkeeping-sync
 
+# task-039-e2e-verify marker: confirms this branch, PR, and release round-tripped
+# through the v2.1.1 task-start/task-complete lifecycle cleanly. Harmless, kept
+# permanently as a live-verification artifact (task 040).
+
 SKILLS := smaqit.session-start smaqit.project-diagnose smaqit.session-finish smaqit.session-assess smaqit.session-title smaqit.session-recap smaqit.task-create smaqit.task-list smaqit.task-complete smaqit.task-plan smaqit.task-refresh smaqit.task-start smaqit.test-create smaqit.test-complete smaqit.test-start smaqit.project-init smaqit.project-glossary smaqit.release-analysis smaqit.release-approval smaqit.release-prepare-files smaqit.release-git-local smaqit.release-git-pr smaqit.utils.read-pdf smaqit.utils.triage-issues smaqit.utils.worktree smaqit.project-research smaqit.project-recap smaqit.project-compendium smaqit.parity-assess
 
 # Generate the ephemeral embed staging trees used by the Go binary.

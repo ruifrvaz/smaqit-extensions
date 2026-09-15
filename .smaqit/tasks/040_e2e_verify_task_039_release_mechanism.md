@@ -1,8 +1,9 @@
 ---
-status: In Progress
+status: PR Open
 created: "2026-09-15"
 mode: Assisted
 started: "2026-09-15"
+pr: 139
 ---
 
 # E2E Live Verification of Task 039's Release Mechanism
@@ -47,29 +48,31 @@ Local `main` currently sits 5 commits ahead of `origin/main` (task 039's own boo
 
 ## Acceptance Criteria
 
-- [ ] `task-start` creates the branch from freshly-fetched `origin/main`, verified to exclude all of local `main`'s pre-existing unpushed commits
-- [ ] `task-complete` Phase 1 opens a PR titled `Prepare release vX.Y.Z` with no false version-claim collision against the two unrelated open PRs
-- [ ] Phase 1 writes the `## [X.Y.Z]` `CHANGELOG.md` section on the branch only, correctly folding in an implementer-authored `[Unreleased]` bullet
-- [ ] Phase 1 uses a plain push with no rebase and no force-push
+- [x] `task-start` creates the branch from freshly-fetched `origin/main`, verified to exclude all of local `main`'s pre-existing unpushed commits
+- [x] `task-complete` Phase 1 opens a PR titled `Prepare release vX.Y.Z` with no false version-claim collision against the two unrelated open PRs
+- [x] Phase 1 writes the `## [X.Y.Z]` `CHANGELOG.md` section on the branch only, correctly folding in an implementer-authored `[Unreleased]` bullet
+- [x] Phase 1 uses a plain push with no rebase and no force-push
 - [ ] Phase 2 confirms the merge via `gh pr view`, cleanly merges `origin/main` into local `main`, and removes the worktree/branch
 - [ ] The resulting tag and GitHub Release are created correctly by `post-merge-release.yml`
-- [ ] Any discrepancy found is documented in Findings before declaring success
+- [x] Any discrepancy found is documented in Findings before declaring success
 
 ## Findings
 
 [Populated by smaqit.task-complete. Do not fill in manually before task is complete.]
 
 **Implementation approach:**
-- TBD
+- Ran the real, freshly-installed v2.1.1 `task-start`/`task-complete` skills against this repo itself, at the exact moment local `main` sat 5 commits ahead of `origin/main` (task 039's own bookkeeping), to make the bookkeeping-leak regression check meaningful rather than coincidental.
+- Added one permanent, harmless Makefile comment as the "feature," and manually wrote an `[Unreleased]` `CHANGELOG.md` bullet describing it during implementation — the one behavior task 039's own dogfood run never exercised (its `[Unreleased]` was empty).
+- Verified each Phase 1 claim with direct evidence rather than trusting the skill's own report: `git merge-base` against `origin/main`, `git log origin/main..<branch>`, `gh pr view --json title`, `gh pr list --json` for the claimed-version check, and `git reflog` on the branch to confirm no rebase/reset occurred.
 
 **Decisions made:**
-- TBD
+- ACs 5-6 (Phase 2 merge/cleanup, tag/release creation) are intentionally left unchecked at Phase 1 — they describe outcomes that can only exist after Phase 2 runs, which this task's own phase-gated design defers to a later, separate explicit request. This is the same "PR Open ≠ Completed" split every owner task uses; nothing is actually unfinished for Phase 1's own scope.
 
 **Blockers encountered:**
-- TBD
+- None.
 
 **Follow-up identified:**
-- TBD
+- None — no discrepancy was found in Phase 1's execution. Phase 2 verification is the task's own remaining, explicitly deferred step.
 
 ## Files to Create / Modify
 

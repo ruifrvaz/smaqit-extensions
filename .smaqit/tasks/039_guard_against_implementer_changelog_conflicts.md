@@ -1,8 +1,9 @@
 ---
-status: In Progress
+status: PR Open
 created: "2026-09-15"
 mode: Assisted
 started: "2026-09-15"
+pr: 138
 ---
 
 # Guard Against Implementer-Written CHANGELOG.md Conflicts
@@ -88,32 +89,42 @@ The fix moves the entry to the branch from birth: after the PR exists, Phase 1 w
 
 ## Acceptance Criteria
 
-- [ ] `task-complete` Phase 1 writes the `## [X.Y.Z]` section on the task branch and never commits `CHANGELOG.md` to `main`
-- [ ] Phase 1 contains no rebase and no force-push; a rejected branch push STOPs and reports
-- [ ] `release-analysis` Step 1e and `release-approval` Step 4b derive claimed versions from open `Prepare release vX.Y.Z` PR titles via `gh pr list --json`, filtered client-side
-- [ ] `task-start` creates the owner branch from freshly fetched `origin/main`
-- [ ] The `(pending vX.Y.Z · PR #NNN)` convention is gone from every file under `skills/`, and a hermetic test guards its absence
-- [ ] The three `RULES.md` copies are byte-identical and describe the new Phase 1 order
-- [ ] Implementer bullets under `[Unreleased]` on the branch are folded into the release section, proven by a hermetic test
-- [ ] `.smaqit/compendium.md` reflects the new mechanism and records why the `main`-born design was retired
-- [ ] `make test` and `make smoke-test` pass clean
-- [ ] The global install is refreshed from this build so `task.complete 039` Phase 1 exercises the new flow
+- [x] `task-complete` Phase 1 writes the `## [X.Y.Z]` section on the task branch and never commits `CHANGELOG.md` to `main`
+- [x] Phase 1 contains no rebase and no force-push; a rejected branch push STOPs and reports
+- [x] `release-analysis` Step 1e and `release-approval` Step 4b derive claimed versions from open `Prepare release vX.Y.Z` PR titles via `gh pr list --json`, filtered client-side
+- [x] `task-start` creates the owner branch from freshly fetched `origin/main`
+- [x] The `(pending vX.Y.Z · PR #NNN)` convention is gone from every file under `skills/`, and a hermetic test guards its absence
+- [x] The three `RULES.md` copies are byte-identical and describe the new Phase 1 order
+- [x] Implementer bullets under `[Unreleased]` on the branch are folded into the release section, proven by a hermetic test
+- [x] `.smaqit/compendium.md` reflects the new mechanism and records why the `main`-born design was retired
+- [x] `make test` and `make smoke-test` pass clean
+- [x] The global install is refreshed from this build so `task.complete 039` Phase 1 exercises the new flow
 
 ## Findings
 
 [Populated by smaqit.task-complete. Do not fill in manually before task is complete.]
 
 **Implementation approach:**
-- TBD
+- Moved a task's changelog entry off `main` entirely: `task-complete` Phase 1 now writes the finished `## [X.Y.Z]` section directly on the task branch after the PR exists (folding in any `[Unreleased]` bullets the implementer left), commits it, and plain-pushes — no rebase, no force-push, no write to `main`.
+- Replaced the dead `(pending vX.Y.Z · PR #NNN)` `CHANGELOG.md` registry with a live one: `release-analysis` Step 1e and `release-approval` Step 4b now derive claimed versions from open `Prepare release vX.Y.Z` PR titles via `gh pr list --json`, filtered client-side (never `--search`, which is eventually consistent).
+- `task-start` now branches from freshly fetched `origin/main` instead of local `main`, closing the bookkeeping-leak-into-PR hole independently of removing the rebase.
+- Replaced `release-prepare-files`' Pending Entry Convention/Mode with one Task-Release Mode operation (fold `[Unreleased]` + `changes` list into the new versioned section); updated `release-git-pr`'s invocation-from-task-complete section to match.
+- Rewrote both affected hermetic tests (`test-task-complete-pr-lifecycle.sh`'s Phase 1 assertions; `test-release-analysis-pending-versions.sh` renamed to `test-release-analysis-claimed-versions.sh` with a new fold-algorithm reference implementation and a repo-wide guard against any surviving `(pending v` string) and rewrote the affected `compendium.md` entries.
+- A first implementation (an instruction-level "don't touch CHANGELOG.md" guardrail in `task-start` and `AGENTS.template.md`) was built, then rejected on review as a circuit breaker on the structural flaw rather than a fix; it was stashed (`task 039: discarded guardrail implementation`) and replaced with this redesign via `task.plan 039`.
 
 **Decisions made:**
-- TBD
+- No `main`-side `CHANGELOG.md` write anywhere in the task lifecycle; `[Unreleased]` on `main` means only "unreleased" again.
+- Claim registry = open PR titles, not a `CHANGELOG.md` annotation — remote, always current, and reuses `gh` (already a hard Step-11 dependency).
+- Abandoned-PR versions return to the pool (027's "never reuse" was never actually enforced, since deleting the annotation already un-claimed it).
+- Implementer edits to `[Unreleased]` are treated as input to fold in, not an error to guard against — so no instruction-level guardrail was needed once the structural fix landed.
+- Concurrent-PR collisions on the `## [X.Y.Z]` insertion point at GitHub merge time are accepted as the one remaining (and now only) CHANGELOG conflict class — unchanged from today's risk profile.
+- `RULES.md`'s three copies stay byte-identical per existing convention; the fix lives in `SKILL.md` prose and `RULES.md`'s Phase 1 order/claim-rule lines, not in the mode-gating logic itself.
 
 **Blockers encountered:**
-- TBD
+- None. Full discovery (direct reads of every affected skill, both hermetic tests, `origin/main` history verification of the bookkeeping leak, and issue triage) was completed before implementation began, so no design surprises arose mid-implementation.
 
 **Follow-up identified:**
-- TBD
+- The stashed rejected-guardrail implementation (`task 039: discarded guardrail implementation (re-planned as structural fix)`) is safe to drop now that this task is shipping; no other follow-up filed.
 
 ## Files to Create / Modify
 

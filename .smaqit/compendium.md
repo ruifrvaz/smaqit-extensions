@@ -102,6 +102,14 @@ It does not apply to a mechanical behavior question with no discovery angle and 
 
 ---
 
+**How was a change to `task-complete`'s own release mechanism verified, beyond its hermetic tests?**
+
+With a dedicated task (task 040, following task 039's redesign) whose entire purpose was a live, full-cycle trial: a real `task.start` → `task.complete` Phase 1 → PR merge → Phase 2 round trip against this repo's own GitHub remote, using the newly-shipped skills, with synthetic-but-permanent content (a one-line, self-labeled comment) chosen specifically so the verification never conflates its own success with a real backlog outcome. Hermetic tests (`test-task-complete-pr-lifecycle.sh`, `test-release-analysis-claimed-versions.sh`) prove the file contracts and algorithms in isolation; they cannot prove the live `gh pr create`/`gh pr list`/`git push` sequence actually behaves as documented against a real remote, or that a fix's own precondition is reproduced rather than assumed.
+
+The trial was deliberately timed and evidenced, not just run and trusted: it executed at the exact moment local `main` sat several commits ahead of `origin/main` (the precondition the bug being fixed required), and every claim was checked with direct evidence rather than the skill's own report — `git merge-base` against `origin/main` to prove the branch excluded local `main`'s unpushed commits, `git log origin/main..<branch>` to prove the pushed diff carried only the task's own commits, `gh pr view`/`gh pr list --json` for title and claim correctness, `git reflog` on the branch to prove no rebase or reset occurred, and `gh release view` after the merge to confirm the tag and release notes matched what was written. This is the same "ad-hoc live trial" pattern described above for git-workflow questions with no discovery angle — task 040 is a concrete worked example of it applied to a task-lifecycle mechanism change specifically.
+
+---
+
 ## Memory and Session Persistence
 
 **Why don't smaqit skills call a specific "memory" tool anymore?**

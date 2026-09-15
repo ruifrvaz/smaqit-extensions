@@ -142,10 +142,18 @@ version: "1.0.0"
 | Claude Code CLAUDE.md imports | Memory and @import docs | https://code.claude.com/docs/en/memory |
 | Visual Studio Code | Multi-root workspaces | https://code.visualstudio.com/docs/editing/workspaces/multi-root-workspaces |
 
+
 ## Task 039 — Guard Against Implementer-Written CHANGELOG.md Conflicts
 
-**Context fingerprint:** sha256:ee9d6b8f95f8e8804ee6252d0f356d9efc637a16a3ad8c4a62f83cda01c5e122
+**Context fingerprint:** sha256:dfcc276d9a0b1050d37a12905d605543b4fb4511020025b9e1a53a6ddac8d69d
 **Refreshed:** 2026-09-15
 
 | Tool | Section | URL |
 |------|---------|-----|
+| GitHub CLI (`gh`) | Manual | https://cli.github.com/manual/ |
+| GitHub CLI (`gh`) | gh pr list | https://cli.github.com/manual/gh_pr_list |
+| GitHub CLI (`gh`) | gh pr create | https://cli.github.com/manual/gh_pr_create |
+| Git | Reference | https://git-scm.com/docs |
+| Git | git-fetch | https://git-scm.com/docs/git-fetch |
+| Git | git-branch | https://git-scm.com/docs/git-branch |
+| GitHub Actions | Workflow triggers | https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows |

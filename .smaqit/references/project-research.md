@@ -157,3 +157,11 @@ version: "1.0.0"
 | Git | git-fetch | https://git-scm.com/docs/git-fetch |
 | Git | git-branch | https://git-scm.com/docs/git-branch |
 | GitHub Actions | Workflow triggers | https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows |
+
+## Task 040 — E2E Live Verification of Task 039's Release Mechanism
+
+**Context fingerprint:** sha256:ee9d6b8f95f8e8804ee6252d0f356d9efc637a16a3ad8c4a62f83cda01c5e122
+**Refreshed:** 2026-09-15
+
+| Tool | Section | URL |
+|------|---------|-----|

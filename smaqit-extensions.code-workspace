@@ -3,10 +3,6 @@
     {
       "name": "main",
       "path": "."
-    },
-    {
-      "name": "task/040-e2e-live-verification-of-task-039-s-release-mechanism",
-      "path": "../smaqit-extensions-wt-task-040-e2e-live-verification-of-task-039-s-release-mechanism"
     }
   ],
   "settings": {

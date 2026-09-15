@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.1] - 2026-09-15
+
+### Fixed
+- **A task's changelog entry is now authored on its own branch, never on `main`** — `task-complete` Phase 1 previously committed a `(pending vX.Y.Z · PR #NNN)`-annotated bullet to `CHANGELOG.md`'s `[Unreleased]` section directly on `main`, then rebased the task branch onto `main` to promote it into a real `## [X.Y.Z]` section — a design with three verified structural problems: `[Unreleased]` had two writers on one line range (the branch's own implementation commit, and `main`'s Step 12) so the rebase conflicted whenever both touched it; the version-claim registry had been dead since task 036 moved that commit to local `main` while `release-analysis` kept reading `origin/main`; and the rebase leaked every unpushed bookkeeping commit sitting on local `main` into the release PR. Phase 1 now writes the finished `## [X.Y.Z]` section directly on the task branch after the PR exists — folding in any `[Unreleased]` bullets the implementer already left — and plain-pushes it; nothing is ever committed to `main`, and the branch is never rebased or force-pushed. The claimed-version registry is now the set of open PRs titled `Prepare release vX.Y.Z`, read live via `gh pr list --json`. `task-start` creates a task's owner branch from freshly fetched `origin/main` instead of local `main`, so unpushed bookkeeping can no longer ride into a PR at all.
+
 ## [2.1.0] - 2026-09-13
 
 ### Added

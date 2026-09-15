@@ -1,4 +1,4 @@
-.PHONY: sync clean test smoke-test test-worktree-layout test-parent-task-lifecycle test-project-research-verify-urls test-triage-issues test-task-complete-pr-lifecycle test-release-analysis-pending-versions test-release-analysis-boundary-detection test-recap-transcript-schema test-session-finish-bookkeeping-sync
+.PHONY: sync clean test smoke-test test-worktree-layout test-parent-task-lifecycle test-project-research-verify-urls test-triage-issues test-task-complete-pr-lifecycle test-release-analysis-claimed-versions test-release-analysis-boundary-detection test-recap-transcript-schema test-session-finish-bookkeeping-sync
 
 SKILLS := smaqit.session-start smaqit.project-diagnose smaqit.session-finish smaqit.session-assess smaqit.session-title smaqit.session-recap smaqit.task-create smaqit.task-list smaqit.task-complete smaqit.task-plan smaqit.task-refresh smaqit.task-start smaqit.test-create smaqit.test-complete smaqit.test-start smaqit.project-init smaqit.project-glossary smaqit.release-analysis smaqit.release-approval smaqit.release-prepare-files smaqit.release-git-local smaqit.release-git-pr smaqit.utils.read-pdf smaqit.utils.triage-issues smaqit.utils.worktree smaqit.project-research smaqit.project-recap smaqit.project-compendium smaqit.parity-assess
 
@@ -32,8 +32,8 @@ test-triage-issues:
 test-task-complete-pr-lifecycle:
 	@bash tests/skills/test-task-complete-pr-lifecycle.sh
 
-test-release-analysis-pending-versions:
-	@bash tests/skills/test-release-analysis-pending-versions.sh
+test-release-analysis-claimed-versions:
+	@bash tests/skills/test-release-analysis-claimed-versions.sh
 
 test-release-analysis-boundary-detection:
 	@bash tests/skills/test-release-analysis-boundary-detection.sh
@@ -44,7 +44,7 @@ test-recap-transcript-schema:
 test-session-finish-bookkeeping-sync:
 	@bash tests/skills/test-session-finish-bookkeeping-sync.sh
 
-test: test-worktree-layout test-parent-task-lifecycle test-project-research-verify-urls test-triage-issues test-task-complete-pr-lifecycle test-release-analysis-pending-versions test-release-analysis-boundary-detection test-recap-transcript-schema test-session-finish-bookkeeping-sync
+test: test-worktree-layout test-parent-task-lifecycle test-project-research-verify-urls test-triage-issues test-task-complete-pr-lifecycle test-release-analysis-claimed-versions test-release-analysis-boundary-detection test-recap-transcript-schema test-session-finish-bookkeeping-sync
 
 smoke-test: test
 	@$(MAKE) -C installer smoke-test

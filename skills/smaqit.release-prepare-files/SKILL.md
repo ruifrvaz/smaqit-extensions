@@ -2,7 +2,7 @@
 name: smaqit.release-prepare-files
 description: Validate git state and prepare all files (CHANGELOG.md, version files) for release
 metadata:
-  version: "0.8.0"
+  version: "0.9.0"
 ---
 
 # Release Prepare Files
@@ -16,53 +16,23 @@ Use this skill after obtaining version approval and before executing git operati
 - Verify correct branch
 - Finalize CHANGELOG.md with approved version
 - Optionally sync version files (package.json, etc.)
-- Write or promote a single **pending-entry** for `smaqit.task-complete`'s per-task release flow (see "Pending Entry Mode" below) — a distinct, narrower path from the batched flow in Steps 1-4
+- Write a task's finished `## [X.Y.Z]` section on its own branch for `smaqit.task-complete`'s per-task release flow (see "Task-Release Mode" below) — a distinct, narrower path from the batched flow in Steps 1-4
 
-## Pending Entry Convention
+## Task-Release Mode (used by `smaqit.task-complete`)
 
-`smaqit.task-complete` treats every owner task's PR as its own release. To keep `main`'s `CHANGELOG.md` honest while a task's PR is still under review, its `[Unreleased]` entry carries a `(pending vX.Y.Z · PR #NNN)` annotation naming both the version it claims and the exact PR that will resolve it — the embedded version is what lets `smaqit.release-analysis` recognize it as already-claimed when a second, concurrent task computes its own next version (see that skill's pending-version-awareness step):
+`smaqit.task-complete` treats every owner task's PR as its own release, and that PR's title (`Prepare release vX.Y.Z`) is the only version claim — no annotation is ever written into `CHANGELOG.md`, and nothing is ever written to `main`. This mode writes the task's finished `## [X.Y.Z]` section directly on the task branch, in the task worktree, so the merged PR carries the changelog change that `post-merge-release.yml` extracts as release notes.
 
-```markdown
-## [Unreleased]
+It is distinct from the batched flow in Steps 1-4: it never validates the working tree (the branch is mid-Phase-1 and is committed by `task-complete` itself), never touches version files, and never updates comparison links.
 
-### Added
-- **Widget caching** (pending v1.16.0 · PR #135) — adds an LRU cache to the widget resolver...
-```
+### Write the task's versioned section (on the task branch)
 
-Multiple tasks can be pending at once, each with its own annotated entry under whichever category fits, in any order:
+Invoked from `task-complete`'s Phase 1 Step 12, after the PR exists, in the registered task worktree, with the version already approved and the `changes` list already computed by `smaqit.release-analysis`'s Task mode:
 
-```markdown
-## [Unreleased]
-
-### Added
-- **Widget caching** (pending v1.16.0 · PR #135) — adds an LRU cache to the widget resolver...
-
-### Fixed
-- **Null pointer in resolver** (pending v1.17.0 · PR #138) — fixes a crash when...
-```
-
-Promoting one entry (its PR merged) never touches another entry's `(pending vX.Y.Z · PR #NNN)` annotation or position — see "Pending Entry Mode" below.
-
-## Pending Entry Mode (used by `smaqit.task-complete`)
-
-This mode is distinct from the batched flow in Steps 1-4: it never moves the whole `[Unreleased]` section, and it operates on exactly one named entry at a time, identified by its PR number annotation.
-
-### Write a pending entry (before the PR exists)
-
-Invoked from `task-complete`'s Phase 1, directly on `main` (see [smaqit.task-complete](../smaqit.task-complete/SKILL.md)'s pre-PR metadata push), using the version and change description already computed by `smaqit.release-analysis`'s branch-diff mode:
-
-1. Confirm the target version does not already appear as a promoted `## [X.Y.Z]` header or another entry's `(pending vX.Y.Z · PR #NNN)` claim (this is `release-analysis`'s pending-version-awareness contract, not re-derived here — it must have already ruled this version out before returning it).
-2. Append one bullet under the appropriate `### Added|Changed|Fixed|Removed|Deprecated|Security` category of the existing `## [Unreleased]` section (create the subheading if this is the first entry in that category), formatted as `- **{title}** (pending v{X.Y.Z} · PR #{NNN}) — {one-sentence description}`.
-3. Leave every other line in `[Unreleased]` — including other pending entries — untouched.
-
-### Promote a single pending entry (on the PR's own branch)
-
-Invoked while authoring the PR branch's own changelog commit, after rebasing the branch onto `main`'s current tip so the entry pushed in the step above is present locally:
-
-1. Locate the one `[Unreleased]` bullet whose annotation matches `(pending v{X.Y.Z} · PR #{NNN})` for this PR's own version and number. If it is not present (rebase didn't pick it up, or the annotation was edited), stop and report — do not guess which entry to promote.
-2. Remove that bullet from `[Unreleased]`, strip the `(pending vX.Y.Z · PR #NNN)` annotation, and place it under a `## [X.Y.Z] - YYYY-MM-DD` section using today's date and the exact version already claimed in the annotation — inserted directly below `## [Unreleased]`, above any existing versioned sections (newest-first, matching existing convention). Create the category subheading (`### Added`, etc.) under the new version section to match the entry's original category.
-3. Leave every other `[Unreleased]` entry — any other task's still-pending annotation — exactly where it was; this promotion touches only its own named entry.
-4. Do not reconcile against the full commit delta (Step 2A-2B below) and do not update comparison links — those apply only to the batched flow.
+1. Collect every bullet currently under `## [Unreleased]` in the branch's `CHANGELOG.md`, together with its `### Category` — these are whatever the implementer wrote while working, and they are input, not an error.
+2. Merge them with the `changes` list (one bullet per entry, `- **{title}** — {one-sentence description}`), grouped by conventional category (`Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`). Deduplicate: where an implementer bullet and a `changes` entry describe the same change, keep one, preferring the more complete wording.
+3. Write the result as a new `## [X.Y.Z] - YYYY-MM-DD` section (today's date, the exact approved version) inserted directly below `## [Unreleased]`, above every existing versioned section (newest-first, matching existing convention), with one `### Category` subheading per non-empty category in the order above.
+4. Every bullet `[Unreleased]` held now lives in the new section, so leave `## [Unreleased]` as an empty header. Leave every already-released section byte-for-byte untouched.
+5. Do not reconcile against the full commit delta (Step 2A-2B below) and do not update comparison links — those apply only to the batched flow. Do not commit or push here either; `task-complete`'s Step 13 does both.
 
 ## How to execute
 

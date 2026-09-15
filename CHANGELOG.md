@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.2] - 2026-09-15
+
+### Fixed
+- **Makefile carries a permanent marker confirming task 039's release mechanism round-trips cleanly** — added as part of task 040's live end-to-end verification of the v2.1.1 `task-start`/`task-complete` redesign: task-start branched cleanly from `origin/main` while local `main` sat 5 commits ahead, and this bullet was written under `[Unreleased]` during implementation to prove `task-complete`'s live fold into a versioned section, exercised here for the first time outside the isolated shell reference test.
+
 ## [2.1.1] - 2026-09-15
 
 ### Fixed

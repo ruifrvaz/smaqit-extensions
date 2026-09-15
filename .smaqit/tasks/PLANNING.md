@@ -6,7 +6,6 @@ Central task tracking and planning for smaqit-extensions.
 
 | ID | Title | Status | Created |
 |----|-------|--------|---------|
-| 040 | E2E Live Verification of Task 039's Release Mechanism | PR Open | 2026-09-15 |
 | 028 | Benchmark Glossary Skill Invocation | Not Started | 2026-08-14 |
 | 002 | Fix Changelog Extraction for Cumulative Releases | Not Started | 2026-02-13 |
 | 007 | Create smaqit MCP Server (PoC) | Not Started | 2026-05-09 |
@@ -16,6 +15,7 @@ Central task tracking and planning for smaqit-extensions.
 
 | ID | Title | Status | Created | Completed |
 |----|-------|--------|---------|-----------|
+| 040 | E2E Live Verification of Task 039's Release Mechanism | Completed | 2026-09-15 | 2026-09-15 |
 | 039 | Guard Against Implementer-Written CHANGELOG.md Conflicts | Completed | 2026-09-15 | 2026-09-15 |
 | 038 | Fix Project-Init Scaffolding: Drop Copilot-Instructions Symlink, Trim Boilerplate, Add Baseline Workspace | Completed | 2026-09-13 | 2026-09-13 |
 | 037 | Session-Finish Falls Back to a PR When Direct Push to origin/main Is Rejected | Completed | 2026-09-12 | 2026-09-12 |

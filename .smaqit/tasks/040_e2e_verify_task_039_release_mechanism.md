@@ -1,9 +1,9 @@
 ---
-status: PR Open
+status: Completed
 created: "2026-09-15"
 mode: Assisted
 started: "2026-09-15"
-pr: 139
+completed: "2026-09-15"
 ---
 
 # E2E Live Verification of Task 039's Release Mechanism
@@ -52,8 +52,8 @@ Local `main` currently sits 5 commits ahead of `origin/main` (task 039's own boo
 - [x] `task-complete` Phase 1 opens a PR titled `Prepare release vX.Y.Z` with no false version-claim collision against the two unrelated open PRs
 - [x] Phase 1 writes the `## [X.Y.Z]` `CHANGELOG.md` section on the branch only, correctly folding in an implementer-authored `[Unreleased]` bullet
 - [x] Phase 1 uses a plain push with no rebase and no force-push
-- [ ] Phase 2 confirms the merge via `gh pr view`, cleanly merges `origin/main` into local `main`, and removes the worktree/branch
-- [ ] The resulting tag and GitHub Release are created correctly by `post-merge-release.yml`
+- [x] Phase 2 confirms the merge via `gh pr view`, cleanly merges `origin/main` into local `main`, and removes the worktree/branch
+- [x] The resulting tag and GitHub Release are created correctly by `post-merge-release.yml`
 - [x] Any discrepancy found is documented in Findings before declaring success
 
 ## Findings
@@ -66,13 +66,14 @@ Local `main` currently sits 5 commits ahead of `origin/main` (task 039's own boo
 - Verified each Phase 1 claim with direct evidence rather than trusting the skill's own report: `git merge-base` against `origin/main`, `git log origin/main..<branch>`, `gh pr view --json title`, `gh pr list --json` for the claimed-version check, and `git reflog` on the branch to confirm no rebase/reset occurred.
 
 **Decisions made:**
-- ACs 5-6 (Phase 2 merge/cleanup, tag/release creation) are intentionally left unchecked at Phase 1 — they describe outcomes that can only exist after Phase 2 runs, which this task's own phase-gated design defers to a later, separate explicit request. This is the same "PR Open ≠ Completed" split every owner task uses; nothing is actually unfinished for Phase 1's own scope.
+- ACs 5-6 (Phase 2 merge/cleanup, tag/release creation) were intentionally left unchecked at Phase 1 — they describe outcomes that can only exist after Phase 2 runs, which this task's own phase-gated design defers to a later, separate explicit request. This is the same "PR Open ≠ Completed" split every owner task uses.
+- Phase 2: `gh pr view` confirmed `MERGED`; `git merge origin/main` into local `main` was a clean 2-file fast-forward-compatible merge (`CHANGELOG.md`, `Makefile`) with no conflict. Polled `post-merge-release.yml`'s run to completion (`success`) rather than assuming it had finished, then independently confirmed both the `v2.1.2` tag (`git ls-remote --tags`) and the GitHub Release (`gh release view v2.1.2`) exist, with release notes exactly matching the `## [2.1.2]` section written on the branch — confirming the extraction logic too.
 
 **Blockers encountered:**
 - None.
 
 **Follow-up identified:**
-- None — no discrepancy was found in Phase 1's execution. Phase 2 verification is the task's own remaining, explicitly deferred step.
+- None. Zero discrepancies found across the entire Phase 1 → merge → Phase 2 → tag/release cycle. Task 039's redesigned release mechanism is verified working end to end, including the two pieces (origin/main branching, live `[Unreleased]` fold) its own dogfood run never exercised.
 
 ## Files to Create / Modify
 

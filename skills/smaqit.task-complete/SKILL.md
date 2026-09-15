@@ -2,7 +2,7 @@
 name: smaqit.task-complete
 description: Complete a task by opening a PR for owner-task code review (Phase 1), or by verifying that PR merged and cleaning up (Phase 2, re-entrant). Verifies acceptance criteria, records state in PLANNING.md, and refreshes the worktree workspace. A task's PR is also its release.
 metadata:
-  version: "0.12.0"
+  version: "0.13.0"
 ---
 
 # Task Complete
@@ -11,16 +11,16 @@ Mark a task as done with the format: `task.complete [id]`
 
 An **owner** (standalone or parent) task's completion is no longer a single-shot local merge — it is PR-gated in two phases, because PR review is asynchronous and cannot be waited out inside one invocation:
 
-- **Phase 1** (first invocation, Status `In Progress`): commit implementation, compute this task's own release version, push a pending `CHANGELOG.md` entry to `main`, push the branch, and open a code-only PR. The PR is also this task's release — merging it fires the existing tag/GitHub-Release automation. Assisted mode stops here; Autonomous mode immediately self-merges and falls straight through to Phase 2 in the same invocation.
+- **Phase 1** (first invocation, Status `In Progress`): commit implementation, compute this task's own release version, push the branch, open a code-only PR, then write this task's `## [X.Y.Z]` `CHANGELOG.md` section directly on that branch and push it. The PR is also this task's release — merging it fires the existing tag/GitHub-Release automation. Assisted mode stops here; Autonomous mode immediately self-merges and falls straight through to Phase 2 in the same invocation.
 - **Phase 2** (a later, re-entrant invocation, Status `PR Open`): verify the PR actually merged on GitHub, then clean up only — no local merge, since GitHub already performed it.
 
 A **child** task's completion is completely unaffected by any of this: it never opens a PR, never touches `main`, and remains pure task-file bookkeeping in the shared parent worktree, exactly as before.
 
 ## Local-Only Sessions
 
-Every `smaqit-extensions` session works against a single machine-local clone — there is no cross-machine or cloud-session coordination requirement for this project's own task lifecycle. `git worktree` does not create separate clones: every worktree of this repository shares the same `.git` object database and ref namespace as the primary checkout, so a commit to local `main` from the primary checkout is immediately visible to every worktree, with no fetch, push, or network operation. The bookkeeping commits below (Steps 12, 14, 18, and Abandon Path Step 24) rely on exactly this and are never pushed — only the task's own implementation branch (Step 11) and its `CHANGELOG.md`-promotion push (Step 13) touch `origin` at all, because those genuinely need to reach GitHub for PR review. Do not reintroduce an `origin`-push for the bookkeeping commits out of a mistaken cross-machine-safety instinct.
+Every `smaqit-extensions` session works against a single machine-local clone — there is no cross-machine or cloud-session coordination requirement for this project's own task lifecycle. `git worktree` does not create separate clones: every worktree of this repository shares the same `.git` object database and ref namespace as the primary checkout, so a commit to local `main` from the primary checkout is immediately visible to every worktree, with no fetch, push, or network operation. The bookkeeping commits below (Steps 14, 18, and Abandon Path Step 24) rely on exactly this and are never pushed — only the task's own branch touches `origin` at all (its implementation push in Step 11 and its changelog commit in Step 13), because that genuinely needs to reach GitHub for PR review. Nothing in Phase 1 writes to `main`, and the branch is never rebased onto local `main`: doing so would drag every unpushed bookkeeping commit sitting there into the release PR. Do not reintroduce an `origin`-push for the bookkeeping commits out of a mistaken cross-machine-safety instinct.
 
-`smaqit.release-analysis`'s boundary lookup (Step 10) is the one deliberate exception: it fetches `origin/main` fresh because released tags only ever exist on the remote — that fetch stays exactly as it is.
+`smaqit.release-analysis`'s boundary lookup (Step 10) is the one deliberate exception: it fetches `origin/main` fresh because released tags only ever exist on the remote — that fetch stays exactly as it is, as does its Step 1e query of open release PRs on GitHub.
 
 ## Steps
 
@@ -79,9 +79,9 @@ Every `smaqit-extensions` session works against a single machine-local clone —
      ```
      Skip silently if there's nothing to commit (e.g., re-running after a partial prior completion).
 
-10. **Compute this task's release version.** Invoke `smaqit.release-analysis` in **Task mode**, passing the resolver's `branch` as `<task-branch>` — it fetches `origin/main` fresh, computes severity/version from `<boundary-sha>..<task-branch>`, and skips any version another concurrently-pending task has already claimed. Then invoke `smaqit.release-approval` using its Pattern 4 (auto-confirm on the Task-mode suggestion — no interactive version prompt; the human approval point for a task's release is the PR review itself, not a separate version confirmation). Store the approved version as `vX.Y.Z`.
+10. **Compute this task's release version.** Invoke `smaqit.release-analysis` in **Task mode**, passing the resolver's `branch` as `<task-branch>` — it fetches `origin/main` fresh, computes severity/version from `<boundary-sha>..<task-branch>`, and skips any version another open release PR has already claimed. Then invoke `smaqit.release-approval` using its Pattern 4 (auto-confirm on the Task-mode suggestion — no interactive version prompt; the human approval point for a task's release is the PR review itself, not a separate version confirmation). Store the approved version as `vX.Y.Z`.
 
-11. **Push the branch and create the PR.** The PR must exist before the pending `CHANGELOG.md` entry can be written, because that entry names this PR's number.
+11. **Push the branch and create the PR.** The PR title is this task's version claim — `release-analysis` reads open release-PR titles to keep concurrent tasks from choosing the same version — so the PR must exist before the branch receives its changelog commit.
     ```bash
     git -C "<worktree>" push -u origin "<branch-name>"
     gh pr create --base main --head "<branch-name>" \
@@ -92,20 +92,16 @@ Every `smaqit-extensions` session works against a single machine-local clone —
     - Capture the PR number from `gh pr create`'s output URL (or `gh pr view --json number -q .number`) as `<PR#>`.
     - Then invoke `smaqit.release-git-pr` for its title-verification step only (its Step 4). It no longer stages or commits `CHANGELOG.md` — see that skill's "Invocation from `smaqit.task-complete`" section — so its Steps 1-2 are skipped; only the title enforcement and PR-description documentation apply.
 
-12. **Commit the pending `CHANGELOG.md` entry to local `main`**, now that `<PR#>` is known. Use `smaqit.release-prepare-files`' Pending Entry Mode "Write a pending entry" operation, on the **primary checkout**, not the task worktree (resolve the primary path from `git worktree list --porcelain`). This commit stays local — never push it. Re-read `CHANGELOG.md` immediately before writing, and apply the same re-read-before-write / genuine-collision policy documented in `smaqit.task-start`'s Step 8: reapply this task's own pending entry on top of any concurrent local change rather than overwriting the file, and STOP and report if the collision is genuine (e.g. two tasks' pending entries landed on the exact same `[Unreleased]` line).
+12. **Write this task's versioned `CHANGELOG.md` section on the branch**, in the registered task worktree — never on the primary checkout, never on `main`. Apply `smaqit.release-prepare-files`' Task-Release Mode operation with the approved `vX.Y.Z` and `release-analysis`'s `changes` list: it folds whatever bullets the implementer already left under `[Unreleased]` together with that list into a new `## [X.Y.Z] - YYYY-MM-DD` section directly below `## [Unreleased]`, and leaves `[Unreleased]` as an empty header. An implementer's own `[Unreleased]` bullets are input here, not a conflict — there is no second writer to collide with.
 
-13. **Promote the entry on the PR's own branch**, so merging the PR turns the pending annotation into a real released version section — without this step the PR carries no `CHANGELOG.md` change at all, `post-merge-release.yml`'s release-notes extraction finds no `## [X.Y.Z]` section, and the pending annotation would linger on `main` forever.
-    ```bash
-    git -C "<worktree>" rebase main
-    ```
-    Rebase onto local `main` — not `origin/main`. Step 12's pending entry was committed to local `main` only and was never pushed, so rebasing against a stale `origin/main` would never pick it up. No `fetch` is needed for this step; local `main` already has everything Step 12 just committed. Then apply `smaqit.release-prepare-files`' Pending Entry Mode "Promote a single pending entry" operation for this task's own `(pending vX.Y.Z · PR #<PR#>)` annotation — leaving every other task's pending entry untouched — and commit and force-push the branch:
+13. **Commit and push the changelog commit** on the branch, so the merged PR carries the `## [X.Y.Z]` section that `post-merge-release.yml`'s release-notes extraction looks for:
     ```bash
     git -C "<worktree>" add CHANGELOG.md
-    git -C "<worktree>" commit -m "chore: promote task NNN changelog entry to vX.Y.Z"
-    git -C "<worktree>" push --force-with-lease origin "<branch-name>"
+    git -C "<worktree>" commit -m "chore: task NNN — changelog for vX.Y.Z"
+    git -C "<worktree>" push origin "<branch-name>"
     ```
-    - `--force-with-lease` (never bare `--force`) is required because the rebase rewrote the branch's history; the lease aborts the push if anyone else moved the branch in the meantime.
-    - If the rebase conflicts, STOP and report — never auto-resolve. The task stays `In Progress` with its PR open for the user to sort out.
+    - A plain push, never a forced one: the branch's history is only ever appended to, and nothing here rebases it — not onto local `main` (which would drag every unpushed bookkeeping commit sitting there into the PR) and not onto `origin/main` (GitHub merges the PR against `main` itself; a stale base is its problem to report, not this step's to fix).
+    - If the push is rejected (someone else moved the branch), STOP and report — never force, never rebase. The task stays `In Progress` with its PR open for the user to sort out.
 
 14. **Update task state to `PR Open`** on the primary checkout: set `status: PR Open` and add a `pr: <PR#>` key to the task file's frontmatter, update `PLANNING.md`'s Active Tasks row to `PR Open`, then commit together on local `main` (re-read-before-write, never pushed — same policy as `smaqit.task-start`'s Step 8):
     ```bash
@@ -145,11 +141,11 @@ Every `smaqit-extensions` session works against a single machine-local clone —
     git -C "<primary>" fetch origin main
     git -C "<primary>" merge origin/main
     ```
-    This is a real merge, not a fast-forward-only pull. Local `main` can legitimately be ahead of `origin/main` at this point — every bookkeeping commit from Steps 12 and 14 (and, for an earlier task still in flight, other tasks' own pending bookkeeping) landed on local `main` and was never pushed, so a `--ff-only` pull would routinely refuse here; that's expected, not a warning sign.
+    This is a real merge, not a fast-forward-only pull. Local `main` can legitimately be ahead of `origin/main` at this point — every bookkeeping commit from `task-start`'s Step 8 and this skill's Step 14 (and, for an earlier task still in flight, that task's own bookkeeping) landed on local `main` and was never pushed, so a `--ff-only` pull would routinely refuse here; that's expected, not a warning sign.
 
     In the common case this merge is itself a fast-forward (`origin/main`'s new PR-merge commit descends from what this primary checkout already had), so `git merge` resolves it with no merge commit. A true three-way merge is only needed when local `main` has unpushed bookkeeping commits that `origin/main`'s tip doesn't — normal and expected, not a conflict by itself.
     - **Clean merge (fast-forward or otherwise):** continue.
-    - **Conflict:** STOP and report — never auto-resolve, never `git merge -X ours`/`-X theirs`. Abort the merge (`git merge --abort`) and hand the conflicting paths to the user, matching `smaqit.session-finish`'s existing policy for `main`. This should be rare: the only files bookkeeping commits touch are task files, `PLANNING.md`, and pending `CHANGELOG.md` entries, and a merged PR's own commits on `origin/main` don't touch those paths.
+    - **Conflict:** STOP and report — never auto-resolve, never `git merge -X ours`/`-X theirs`. Abort the merge (`git merge --abort`) and hand the conflicting paths to the user, matching `smaqit.session-finish`'s existing policy for `main`. This should be rare: the only files bookkeeping commits touch are task files and `PLANNING.md`, and a merged PR's own commits on `origin/main` don't touch those paths.
 
 18. **Update task state to Completed** on the primary checkout: set `status: Completed`, add `completed: "YYYY-MM-DD"` (today, quoted) to the frontmatter, remove the `pr` key, and move the entry in `PLANNING.md`. Commit them together on local `main` (re-read-before-write, never pushed — same policy as `smaqit.task-start`'s Step 8):
     ```bash
@@ -174,7 +170,7 @@ Every `smaqit-extensions` session works against a single machine-local clone —
     ```bash
     git branch -D "<branch-name>"
     ```
-    - Use `-D` (force), not `-d`. Step 16 already confirmed `MERGED` through GitHub's own PR API — the authoritative source of truth for "this branch's work is safely in `main`" — so `-d`'s local ancestry check is redundant and actively wrong for a squash-merged PR: GitHub creates a new commit SHA that is never an ancestor of the original branch tip, so `-d` would refuse deletion even though the PR genuinely merged. Step 13's rebase also rewrites the branch's SHAs, so even a plain merge-commit merge can leave the pre-rebase local ref unmerged by `-d`'s reckoning.
+    - Use `-D` (force), not `-d`. Step 16 already confirmed `MERGED` through GitHub's own PR API — the authoritative source of truth for "this branch's work is safely in `main`" — so `-d`'s local ancestry check is redundant and actively wrong for a squash-merged PR: GitHub creates a new commit SHA that is never an ancestor of the original branch tip, so `-d` would refuse deletion even though the PR genuinely merged.
     - **Never run `git push origin --delete "<branch-name>"` or any remote deletion.** The remote branch is preserved indefinitely as an audit trail of every merged/released task branch.
     - If the local branch does not exist, skip silently.
 
@@ -184,9 +180,8 @@ Every `smaqit-extensions` session works against a single machine-local clone —
 
 Entered from Step 3a when a task is abandoned while its PR is still open — the user decides to discontinue it rather than wait for merge, or the PR was closed unmerged on GitHub. Assisted mode requires an explicit user request to abandon, exactly as Step 15 requires one for Phase 2.
 
-23. Close the PR if it is still open (only on explicit user confirmation of abandonment; never auto-close without instruction): `gh pr close <PR#>`.
-24. Delete the pending `CHANGELOG.md` entry for this task directly on local `main` (same primary-checkout, local-only, re-read-before-write commit as Step 12 — never pushed) — remove the whole bullet, do not leave an orphaned annotation. **Never reuse the version it claimed**; the next task's `release-analysis` run will naturally pick the next available number.
-25. Set `status: Abandoned` (with the reason recorded in `PLANNING.md`), remove the `pr` key, and move the `PLANNING.md` entry, commit (Step 18's local-only pattern), then run Steps 20-21 (worktree removal, local-only branch force-delete) exactly as a normal completion would.
+23. Close the PR if it is still open (only on explicit user confirmation of abandonment; never auto-close without instruction): `gh pr close <PR#>`. Nothing on `main` needs cleaning up — the branch's `## [X.Y.Z]` section was never anywhere but the branch, and a closed PR no longer claims anything: its version returns to the pool, and the next task's `release-analysis` run may reuse it, since a never-tagged version has no release behind it.
+24. Set `status: Abandoned` (with the reason recorded in `PLANNING.md`), remove the `pr` key, and move the `PLANNING.md` entry, commit (Step 18's local-only pattern), then run Steps 20-21 (worktree removal, local-only branch force-delete) exactly as a normal completion would.
 
 ## Mode-Aware Enforcement
 

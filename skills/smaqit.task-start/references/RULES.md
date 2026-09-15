@@ -73,7 +73,7 @@ mode: Assisted | Autonomous
 
 For an owner (standalone or parent) task, `task-complete` runs in two phases, and this gate applies to **each one independently** — an explicit request that triggered Phase 1 does not also authorize Phase 2:
 
-- **Phase 1** (Status `In Progress`): commits implementation, computes the task's release version, pushes a pending `CHANGELOG.md` entry, pushes the branch, and opens a PR. Then STOPS.
+- **Phase 1** (Status `In Progress`): commits implementation, computes the task's release version, pushes the branch, opens a PR, and writes this task's `## [X.Y.Z]` `CHANGELOG.md` section on that same branch. Then STOPS.
 - **Phase 2** (Status `PR Open`, re-entrant): verifies the PR merged on GitHub and cleans up. No local merge — GitHub already performed it.
 
 When task mode is "Assisted":
@@ -151,7 +151,7 @@ For skills that interact with tasks:
 - [ ] Read task file to get mode and current Status (`In Progress` vs `PR Open` selects Phase 1 vs Phase 2)
 - [ ] If assisted mode: check if user invoked *this specific phase* (via instruction context)
 - [ ] If autonomous mode: verify all criteria, then run both phases in one invocation with a self-merge in between
-- [ ] Phase 1, in this order: commit implementation → compute release version → push branch and `gh pr create` (title `Prepare release vX.Y.Z`) → commit the `(pending vX.Y.Z · PR #NNN)` CHANGELOG entry to local `main` (never pushed; the PR must exist first since the annotation names it) → rebase the branch onto local `main` and promote that entry into a `## [X.Y.Z]` section on the branch → set status to "PR Open" with its PR number
+- [ ] Phase 1, in this order: commit implementation → compute release version (open release-PR titles are the claimed-version registry) → push branch and `gh pr create` (title `Prepare release vX.Y.Z`) → write this task's `## [X.Y.Z]` section directly on the branch, folding in any `[Unreleased]` bullets the implementer left, and commit + plain-push it (never a write to `main`, never a rebase, never a force-push) → set status to "PR Open" with its PR number
 - [ ] Phase 2: re-check the mode gate for this phase, confirm `gh pr view` reports `MERGED`, merge `origin/main` into local `main` (never a fast-forward-only pull — local `main` may legitimately be ahead with unpushed bookkeeping), update status to "Completed", clean up (worktree + local-only branch delete)
 - [ ] Move from Active to Completed in PLANNING.md
 
@@ -165,7 +165,7 @@ For skills that interact with tasks:
 ### Rule 6: PR-Gated Owner Completion
 
 - Main's code is always merged via PR, never a direct local `git merge` — an owner task's branch and its release travel together as one PR (Phase 1 opens it; the PR title follows the same `Prepare release vX.Y.Z` convention the release skills already use, since that PR is also this task's release).
-- The PR must be created **before** its pending `CHANGELOG.md` entry is written to `main`, since the `(pending vX.Y.Z · PR #NNN)` annotation names the PR. The PR branch must then carry its own commit promoting that entry into a real `## [X.Y.Z]` section — without it the merged PR contributes no changelog change, the release-notes extraction finds nothing, and the pending annotation never clears from `main`.
+- The PR title (`Prepare release vX.Y.Z`) is the task's version claim — `release-analysis` reads open release-PR titles from GitHub to keep concurrent tasks from choosing the same version — so the PR is created **before** the branch receives its changelog commit. The PR branch then carries its own `## [X.Y.Z]` section, written by `task-complete` directly on the branch and plain-pushed; nothing is ever written to `main`, and the branch is never rebased onto it (that would drag unpushed bookkeeping into the PR). Without that on-branch section the merged PR contributes no changelog change and the release-notes extraction finds nothing.
 - `smaqit.task-start` and `smaqit.task-complete`'s pre-PR metadata commits land on local `main` immediately (re-read-before-write on collision, never pushed) — never deferred to `session-finish`. Every task worktree shares this repository's single `.git` object database and ref namespace, so a parallel session sees current state the instant the commit lands, with no push or network operation needed.
 - Phase 2 confirms a merge exclusively via `gh pr view <PR#> --json state,mergedAt` — never inferred from local branch state, ancestry, or anything else.
 - Local branch cleanup force-deletes (`git branch -D`) once Phase 2 confirms `MERGED`, regardless of merge strategy (handles squash merges, which git's own `-d` ancestry check cannot recognize as merged). The remote branch is **never** deleted — it is retained indefinitely as an audit trail of every merged/released task.

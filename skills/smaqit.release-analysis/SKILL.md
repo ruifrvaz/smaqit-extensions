@@ -2,7 +2,7 @@
 name: smaqit.release-analysis
 description: Collect changes, assess severity, and suggest next version for a release
 metadata:
-  version: "0.9.0"
+  version: "0.10.0"
 ---
 
 # Release Analysis
@@ -19,7 +19,7 @@ Use this skill at the start of a release workflow to:
 ## Modes
 
 - **Batch mode (default)** — the traditional invocation: analyze `<boundary-sha>..HEAD` on the checked-out branch (typically `main` or a release-prep branch). Used by `release-git-local` and any manually-triggered batched release.
-- **Task mode** — invoked by `smaqit.task-complete` before a task's own code has merged. Analyzes `<boundary-sha>..<task-branch>` instead of `HEAD`, and additionally applies the pending-version-awareness check in Step 1e so a concurrently-open sibling task's already-claimed version is never suggested again. The caller supplies `<task-branch>` explicitly; every other step is identical except where marked "Task mode only."
+- **Task mode** — invoked by `smaqit.task-complete` before a task's own code has merged. Analyzes `<boundary-sha>..<task-branch>` instead of `HEAD`, and additionally applies the claimed-version-awareness check in Step 1e so a version already claimed by another open release PR is never suggested again. The caller supplies `<task-branch>` explicitly; every other step is identical except where marked "Task mode only."
 
 ### Step 1: Find the Release Boundary Commit
 
@@ -83,7 +83,7 @@ git tag --merged origin/main --sort=-v:refname | head -1
 
 Store as `<last-version>` (e.g., `v1.1.2`).
 
-Step 1c asks *"where does this release's delta begin?"* — answered by the **topologically latest** reachable tag. Step 1d asks *"what version must the next one exceed?"* — answered by the **highest-numbered** reachable tag. Under the per-task release model, each task's PR claims its version before merging and PRs merge in review order, not version order, so tags land out of numeric sequence by design. If PR #200 claims v2.1.0 and merges first, then PR #201 claims v2.0.1 and merges second, the topologically latest tag is `v2.0.1` while the highest is `v2.1.0`. Deriving the version baseline from the boundary commit would then suggest `v2.0.2` — **below the already-released v2.1.0**. Step 1e's pending-claim check does not catch this: by then the colliding version is released and promoted, no longer a pending annotation.
+Step 1c asks *"where does this release's delta begin?"* — answered by the **topologically latest** reachable tag. Step 1d asks *"what version must the next one exceed?"* — answered by the **highest-numbered** reachable tag. Under the per-task release model, each task's PR claims its version before merging and PRs merge in review order, not version order, so tags land out of numeric sequence by design. If PR #200 claims v2.1.0 and merges first, then PR #201 claims v2.0.1 and merges second, the topologically latest tag is `v2.0.1` while the highest is `v2.1.0`. Deriving the version baseline from the boundary commit would then suggest `v2.0.2` — **below the already-released v2.1.0**. Step 1e's claimed-version check does not catch this: by then the colliding version is released and tagged, and its PR is merged rather than open.
 
 **Fallback 1 (no tags — a repository that has only ever released via marker commits):**
 ```bash
@@ -93,9 +93,16 @@ Take the second entry when Batch mode's tip is itself a marker commit, the first
 
 **Fallback 2 (neither tags nor markers — new repository):** use `v0.0.0` as baseline and suggest `v0.1.0`.
 
-**Step 1e — Pending-version awareness (Task mode only):**
+**Step 1e — Claimed-version awareness (Task mode only):**
 
-Read `## [Unreleased]` from `origin/main`'s current `CHANGELOG.md` (`git show origin/main:CHANGELOG.md`, not the local working tree, to stay consistent with the fresh fetch above) and collect every `(pending vX.Y.Z · PR #NNN)` annotation — see `smaqit.release-prepare-files`' Pending Entry Convention for the exact format. Each collected version is **already claimed** by another in-flight task's PR and must never be suggested again in Step 4, in addition to `<last-version>` itself. If the computed candidate collides with a claimed version, keep incrementing by the same severity step (e.g., PATCH: `.4`, `.5`, `.6`, ...) until landing on one that is neither tagged nor claimed.
+Every owner task's release PR is titled `Prepare release vX.Y.Z` from the moment `smaqit.task-complete` opens it (its Step 11), so the set of open release PRs *is* the registry of versions already claimed by in-flight work — remote, always current, and independent of whatever local `main` happens to hold. Read it directly from GitHub:
+
+```bash
+gh pr list --state open --limit 100 --json number,title \
+  | jq -r '.[] | select(.title | test("^(Prepare release|Release) v[0-9]+\\.[0-9]+\\.[0-9]+$")) | "\(.number)\t\(.title | capture("(?<v>v[0-9]+\\.[0-9]+\\.[0-9]+)").v)"'
+```
+
+Filter titles client-side exactly as above — never `--search`, whose index is eventually consistent and can miss a PR opened seconds earlier. Each collected version is **already claimed** by another in-flight task's PR and must never be suggested again in Step 4, in addition to `<last-version>` itself. If the computed candidate collides with a claimed version, keep incrementing by the same severity step (e.g., PATCH: `.4`, `.5`, `.6`, ...) until landing on one that is neither tagged nor claimed. A closed-unmerged PR no longer claims anything — its version returns to the pool, and a never-tagged version is safe to reuse.
 
 ### Step 2: Collect Changes Since the Boundary
 
@@ -136,7 +143,7 @@ Extract key insights:
 Read markdown files in `.smaqit/history/` directory for additional context on completed work.
 
 **E. `[Unreleased]` section in CHANGELOG.md:**
-Read the existing `## [Unreleased]` section if present — use as a starting point but always cross-check against the commit list above, as this section is frequently incomplete.
+Read the existing `## [Unreleased]` section if present — from the checked-out tree in Batch mode, or from `<task-branch>`'s tree in Task mode (`git show <task-branch>:CHANGELOG.md`), which is where an implementer's own in-progress bullets live. Use it as a starting point but always cross-check against the commit list above, as this section is frequently incomplete. In Task mode those bullets are also folded into the release section by `smaqit.release-prepare-files`' Task-Release Mode, so the `changes` list should subsume them rather than restate them.
 
 ### Step 2 Verification: Completeness check
 
@@ -181,7 +188,7 @@ Based on the assessed severity and latest tag, calculate the next semantic versi
 - Breaking changes still increment Y, not X (0.Y.Z is pre-1.0 API)
 - First stable release should be v1.0.0
 
-**Task mode only:** apply Step 1e's collision check to the candidate computed above. If it matches an already-claimed pending version, keep incrementing at the same severity step until the candidate is neither tagged nor claimed by another pending entry.
+**Task mode only:** apply Step 1e's collision check to the candidate computed above. If it matches a version already claimed by an open release PR, keep incrementing at the same severity step until the candidate is neither tagged nor claimed.
 
 ## Output
 
@@ -205,11 +212,11 @@ rationale: "New features added (release agent), no breaking changes detected"
 - `changes`: Complete list of changes since the last release boundary, one entry per PR or meaningful commit. Use conventional changelog types: `Added`, `Changed`, `Fixed`, `Removed`, `Deprecated`, `Security`. Each entry must be a self-contained description suitable for pasting directly into `CHANGELOG.md`. Include a `reference` (PR number or commit SHA) for traceability.
 - `severity`: MAJOR, MINOR, or PATCH
 - `latest_version`: Highest release version reachable from `origin/main`, from Step 1d's own lookup (e.g., `v1.1.2`) — not re-read from the boundary commit, which can name a lower version when tags land out of order
-- `suggested_version`: Next version following semver rules, adjusted past any pending-claimed collision in Task mode
+- `suggested_version`: Next version following semver rules, adjusted past any claimed-version collision in Task mode
 - `rationale`: Brief explanation of the severity assessment
 - `mode`: `batch` or `task` (Task mode also echoes `task_branch` and, if a collision was avoided, the claimed version(s) skipped)
 
-**Important:** The `changes` list must be exhaustive — it represents the complete delta since the last release boundary. It is used in the next step to reconcile the `[Unreleased]` section of `CHANGELOG.md` before promoting it to the new version.
+**Important:** The `changes` list must be exhaustive — it represents the complete delta since the last release boundary. It is what `smaqit.release-prepare-files` writes into the new version section: reconciled against `[Unreleased]` in the batched flow, or folded together with the task branch's own `[Unreleased]` bullets in Task-Release Mode.
 
 ## Notes
 
@@ -219,7 +226,7 @@ rationale: "New features added (release agent), no breaking changes detected"
 - **Release tags are the canonical boundary** — every release is tagged `vX.Y.Z` regardless of which flow produced it, so tags are the only marker that spans both the batch and PR-gated eras. Marker commits (`"Release vX.Y.Z"`, `"Prepare release vX.Y.Z"`) are a fallback for tagless repositories only: under the PR-gated model that string exists solely as a PR title, and the merge commit GitHub writes (`Merge pull request #NNN from …`) matches no marker pattern
 - **`<boundary-sha>` and `<last-version>` are separate lookups** (Steps 1c and 1d) — topologically latest reachable tag for the delta, highest-numbered reachable tag for the version baseline. They diverge whenever tags land out of numeric order, which the per-task release model produces by design
 - **Shallow clones:** always deepen *and* `git fetch --tags --force` before resolving; the tag-based boundary depends on tags being present locally, which is precisely what the fetch guarantees
-- **Always fetch `origin/main` immediately before searching, never reuse an earlier fetch in the same session** — the boundary and pending-version checks (Step 1a, 1c, 1e) must reflect the remote's current tip, not a cached local ref, so two tasks completing minutes apart never compute the same version
+- **Always fetch `origin/main` immediately before searching, never reuse an earlier fetch in the same session** — the boundary checks (Steps 1a, 1c) must reflect the remote's current tip, not a cached local ref, and the claimed-version check (Step 1e) must query GitHub live for the same reason, so two tasks completing minutes apart never compute the same version
 - Focus on user-facing changes; internal implementation details should not drive severity
 - When in doubt between severities, prefer conservative (e.g., MINOR over MAJOR)
 - Filter out `Initial plan` commits, exact release-marker commits, and release-PR merge commits from the delta — these are workflow noise, not changelog material

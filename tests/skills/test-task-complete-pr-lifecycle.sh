@@ -254,19 +254,25 @@ assert_contains "$TASK_COMPLETE" 'gh pr view <PR#> --json state,mergedAt' "Phase
 # (gh pr view) — leaving no step that opened one.
 assert_contains "$TASK_COMPLETE" 'gh pr create --base main' "Phase 1 actually creates the PR"
 
-# The pending annotation names the PR, so the PR has to exist first. Assert
-# the ordering by line number, not just presence.
+# The PR title is the version claim, so the PR must exist before the branch
+# receives its changelog commit. Assert the ordering by line number, not just
+# presence.
 pr_create_line="$(rg -n --fixed-strings 'gh pr create --base main' "$TASK_COMPLETE" | head -1 | cut -d: -f1)"
-pending_write_line="$(rg -n --fixed-strings 'Commit the pending `CHANGELOG.md` entry to local `main`' "$TASK_COMPLETE" | head -1 | cut -d: -f1)"
-[ -n "$pr_create_line" ] && [ -n "$pending_write_line" ] || fail "could not locate PR-create and pending-entry steps for ordering check"
-[ "$pr_create_line" -lt "$pending_write_line" ] \
-  || fail "PR creation must precede writing the pending CHANGELOG entry — the annotation names the PR number"
+changelog_write_line="$(rg -n --fixed-strings 'versioned `CHANGELOG.md` section on the branch' "$TASK_COMPLETE" | head -1 | cut -d: -f1)"
+[ -n "$pr_create_line" ] && [ -n "$changelog_write_line" ] || fail "could not locate PR-create and changelog-write steps for ordering check"
+[ "$pr_create_line" -lt "$changelog_write_line" ] \
+  || fail "PR creation must precede the on-branch changelog write — the PR title is the version claim"
 
-# Without a promotion commit on the branch, the merged PR carries no changelog
-# change: post-merge-release.yml's awk finds no '## [X.Y.Z]' section (empty
-# release notes) and the pending annotation never clears from main.
-assert_contains "$TASK_COMPLETE" 'Promote the entry on the PR' "Phase 1 promotes the pending entry on the PR branch"
-assert_contains "$TASK_COMPLETE" '--force-with-lease' "the post-rebase branch push uses --force-with-lease, never bare --force"
+# The changelog section is born on the branch and committed there with a plain
+# push. Nothing in Phase 1 may write CHANGELOG.md to main, rebase the branch
+# onto main (which dragged every unpushed bookkeeping commit into the PR), or
+# force-push — the retired pending-entry design did all three.
+assert_contains "$TASK_COMPLETE" 'git -C "<worktree>" push origin "<branch-name>"' "Step 13 pushes the changelog commit with a plain push"
+phase1="$(awk '/^## Phase 1/{f=1} /^## Phase 2/{f=0} f' "$TASK_COMPLETE")"
+printf '%s\n' "$phase1" | rg -q --fixed-strings 'rebase main' && fail "Phase 1 must not rebase the branch onto main"
+printf '%s\n' "$phase1" | rg -q --fixed-strings -- '--force-with-lease' && fail "Phase 1 must not force-push the branch"
+printf '%s\n' "$phase1" | rg -q --fixed-strings 'Pending Entry Mode' && fail "Phase 1 must not reference the retired pending-entry mechanism"
+assert_contains "$TASK_START" 'git branch "<branch>" origin/main' "task-start creates the owner branch from fetched origin/main, never local main"
 
 # Phase 2 is reached by skipping the Step 4 mode check, so it must re-assert
 # its own gate or Assisted-mode tasks would self-complete after a merge.
@@ -276,7 +282,7 @@ assert_contains "$TASK_COMPLETE" 'git branch -D "<branch-name>"' "Phase 2 force-
 assert_contains "$TASK_COMPLETE" 'Never run `git push origin --delete' "Phase 2 documents never deleting the remote branch"
 assert_contains "$TASK_COMPLETE" 'Owner, Status `PR Open`' "Phase gate branches on Status for owners"
 assert_contains "$TASK_COMPLETE" '## Abandon Path' "abandon path is documented"
-assert_contains "$TASK_COMPLETE" 'Never reuse the version it claimed' "abandon path never reuses a burned version"
+assert_contains "$TASK_COMPLETE" 'its version returns to the pool' "abandon path documents that closing the PR releases its version claim"
 assert_contains "$TASK_COMPLETE" 'explicit user request before *each* phase' "Assisted mode gates each phase independently"
 assert_contains "$TASK_START" 'This commit stays local to `main` — never push it, and never open a PR for it' "task-start commits metadata locally, never pushes it"
 assert_contains "$TASK_START" 'never auto-resolve it. STOP and report the conflicting file and lines to the user' "task-start never auto-resolves a genuine local collision"

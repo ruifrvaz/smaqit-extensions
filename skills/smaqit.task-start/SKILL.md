@@ -2,7 +2,7 @@
 name: smaqit.task-start
 description: Start working on a task by creating its task branch and worktree, updating the VS Code workspace, and setting assisted or autonomous workflow mode.
 metadata:
-  version: "0.13.0"
+  version: "0.14.0"
 ---
 
 # Task Start
@@ -68,7 +68,7 @@ Every `smaqit-extensions` session works against a single machine-local clone —
    - Sparse task worktrees intentionally omit installed skills and `.smaqit/tasks/`, so always invoke the resolver from the primary checkout. Task state for both owner and child lives exclusively on primary — the returned worktree is for implementation only.
 
 3. **Set up the owner worktree or join the parent**:
-   - **Owner:** create or reuse the resolver's `branch` from `main`, then execute every documented `smaqit.utils.worktree` setup step in order. Capture its returned worktree and workspace paths — implementation happens there, but task-state writes (Steps 6–8) always target the primary checkout's task file and `PLANNING.md`.
+   - **Owner:** fetch first (`git fetch origin main`), then create the resolver's `branch` from `origin/main` — never from local `main` — or reuse it if it already exists: `git branch "<branch>" origin/main`. Local `main` legitimately carries unpushed bookkeeping commits (this skill's Step 8, `task-complete`'s status commits, `session-finish`'s history) that must never ride into a task's PR, and `origin/main` is exactly what that PR will be reviewed against. Then execute every documented `smaqit.utils.worktree` setup step in order. Capture its returned worktree and workspace paths — implementation happens there, but task-state writes (Steps 6–8) always target the primary checkout's task file and `PLANNING.md`.
    - **Child:** reuse the resolver's `branch`, `worktree`, and `task_file` (already resolved on primary). Do not invoke branch creation, worktree setup, orphan cleanup, or workspace rebuilding.
    - Inform the user of the resolved ownership and path. For an owner, say `Branch "<branch>" created with worktree at <worktree-path>.`; for a child, say `Task NNN joined parent task <parent> at <worktree-path>.` In both cases, remind them to open the root workspace with `code <workspace-path>` when it changed.
 

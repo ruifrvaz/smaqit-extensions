@@ -141,3 +141,11 @@ version: "1.0.0"
 | GitHub Copilot custom instructions | Coding agent AGENTS.md changelog | https://github.blog/changelog/2025-08-28-copilot-coding-agent-now-supports-agents-md-custom-instructions/ |
 | Claude Code CLAUDE.md imports | Memory and @import docs | https://code.claude.com/docs/en/memory |
 | Visual Studio Code | Multi-root workspaces | https://code.visualstudio.com/docs/editing/workspaces/multi-root-workspaces |
+
+## Task 039 — Guard Against Implementer-Written CHANGELOG.md Conflicts
+
+**Context fingerprint:** sha256:ee9d6b8f95f8e8804ee6252d0f356d9efc637a16a3ad8c4a62f83cda01c5e122
+**Refreshed:** 2026-09-15
+
+| Tool | Section | URL |
+|------|---------|-----|

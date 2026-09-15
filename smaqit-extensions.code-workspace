@@ -5,8 +5,8 @@
       "path": "."
     },
     {
-      "name": "task/038-fix-project-init-scaffolding-drop-copilot-instructions-symlink-trim-boilerplate-add-baseline-workspace",
-      "path": "../smaqit-extensions-wt-task-038-fix-project-init-scaffolding-drop-copilot-instructions-symlink-trim-boilerplate-add-baseline-workspace"
+      "name": "task/039-guard-against-implementer-written-changelog-md-conflicts",
+      "path": "../smaqit-extensions-wt-task-039-guard-against-implementer-written-changelog-md-conflicts"
     }
   ],
   "settings": {

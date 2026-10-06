@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -310,5 +311,45 @@ func TestParsePositionalDir(t *testing.T) {
 				t.Errorf("parsePositionalDir(%v) = %q, want %q", tt.args, got, tt.want)
 			}
 		})
+	}
+}
+
+func TestRemoveRetiredSkillsDeletesOnlyRetired(t *testing.T) {
+	dir := t.TempDir()
+	for _, name := range append([]string{"smaqit.session-finish"}, retiredSkills...) {
+		if err := os.MkdirAll(filepath.Join(dir, name), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(dir, name, "SKILL.md"), []byte("x"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if got := removeRetiredSkills(dir); got != len(retiredSkills) {
+		t.Fatalf("removed %d, want %d", got, len(retiredSkills))
+	}
+	for _, name := range retiredSkills {
+		if _, err := os.Stat(filepath.Join(dir, name)); !os.IsNotExist(err) {
+			t.Fatalf("retired skill %s still present", name)
+		}
+	}
+	if _, err := os.Stat(filepath.Join(dir, "smaqit.session-finish", "SKILL.md")); err != nil {
+		t.Fatalf("a shipped skill was removed: %v", err)
+	}
+	if got := removeRetiredSkills(dir); got != 0 {
+		t.Fatalf("second run removed %d, want 0 (idempotent)", got)
+	}
+}
+
+func TestRetiredSkillsAreNotShipped(t *testing.T) {
+	for _, name := range retiredSkills {
+		for _, root := range []string{"skills", "skills-claude"} {
+			var fsys fs.FS = skillFiles
+			if root == "skills-claude" {
+				fsys = skillFilesClaude
+			}
+			if _, err := fs.Stat(fsys, root+"/"+name); err == nil {
+				t.Fatalf("retired skill %s is still embedded under %s", name, root)
+			}
+		}
 	}
 }

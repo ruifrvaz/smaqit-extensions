@@ -1,8 +1,8 @@
 ---
 name: smaqit.session-finish
-description: End session by documenting the entire conversation. Use at session completion to create history entries.
+description: End session by documenting the entire conversation and giving it a numbered title (`NNN: Title`). Use at session completion to create history entries — including when the user asks to "finish and title" the session. Also answers a request for just the session title ("session title") in title-only mode, without the history and bookkeeping flow.
 metadata:
-  version: "0.10.2"
+  version: "0.11.0"
 ---
 
 # Session Finish
@@ -13,7 +13,23 @@ End a session by documenting the **entire session** (not just recent activity).
 
 ```
 session.finish                     # Documents the session, then finalizes main's git state; stops only on the failure-handling conditions below
+session.title                      # Title-only mode: outputs the session's `NNN: Title` and stops
 ```
+
+## Modes
+
+This skill owns the session title — there is no separate title skill — so a title is never produced
+by a second skill that could end the turn before the history file is written.
+
+- **Full mode (default):** every step below, in order. Any request to finish, close, wrap up or
+  document the session runs this mode — including "finish and title", "session finish and session
+  title", or any request that combines finishing with a title. The title comes from Step 2 and is
+  reported at the end; never stop after producing it.
+- **Title-only mode:** the user asks only for the session's title or number ("session title",
+  "title this session", "what's this session's number?") and does not ask to finish. Run Step 0
+  and Step 2 only, output exactly the `NNN: Title` line, and stop. Write no history file, no memory,
+  no research map, no compendium, and touch no git state. If the request is ambiguous between the
+  two, use Full mode.
 
 ## Steps
 
@@ -33,14 +49,35 @@ session.finish                     # Documents the session, then finalizes main'
    - If any task shows status "In Progress", list them, STOP, and instruct: "Complete with `task.complete [id]` first, or say 'skip' to proceed."
    - Otherwise continue.
 
-2. **Create history file** if session qualifies as significant
+2. **Determine the session number and title** (both modes)
+   - **Number:** the next sequential `NNN` after the highest-numbered file in `.smaqit/history/`
+     (zero-padded to 3 digits); `001` if there are none.
+   - **Title**, from the full session arc of Step 0:
+     - **2-5 words**, **Title Case**
+     - describes the **outcome**, not the activity (avoid bare "Update", "Fix", "Refactor",
+       "Various Improvements")
+     - uses the project's own technical terminology
+     - **no task identifiers** ("Task 062", "B002")
+     - **unique**: compare against the titles of existing `.smaqit/history/` files and pick a more
+       specific one if it would duplicate
+   - Good: "Agent Instructions Compilation Architecture", "Framework Split Evolution",
+     "Stateful Specifications". Avoid: "Update Agent Files", "Fix Structure Issues", "Task 062
+     Implementation".
+   - **Title-only mode:** output exactly `NNN: Title` (e.g. `038: Agent Instructions Compilation
+     Architecture`) with no other text, and stop.
+   - **Full mode:** keep `NNN` and the title for Step 3 and for the final report, and continue —
+     never end the turn here.
+
+3. **Create history file** if session qualifies as significant
    - Filename: `.smaqit/history/NNN_description_YYYY-MM-DD.md`
-     - `NNN` = Next sequential number (inspect existing files; if none exist, start at `001`)
-     - `description` = Brief topic description (2-4 words, lowercase with underscores)
+     - `NNN` = the number from Step 2
+     - `description` = the Step 2 title, lowercased, with spaces and punctuation turned into
+       underscores (e.g. "Mesh-Only Internal Machine Ingress" → `mesh_only_internal_machine_ingress`),
+       so the filename and the title never drift apart
      - `YYYY-MM-DD` = Session date
      - **Do NOT include task identifiers** (e.g., "task_014") in filename
    - Content structure:
-     - **Title**: Matches filename description, converted to title case (e.g., "# Incremental Processing Assessment")
+     - **Title**: the Step 2 title (e.g., "# Incremental Processing Assessment")
      - **Metadata**: Date, session focus, tasks completed/referenced (include task IDs here)
      - **Actions taken**: What was accomplished
      - **Problems solved**: Issues encountered and resolutions
@@ -51,7 +88,7 @@ session.finish                     # Documents the session, then finalizes main'
    - Focus on **what** and **why**, not implementation details
    - Cover the **complete session arc**, not just the last activity
 
-3. **If a persistent, cross-session memory/notes capability is available in this environment**, use it to record the following (best-effort — the history file written in Step 1 remains the source of truth regardless of whether this step is available or succeeds):
+4. **If a persistent, cross-session memory/notes capability is available in this environment**, use it to record the following (best-effort — the history file written in Step 3 remains the source of truth regardless of whether this step is available or succeeds):
    - **Session summary** — captures what happened so any future session on any branch can pick up where this one left off:
      - `subject`: `"session history"`
      - `fact`: `"[NNN] [YYYY-MM-DD]: [2–3 sentence summary of key actions, decisions, and outcomes]"` (≤ 200 chars)
@@ -65,9 +102,9 @@ session.finish                     # Documents the session, then finalizes main'
 
    **Note:** Task state in memory is owned by task skills (`task-create`, `task-start`, `task-complete`). Do NOT store task lists or task status here.
 
-4. **Refresh research map** (best-effort — do not let failure block session completion)
+5. **Refresh research map** (best-effort — do not let failure block session completion)
    1. Check whether `.smaqit/references/project-research.md` exists.
-   2. **Does not exist** → invoke `smaqit.project-research` to build it for the first time, then continue to Step 4.
+   2. **Does not exist** → invoke `smaqit.project-research` to build it for the first time, then continue to Step 6.
    3. **Exists** → read the `**Refreshed:**` date from the map header.
    4. Compute the age of the map in days (current date minus the `Refreshed:` date).
    5. Check whether any project manifest file (`go.mod`, `package.json`, `requirements.txt`, `pyproject.toml`, `*.csproj`, `pom.xml`, `Cargo.toml`, `Gemfile`, `composer.json`, `build.gradle`) has a modification timestamp **newer** than the map's `Refreshed:` date.
@@ -75,9 +112,9 @@ session.finish                     # Documents the session, then finalizes main'
    7. **Map is current** → report "Research map is current (last updated: YYYY-MM-DD)" and skip rebuild.
    8. If any error occurs during this step, log a brief warning and continue to Step 6 — research refresh is best-effort.
 
-5. **Update this history file** as the session reference for next chat
+6. **Update this history file** as the session reference for next chat
 
-6. **Update the project compendium** (after history file is written):
+7. **Update the project compendium** (after history file is written):
    - Read `references/COMPENDIUM_FORMAT.md` from the `smaqit.project-compendium` skill before writing any entries.
    - Scan the session transcript for user questions — identify questions that are project-specific, non-trivial, and were answered substantively by the agent.
    - Filter out: purely navigational inputs ("what's next?", "continue", "proceed"), one-word commands, meta-session phrases ("new session", "session start", "can you recap?"), and questions whose answers are entirely generic (not project-specific).
@@ -88,7 +125,7 @@ session.finish                     # Documents the session, then finalizes main'
    - Write the updated compendium atomically (overwrite the file); create the file if it does not exist.
    - Report: "Compendium updated — N entries added, M entries updated." (Skip this report if no candidate questions were found.)
 
-7. **Finalize main branch state** — runs after Step 6 regardless of whether a history file was written this session. `main` can still be behind `origin/main` from a prior session, or — since task 036 moved task-lifecycle bookkeeping commits to local `main` only, never pushed — routinely ahead with an entire session's worth of unpushed task bookkeeping. Operates only on the primary checkout and only on `main`; never touches another worktree or branch. Resolve the primary checkout path via `git worktree list --porcelain` — never assume cwd is the primary checkout.
+8. **Finalize main branch state** — runs after Step 7 regardless of whether a history file was written this session. `main` can still be behind `origin/main` from a prior session, or — since task 036 moved task-lifecycle bookkeeping commits to local `main` only, never pushed — routinely ahead with an entire session's worth of unpushed task bookkeeping. Operates only on the primary checkout and only on `main`; never touches another worktree or branch. Resolve the primary checkout path via `git worktree list --porcelain` — never assume cwd is the primary checkout.
 
    - **First, check for an existing bookkeeping-sync PR** left by a previous session's fallback: `gh pr list --head chore/session-bookkeeping-sync --state open`.
      - No `chore/session-bookkeeping-sync` branch exists remotely at all → skip this check entirely and proceed to the normal decision tree below (the common case on every unprotected `main`, and the common case here even on a protected one until the fallback first fires).
@@ -97,7 +134,7 @@ session.finish                     # Documents the session, then finalizes main'
    - Check the current branch and status (`git branch --show-current`, `git status --porcelain`). If already on `main`, clean, and in sync with `origin/main`, there is nothing to do.
    - If the situation is straightforward, resolve it directly:
      - On a different branch with a clean tree → `git checkout main`.
-     - Uncommitted changes on `main` from files this run itself wrote (the Step 2 history file; `.smaqit/compendium.md` if Step 6 updated it; `.smaqit/references/project-research.md` if Step 4 refreshed it) → stage exactly those paths (never `git add -A` or a broader path) and commit.
+     - Uncommitted changes on `main` from files this run itself wrote (the Step 3 history file; `.smaqit/compendium.md` if Step 7 updated it; `.smaqit/references/project-research.md` if Step 5 refreshed it) → stage exactly those paths (never `git add -A` or a broader path) and commit.
      - Behind `origin/main` with no local commits of your own → `git fetch origin main && git pull --ff-only origin main`.
      - Ahead of `origin/main` with nothing to pull → attempt `git push origin main` first, exactly as always:
        - **Succeeds** → done; nothing else to do.
@@ -120,9 +157,12 @@ session.finish                     # Documents the session, then finalizes main'
 ## Requirements
 
 - **Do NOT create** separate RESUME or TODO files (history file serves this purpose)
+- **Full mode ends with a report whose first line is the Step 2 `NNN: Title`**, followed by what was
+  written and the git outcome. Producing the title never ends Full mode early: the history file and
+  every later step still run in the same turn.
 - Document the complete session, not just the final activity
 - Focus on decisions and rationale, not implementation details
-- Always attempt Step 2 (memory) even when no history file was created, if a memory capability is available — it is the cross-branch context mechanism; the history file remains authoritative when it is not available
+- Always attempt Step 4 (memory) even when no history file was created, if a memory capability is available — it is the cross-branch context mechanism; the history file remains authoritative when it is not available
 
 ## Failure Handling
 
@@ -133,7 +173,7 @@ session.finish                     # Documents the session, then finalizes main'
 | A non-`main` branch with a dirty tree | STOP. Report the branch and the uncommitted changes; do not switch branches or discard anything. |
 | `git pull --ff-only` fails despite an apparent clean fast-forward | STOP. Report the error; do not merge or rebase. |
 | Local `main` has diverged from `origin/main` | STOP. Report the ahead/behind situation; do not pull, merge, or rebase. |
-| `git push origin main` is rejected for protected-branch reasons (`GH006`, "protected branch", "Changes must be made through a pull request", or equivalent) | Push/update the reused `chore/session-bookkeeping-sync` branch and open or update its PR (see Step 7), then STOP and report the PR link — never self-merge, never retry the direct push. |
+| `git push origin main` is rejected for protected-branch reasons (`GH006`, "protected branch", "Changes must be made through a pull request", or equivalent) | Push/update the reused `chore/session-bookkeeping-sync` branch and open or update its PR (see Step 8), then STOP and report the PR link — never self-merge, never retry the direct push. |
 | `git push` is rejected for any other reason (including a 403/permission failure) | STOP. Report the rejection; do not retry, force-push, pull-then-retry, or reclassify it as the protected-branch case above. |
 | An open `chore/session-bookkeeping-sync` PR already exists | STOP. Report that it's awaiting review; do not push again or open a second PR. |
 | A genuine merge conflict reconciling a merged `chore/session-bookkeeping-sync` PR back into local `main` | STOP. Abort the merge (`git merge --abort`) and report the conflicting paths; never auto-resolve. |

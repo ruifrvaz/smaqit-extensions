@@ -114,6 +114,32 @@ func removeFlatFiles(fsys fs.FS, srcRoot, destDir string) (int, error) {
 	return count, err
 }
 
+// retiredSkills lists skills this installer used to ship but no longer does. An install removes
+// them from every skills directory it writes, so an upgrade never leaves a stale copy behind that
+// an agent could still invoke. smaqit.session-title was folded into smaqit.session-finish (its
+// title-only mode): run as a separate skill after session-finish started, its "no additional
+// text" output ended the turn before the history file was written.
+var retiredSkills = []string{"smaqit.session-title"}
+
+// removeRetiredSkills deletes each retired skill directory under destDir and reports how many it
+// removed. Errors are reported, not fatal: a stale copy is a nuisance, not an install failure.
+func removeRetiredSkills(destDir string) int {
+	removed := 0
+	for _, name := range retiredSkills {
+		skillPath := filepath.Join(destDir, name)
+		if _, err := os.Stat(skillPath); err != nil {
+			continue
+		}
+		if err := os.RemoveAll(skillPath); err != nil {
+			fmt.Printf("Warning: could not remove retired skill %s: %v\n", skillPath, err)
+			continue
+		}
+		fmt.Printf("✓ Removed retired skill %s\n", skillPath)
+		removed++
+	}
+	return removed
+}
+
 // removeSkillTree removes, from destDir, each top-level skill directory found
 // directly under srcRoot in fsys.
 func removeSkillTree(fsys fs.FS, srcRoot, destDir string) (int, error) {
@@ -512,6 +538,7 @@ func installGlobal(agents map[string]bool) {
 	}
 	skillCount = len(seenSkillDirs)
 	fmt.Printf("✓ Installed %d skills to %s\n", skillCount, skillsDir)
+	removeRetiredSkills(skillsDir)
 
 	// Claude skills → ~/.claude/skills/
 	claudeSkillsDir := resolveGlobalDir("skills-claude")
@@ -525,6 +552,7 @@ func installGlobal(agents map[string]bool) {
 		os.Exit(1)
 	}
 	fmt.Printf("✓ Installed %d skills to %s\n", claudeSkillCount, claudeSkillsDir)
+	removeRetiredSkills(claudeSkillsDir)
 
 	// Copilot agents → ~/.copilot/agents/
 	if agents["copilot"] {
@@ -766,6 +794,7 @@ func installProject(targetDir string, agents map[string]bool) {
 	}
 	skillCount := len(seenSkillDirs)
 	fmt.Printf("✓ Installed %d skills to %s\n", skillCount, skillsDir)
+	removeRetiredSkills(skillsDir)
 
 	// Install Claude Code agents, commands, and skills.
 	if agents["claude"] {
@@ -789,6 +818,7 @@ func installProject(targetDir string, agents map[string]bool) {
 			os.Exit(1)
 		}
 		fmt.Printf("✓ Installed %d skills to %s\n", claudeSkillCount, claudeSkillsDir)
+		removeRetiredSkills(claudeSkillsDir)
 	}
 
 	// Install Codex agents (project: .codex/agents/).
@@ -807,6 +837,7 @@ func installProject(targetDir string, agents map[string]bool) {
 			os.Exit(1)
 		}
 		fmt.Printf("✓ Installed %d skills to %s\n", codexSkillCount, codexSkillsDir)
+		removeRetiredSkills(codexSkillsDir)
 	}
 	if workflowCount > 0 {
 		fmt.Printf("✓ Installed %d release workflow(s) to %s\n", workflowCount, githubWorkflowsDir)

@@ -33,17 +33,16 @@ fail() {
 }
 
 recap_scripts=(
-  "skills/smaqit.session-title/scripts/recap.py"
   "skills/smaqit.session-finish/scripts/recap.py"
   "skills/smaqit.session-recap/scripts/recap.py"
 )
 
-# All three copies must stay byte-identical, and must be the real fix.
+# Both copies must stay byte-identical (smaqit.session-title was folded into session-finish), and must be the real fix.
 first="${recap_scripts[0]}"
 for rel in "${recap_scripts[@]}"; do
   test -f "$repo_root/$rel" || fail "missing $rel"
   diff -q "$repo_root/$first" "$repo_root/$rel" >/dev/null \
-    || fail "$rel has drifted from $first — all three copies must stay in sync"
+    || fail "$rel has drifted from $first — both copies must stay in sync"
 done
 
 real_transcript="$fixture_root/real.jsonl"

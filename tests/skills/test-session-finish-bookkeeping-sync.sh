@@ -83,7 +83,7 @@ echo "[PASS] refspec push creates then force-with-lease-updates the sync branch,
 # --- Mechanical test 2: reconciliation merges origin/main, tolerating local -
 # main ahead, and aborts cleanly on a genuine conflict -----------------------
 # Same shape as task 036's own task-complete Step 17 test, reused here since
-# Step 7's post-merge reconciliation follows the identical fetch+merge policy.
+# Step 8's post-merge reconciliation follows the identical fetch+merge policy.
 
 MERGER="$FIXTURE_ROOT/merger-clone"
 git clone --quiet "$REMOTE" "$MERGER"

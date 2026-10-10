@@ -4,7 +4,7 @@
 # through the v2.1.1 task-start/task-complete lifecycle cleanly. Harmless, kept
 # permanently as a live-verification artifact (task 040).
 
-SKILLS := smaqit.session-start smaqit.project-diagnose smaqit.session-finish smaqit.session-assess smaqit.session-title smaqit.session-recap smaqit.task-create smaqit.task-list smaqit.task-complete smaqit.task-plan smaqit.task-refresh smaqit.task-start smaqit.test-create smaqit.test-complete smaqit.test-start smaqit.project-init smaqit.project-glossary smaqit.release-analysis smaqit.release-approval smaqit.release-prepare-files smaqit.release-git-local smaqit.release-git-pr smaqit.utils.read-pdf smaqit.utils.triage-issues smaqit.utils.worktree smaqit.project-research smaqit.project-recap smaqit.project-compendium smaqit.parity-assess
+SKILLS := smaqit.session-start smaqit.project-diagnose smaqit.session-finish smaqit.session-assess smaqit.session-recap smaqit.task-create smaqit.task-list smaqit.task-complete smaqit.task-plan smaqit.task-refresh smaqit.task-start smaqit.test-create smaqit.test-complete smaqit.test-start smaqit.project-init smaqit.project-glossary smaqit.release-analysis smaqit.release-approval smaqit.release-prepare-files smaqit.release-git-local smaqit.release-git-pr smaqit.utils.read-pdf smaqit.utils.triage-issues smaqit.utils.worktree smaqit.project-research smaqit.project-recap smaqit.project-compendium smaqit.parity-assess
 
 # Generate the ephemeral embed staging trees used by the Go binary.
 # Agents and skills are now installed globally (not committed to this repo) —

@@ -1,5 +1,5 @@
 ---
-status: Not Started
+status: Abandoned
 created: "2026-02-13"
 ---
 

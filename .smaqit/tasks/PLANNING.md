@@ -6,7 +6,7 @@ Central task tracking and planning for smaqit-extensions.
 
 | ID | Title | Status | Created |
 |----|-------|--------|---------|
-| 041 | Release PR #140 and Fix Stale README Session Docs | In Progress | 2026-10-11 |
+| 041 | Release PR #140 and Fix Stale README Session Docs | PR Open | 2026-10-11 |
 | 028 | Benchmark Glossary Skill Invocation | Not Started | 2026-08-14 |
 | 002 | Fix Changelog Extraction for Cumulative Releases | Not Started | 2026-02-13 |
 | 007 | Create smaqit MCP Server (PoC) | Not Started | 2026-05-09 |

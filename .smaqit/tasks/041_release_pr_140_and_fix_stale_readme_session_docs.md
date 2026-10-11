@@ -1,5 +1,6 @@
 ---
-status: In Progress
+status: PR Open
+pr: 141
 mode: Assisted
 created: "2026-10-11"
 started: "2026-10-11"
@@ -41,26 +42,28 @@ This task fixes both README statements, and its PR is the release that ships PR 
 
 ## Acceptance Criteria
 
-- [ ] README install section states 28 workflow skills for both `~/.agents/skills/` and `~/.claude/skills/`, matching `ls skills | wc -l`.
-- [ ] README's `smaqit.session-finish` line no longer mentions Assisted/Autonomous modes or `--autonomous`.
-- [ ] `make test` passes.
-- [ ] The task's release PR carries PR #140's `[Unreleased]` changelog bullets into its `## [X.Y.Z]` section, so the next tag ships them.
+- [x] README install section states 28 workflow skills for both `~/.agents/skills/` and `~/.claude/skills/`, matching `ls skills | wc -l`.
+- [x] README's `smaqit.session-finish` line no longer mentions Assisted/Autonomous modes or `--autonomous`.
+- [x] `make test` passes.
+- [x] The task's release PR carries PR #140's `[Unreleased]` changelog bullets into its `## [X.Y.Z]` section, so the next tag ships them.
 
 ## Findings
 
-[Populated by smaqit.task-complete. Do not fill in manually before task is complete.]
-
 **Implementation approach:**
-- TBD
+- Two README edits in the task worktree: both install-path skill counts 29 → 28, and the removed `--autonomous` mode wording dropped from the `smaqit.session-finish` catalog line.
+- Added a `### Fixed` bullet under `[Unreleased]` beside PR #140's Removed/Changed bullets so Phase 1 folds all three into one release section.
+- `make test` passed (21 checks, no failures).
 
 **Decisions made:**
-- TBD
+- Ship PR #140's untagged changes through this task's release instead of a separate release PR.
+- Left historical mentions of `smaqit.session-title` (changelog history, session history, old task files) and `installer/main.go`'s `retiredSkills` list untouched; the latter is what deletes the retired skill on install.
 
 **Blockers encountered:**
-- TBD
+- None.
 
 **Follow-up identified:**
-- TBD
+- PR #140's merged branch `fix/fold-session-title-into-session-finish` still has a registered worktree (`../smaqit-extensions-wt-fold-session-title`); orphan cleanup skips it because the local branch still exists.
+- Task 010's plan still lists `skills/smaqit.session-title/`; correct it when 010 is re-planned or abandoned.
 
 ## Files to Create / Modify
 

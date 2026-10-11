@@ -1,6 +1,8 @@
 ---
-status: Not Started
+status: In Progress
+mode: Assisted
 created: "2026-10-11"
+started: "2026-10-11"
 ---
 
 # Release PR #140 and Fix Stale README Session Docs

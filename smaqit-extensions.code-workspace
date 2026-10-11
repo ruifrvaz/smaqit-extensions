@@ -3,6 +3,14 @@
     {
       "name": "main",
       "path": "."
+    },
+    {
+      "name": "fix/fold-session-title-into-session-finish",
+      "path": "../smaqit-extensions-wt-fold-session-title"
+    },
+    {
+      "name": "task/041-release-pr-140-and-fix-stale-readme-session-docs",
+      "path": "../smaqit-extensions-wt-task-041-release-pr-140-and-fix-stale-readme-session-docs"
     }
   ],
   "settings": {

@@ -24,6 +24,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `NNN: Title` and stops — no history file, memory, research map, compendium or git changes. Step
   cross-references were renumbered and the ones already off by one corrected.
 
+### Fixed
+- **README no longer overstates the skill count or advertises a removed `session-finish` mode.** The
+  install section said 29 workflow skills; retiring `smaqit.session-title` left 28. The
+  `smaqit.session-finish` entry still offered "Assisted by default, or `session.finish --autonomous`",
+  a mode removed in v1.17.2.
+
 ## [2.1.2] - 2026-09-15
 
 ### Fixed

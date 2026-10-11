@@ -7,8 +7,6 @@ Central task tracking and planning for smaqit-extensions.
 | ID | Title | Status | Created |
 |----|-------|--------|---------|
 | 028 | Benchmark Glossary Skill Invocation | Not Started | 2026-08-14 |
-| 007 | Create smaqit MCP Server (PoC) | Not Started | 2026-05-09 |
-| 010 | Publish smaqit-extensions as Copilot Marketplace Plugin | Not Started | 2026-05-09 |
 
 ## Completed Tasks
 
@@ -55,6 +53,8 @@ Central task tracking and planning for smaqit-extensions.
 
 | ID | Title | Date | Reason |
 |----|-------|------|--------|
+| 007 | Create smaqit MCP Server (PoC) | 2026-10-11 | Abandoned at the owner's request. Never started through the local task lifecycle; its Copilot coding-agent PR #65 (`copilot/implement-task-007`), idle since 2026-05-24, was closed unmerged. |
+| 010 | Publish smaqit-extensions as Copilot Marketplace Plugin | 2026-10-11 | Abandoned at the owner's request. Never started through the local task lifecycle; its Copilot coding-agent PR #61 (`copilot/implement-task-010`), idle since 2026-05-24, was closed unmerged. |
 | 002 | Fix Changelog Extraction for Cumulative Releases | 2026-10-11 | Obsolete: written to recover from a one-off Feb 2026 incident (v0.4.0/v0.4.1 tagged while the release workflow was broken). Since task 027 every task PR is its own release, tagged and published at merge, so tagged-but-unpublished versions don't accumulate; untagged `main` changes (e.g. PR #140) are folded into the next task's section via `[Unreleased]`, as v2.2.0 did. The remaining edge, a failed Release step after tagging, is handled by re-running the workflow rather than cumulative-extraction logic. |
 | 035 | Confidentiality Pre-Commit Hook (Cross-Domain Secrets/PII Scanner) | 2026-08-21 | Fully implemented and PR-open (#131), but abandoned before merge: structural conflict with `agentic-cms`'s `ac-classify` pre-commit hook on `docs/`/`wiki/` content — the two share no ack/allow state, so any page `ac-classify` rates and acknowledges as fine would be permanently re-blocked by this hook, requiring a disconnected, hand-maintained parallel exemption. Concluded it adds more friction than value; classification/secret-detection stays scoped to `agentic-cms`. |
 

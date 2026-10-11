@@ -7,13 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Removed
-- **`smaqit.session-title` is retired and folded into `smaqit.session-finish`.** Asked to "finish and
-  title" a session, an agent started `session-finish`, then invoked `session-title` mid-run to name the
-  history file; that skill's "output the title with no additional text" contract ended the turn on the
-  title line, so the history file, memory, research map, compendium and git sync never ran. Nothing in
-  either skill handed control back. The installer now removes the retired skill from every skills
-  directory it writes, so an upgrade leaves no stale copy behind.
+## [2.2.0] - 2026-10-11
 
 ### Changed
 - **`smaqit.session-finish` owns the session title** (v0.11.0). A new Step 2 derives `NNN` and the
@@ -23,6 +17,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   **title-only mode** (`session.title`, or a request for just the title) runs Steps 0 and 2, outputs
   `NNN: Title` and stops — no history file, memory, research map, compendium or git changes. Step
   cross-references were renumbered and the ones already off by one corrected.
+
+### Removed
+- **`smaqit.session-title` is retired and folded into `smaqit.session-finish`.** Asked to "finish and
+  title" a session, an agent started `session-finish`, then invoked `session-title` mid-run to name the
+  history file; that skill's "output the title with no additional text" contract ended the turn on the
+  title line, so the history file, memory, research map, compendium and git sync never ran. Nothing in
+  either skill handed control back. The installer now removes the retired skill from every skills
+  directory it writes, so an upgrade leaves no stale copy behind.
 
 ### Fixed
 - **README no longer overstates the skill count or advertises a removed `session-finish` mode.** The

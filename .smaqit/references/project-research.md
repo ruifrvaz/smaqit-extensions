@@ -4,7 +4,7 @@ version: "1.0.0"
 
 # Project Research Map
 **Project:** smaqit-extensions
-**Refreshed:** 2026-09-11
+**Refreshed:** 2026-10-11
 **Active task:** None
 
 | Tool | Section | URL |
@@ -104,7 +104,7 @@ version: "1.0.0"
 ## Task 036 — Move task-lifecycle bookkeeping commits off origin/main onto local main
 
 **Context fingerprint:** sha256:b3b46e7a46051899ba9ab437f1a18304179240ee048b7b9527521327db6ef56d
-**Refreshed:** 2026-09-11
+**Refreshed:** 2026-10-11
 
 | Tool | Section | URL |
 |------|---------|-----|
@@ -162,6 +162,14 @@ version: "1.0.0"
 
 **Context fingerprint:** sha256:ee9d6b8f95f8e8804ee6252d0f356d9efc637a16a3ad8c4a62f83cda01c5e122
 **Refreshed:** 2026-09-15
+
+| Tool | Section | URL |
+|------|---------|-----|
+
+## Task 041 — Release PR #140 and Fix Stale README Session Docs
+
+**Context fingerprint:** sha256:ee9d6b8f95f8e8804ee6252d0f356d9efc637a16a3ad8c4a62f83cda01c5e122
+**Refreshed:** 2026-10-11
 
 | Tool | Section | URL |
 |------|---------|-----|

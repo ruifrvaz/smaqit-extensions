@@ -130,7 +130,11 @@ Git-root precedence prevents an accidental nested installation such as `scripts/
 
 **Does `smaqit-extensions update` include every fix committed to `main`, or only tagged releases?**
 
-Only tagged releases. `update` fetches the latest GitHub Release and downloads its published binary — it has no awareness of `main`'s commit history beyond that. A direct commit to `main` (e.g. a small infra fix landed outside the PR-gated task flow) is invisible to `update` until some later release's tag includes it. Concretely: `post-merge-release.yml` tags and releases at the moment a task's PR merges, so any commit pushed to `main` *after* that merge — including another same-day hotfix — sits unreleased until a new release is cut, even though it's already on `main` and in the repository's history.
+Only tagged releases. `update` fetches the latest GitHub Release and downloads its published binary — it has no awareness of `main`'s commit history beyond that. A direct commit to `main` (e.g. a small infra fix landed outside the PR-gated task flow) is invisible to `update` until some later release's tag includes it. Concretely: `post-merge-release.yml` tags and releases at the moment a task's PR merges, so any commit pushed to `main` *after* that merge — including another same-day hotfix — sits unreleased until a new release is cut, even though it's already on `main` and in the repository's history. The same applies to a PR merged under any title other than `Prepare release vX.Y.Z`/`Release vX.Y.Z`: the workflow skips it entirely.
+
+Such changes are released by the next task's PR, with no extra mechanism. A task branch created from `origin/main` already contains them, and as long as their author recorded them under `CHANGELOG.md`'s `[Unreleased]` section, `task-complete` Phase 1 folds those bullets into that task's own `## [X.Y.Z]` section — so the next release's notes describe them too. A change merged with no `[Unreleased]` bullet still ships in the next release's code but is missing from its notes unless added before that task's PR merges.
+
+Release notes are always exactly one version's `CHANGELOG.md` section (`post-merge-release.yml` extracts `## [X.Y.Z]` alone); they are never cumulative across versions. Under per-task releases every merged release PR is tagged and published immediately, so there are no skipped versions to accumulate. If a tag is created but its GitHub Release step fails, re-run that workflow run rather than expecting a later release to cover the gap.
 
 ---
 

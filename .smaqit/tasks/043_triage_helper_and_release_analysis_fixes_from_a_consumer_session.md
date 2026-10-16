@@ -1,9 +1,9 @@
 ---
-status: PR Open
+status: Completed
 mode: Assisted
 created: "2026-10-16"
 started: "2026-10-16"
-pr: 142
+completed: "2026-10-16"
 ---
 
 # Triage Helper and Release-Analysis Fixes From a Consumer Session

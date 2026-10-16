@@ -6,7 +6,6 @@ Central task tracking and planning for smaqit-extensions.
 
 | ID | Title | Status | Created |
 |----|-------|--------|---------|
-| 043 | Triage Helper and Release-Analysis Fixes From a Consumer Session | PR Open | 2026-10-16 |
 | 042 | Release Chain: Preflight post-merge-release.yml and Warn on Isolated Subagent Worktrees | Not Started | 2026-10-11 |
 | 028 | Benchmark Glossary Skill Invocation | Not Started | 2026-08-14 |
 
@@ -14,6 +13,7 @@ Central task tracking and planning for smaqit-extensions.
 
 | ID | Title | Status | Created | Completed |
 |----|-------|--------|---------|-----------|
+| 043 | Triage Helper and Release-Analysis Fixes From a Consumer Session | Completed | 2026-10-16 | 2026-10-16 |
 | 041 | Release PR #140 and Fix Stale README Session Docs | Completed | 2026-10-11 | 2026-10-11 |
 | 040 | E2E Live Verification of Task 039's Release Mechanism | Completed | 2026-09-15 | 2026-09-15 |
 | 039 | Guard Against Implementer-Written CHANGELOG.md Conflicts | Completed | 2026-09-15 | 2026-09-15 |

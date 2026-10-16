@@ -1,6 +1,8 @@
 ---
-status: Not Started
+status: In Progress
+mode: Assisted
 created: "2026-10-16"
+started: "2026-10-16"
 ---
 
 # Triage Helper and Release-Analysis Fixes From a Consumer Session
@@ -71,8 +73,24 @@ whether Task mode analyzes the merge result or adds a second range).
 6. Release; consumers pick it up through their normal smaqit upgrade.
 
 ## Known Issues Triage
+**Triaged:** 2026-10-16
+**Tools searched:** GitHub REST API (`github/rest-api-description`), GitHub CLI (`cli/cli`), git (`git/git`), jq (`jqlang/jq`), curl (`curl/curl`)
+**Result:** Advisory
 
-[Populated by smaqit.task-start via smaqit.utils.triage-issues. Do not edit manually.]
+### Advisory Issues
+- [#14370 `gh auth token --secure-storage` ignores the config's active account and returns the globally-active keyring token](https://github.com/cli/cli/issues/14370) — `cli/cli` — opened 2026-09-06 — bug, priority-3, gh-auth
+- [#14322 auth token --user can return stale keyring token after --insecure-storage refresh](https://github.com/cli/cli/issues/14322) — `cli/cli` — opened 2026-09-02 — bug, priority-3, gh-auth
+- [#13317 `gh api` silently sends unauthenticated requests when keychain access fails](https://github.com/cli/cli/issues/13317) — `cli/cli` — opened 2026-04-29 — bug, priority-3, needs-investigation, auth, gh-api, stale
+
+### Historical (Closed)
+- [#1774 Did the search API rate limit change recently?](https://github.com/github/rest-api-description/issues/1774) — `github/rest-api-description` — closed 2022-11-03
+- [#1506 @uri is not percent-encoding all reserved characters](https://github.com/jqlang/jq/issues/1506) — `jqlang/jq` — closed 2023-07-13
+- [#13845 v8.8.0 - problem with `--write-out`: error 43 - A libcurl function was given a bad argument](https://github.com/curl/curl/issues/13845) — `curl/curl` — closed 2024-06-02
+- [#14105 Curl 8.8.0 return http_code 000](https://github.com/curl/curl/issues/14105) — `curl/curl` — closed 2024-07-08
+
+### Search Warnings
+- `git/git` open and closed searches — repository has GitHub issues disabled (mailing-list project); zero results are not evidence of no known issues
+- Research map task block carries documentation URLs only, no GitHub repository URLs; all five repositories were resolved through the helper fallback
 
 ## Acceptance Criteria
 

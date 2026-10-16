@@ -2,7 +2,7 @@
 name: smaqit.release-analysis
 description: Collect changes, assess severity, and suggest next version for a release
 metadata:
-  version: "0.10.0"
+  version: "0.11.0"
 ---
 
 # Release Analysis
@@ -19,7 +19,7 @@ Use this skill at the start of a release workflow to:
 ## Modes
 
 - **Batch mode (default)** — the traditional invocation: analyze `<boundary-sha>..HEAD` on the checked-out branch (typically `main` or a release-prep branch). Used by `release-git-local` and any manually-triggered batched release.
-- **Task mode** — invoked by `smaqit.task-complete` before a task's own code has merged. Analyzes `<boundary-sha>..<task-branch>` instead of `HEAD`, and additionally applies the claimed-version-awareness check in Step 1e so a version already claimed by another open release PR is never suggested again. The caller supplies `<task-branch>` explicitly; every other step is identical except where marked "Task mode only."
+- **Task mode** — invoked by `smaqit.task-complete` before a task's own code has merged. Analyzes everything the task's PR will release: the task branch's commits since `<boundary-sha>` plus any `origin/main` commits since `<boundary-sha>` that the task branch doesn't have yet (Step 2). It additionally applies the claimed-version-awareness check in Step 1e so a version already claimed by another open release PR is never suggested again. The caller supplies `<task-branch>` explicitly; every other step is identical except where marked "Task mode only."
 
 ### Step 1: Find the Release Boundary Commit
 
@@ -106,19 +106,32 @@ Filter titles client-side exactly as above — never `--search`, whose index is 
 
 ### Step 2: Collect Changes Since the Boundary
 
-Collect commits between `<boundary-sha>` and `HEAD` (Batch mode) or `<boundary-sha>` and `<task-branch>` (Task mode). This range is the authoritative delta for the current release.
+Collect the commits this release will contain. This range is the authoritative delta for the current release.
 
-**A. Merge commits (PR titles — high-level summaries; Batch mode typically has several, Task mode typically has none since the task branch hasn't merged anywhere yet):**
+- **Batch mode:** `<boundary-sha>..HEAD`.
+- **Task mode:** the commits reachable from `<task-branch>` **or** `origin/main` but not from `<boundary-sha>` — the same set the merged PR will release, because the tag lands on `main` after the merge. Write it as the revision list `^<boundary-sha> <task-branch> origin/main`. `<boundary-sha>..<task-branch>` alone is not enough: a PR merged into `main` after the task branch was created (an interim PR the task shipped part of its work through, or an unrelated untagged merge) is on `origin/main` but not on the branch, yet it is part of this release.
+
+In the commands below, `<range>` is `<boundary-sha>..HEAD` in Batch mode and `^<boundary-sha> <task-branch> origin/main` in Task mode (three separate arguments).
+
+**A. Merge commits (PR titles — high-level summaries; Batch mode typically has several; in Task mode they come from `origin/main` merges the task branch doesn't have yet):**
 
 ```bash
-git log "<boundary-sha>..<HEAD-or-task-branch>" --merges --pretty=format:"%h %s"
+git log <range> --merges --pretty=format:"%h %s"
 ```
 
 **B. Individual commits (feature details within PRs):**
 
 ```bash
-git log "<boundary-sha>..<HEAD-or-task-branch>" --no-merges --pretty=format:"%h %s"
+git log <range> --no-merges --pretty=format:"%h %s"
 ```
+
+**Task mode only — list the `origin/main` commits that are not on the task branch** separately, for the Step 2 verification:
+
+```bash
+git log "^<boundary-sha>" "^<task-branch>" origin/main --pretty=format:"%h %s%n    %b"
+```
+
+Every commit here is untagged by construction (`<boundary-sha>` is the latest tag on `origin/main`). If one is the merge of another release PR — its body line reads `Prepare release vX.Y.Z` or `Release vX.Y.Z` — that release has merged but its tag isn't present yet: `post-merge-release.yml` is still running or failed. **Stop and report it**; do not fold another release's changes into this one. Re-run once the tag exists, or after re-running the failed workflow.
 
 **Filter out noise commits** from both lists before analysing:
 - Lines matching `Initial plan` — release workflow setup commits, not changelog material
@@ -131,8 +144,10 @@ The remaining commits are the real changelog delta. Group related commits (indiv
 Supplement the commit list with a diff to catch file-level context:
 
 ```bash
-git diff "<boundary-sha>..HEAD" --stat --name-status
+git diff "<boundary-sha>..HEAD" --stat --name-status   # Batch mode
 ```
+
+In Task mode, run it for both sides — `git diff "<boundary-sha>...<task-branch>" --stat --name-status` (the task's own changes) and `git diff "<boundary-sha>" origin/main --stat --name-status` (changes already on `main` since the boundary).
 
 Extract key insights:
 - New files added (especially new agents, skills, workflows)
@@ -148,6 +163,8 @@ Read the existing `## [Unreleased]` section if present — from the checked-out 
 ### Step 2 Verification: Completeness check
 
 After collecting commits, count non-noise merge commits in the range — each represents a PR that should have at least one changelog entry. If your `changes` list has fewer entries, review the commit messages and add what is missing.
+
+**Task mode only:** also check every commit from the `origin/main`-not-on-branch list above. Each merged PR there needs a changelog entry unless an `[Unreleased]` bullet already covers it. Name those PRs (number and title) in the output as `main_since_boundary`, so the caller can see what the release includes beyond the task branch. An empty list is reported as empty, not omitted.
 
 ### Step 3: Assess Change Severity
 
@@ -214,7 +231,7 @@ rationale: "New features added (release agent), no breaking changes detected"
 - `latest_version`: Highest release version reachable from `origin/main`, from Step 1d's own lookup (e.g., `v1.1.2`) — not re-read from the boundary commit, which can name a lower version when tags land out of order
 - `suggested_version`: Next version following semver rules, adjusted past any claimed-version collision in Task mode
 - `rationale`: Brief explanation of the severity assessment
-- `mode`: `batch` or `task` (Task mode also echoes `task_branch` and, if a collision was avoided, the claimed version(s) skipped)
+- `mode`: `batch` or `task` (Task mode also echoes `task_branch`, `main_since_boundary` — the `origin/main` PRs since the boundary that are not on the task branch — and, if a collision was avoided, the claimed version(s) skipped)
 
 **Important:** The `changes` list must be exhaustive — it represents the complete delta since the last release boundary. It is what `smaqit.release-prepare-files` writes into the new version section: reconciled against `[Unreleased]` in the batched flow, or folded together with the task branch's own `[Unreleased]` bullets in Task-Release Mode.
 

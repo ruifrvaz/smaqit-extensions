@@ -2,7 +2,7 @@
 name: smaqit.utils.triage-issues
 description: Pre-implementation gate that consumes the verified project research map and searches relevant upstream GitHub issues before a task starts. It minimizes task and API data, classifies findings as Blocking, Advisory, Historical, or Clear, and stops task start only for confirmed blocking issues. Invoked by smaqit.task-start Step 4a or standalone as `task.triage [id]`.
 metadata:
-  version: "1.6.0"
+  version: "1.7.0"
 ---
 
 # Triage Issues
@@ -75,7 +75,7 @@ For each selected tool, first look for a `https://github.com/owner/repo` URL in 
   bash <skill-install-dir>/scripts/github-issues.sh resolve "<tool-name>"
   ```
 
-  Use only the emitted `full_name`. Do not read raw GitHub API responses.
+  The helper prints `{"full_name": "owner/repo"}`, or `{"full_name": null}` when nothing matched. Use only `full_name`. Do not read raw GitHub API responses. A non-zero exit is a failed lookup, not an unresolvable tool: record it as a search warning (Step 8).
 
 - No GitHub URL and no helper result → record the tool as unresolvable; do not error or stop.
 
@@ -98,7 +98,13 @@ bash <skill-install-dir>/scripts/github-issues.sh search <owner/repo> open "<pla
 bash <skill-install-dir>/scripts/github-issues.sh search <owner/repo> closed "<platform>" "<feature>"
 ```
 
-The helper constructs an URL-encoded GitHub REST `/search/issues` request with `is:issue`, `per_page=10`, and `page=1`. It emits compact JSON only: at most ten issues, each containing number, title, label names, URL, state, creation date, and closure date, plus `incomplete_results`.
+The helper constructs an URL-encoded GitHub REST `/search/issues` request with `is:issue`, `per_page=10`, and `page=1`. On success (exit status `0`) it prints one compact JSON object with exactly two top-level keys:
+
+```json
+{"incomplete_results": <bool>, "items": [...]}
+```
+
+Each element of `items` (at most ten) has exactly these fields: `number`, `title`, `labels` (an array of label-name strings), `html_url`, `state`, `created_at`, and `closed_at` (`null` while open). Read the results from `.items` — never `.issues` or any other key, which does not exist and silently reads as empty. An empty `items` array with exit status `0` is the only output that means the search returned nothing.
 
 Do not fetch, read, display, or infer from raw API JSON, issue bodies, comments, users, assignees, reactions, counts, pull-request records, or other omitted fields. The projection must happen in the helper before data reaches the model.
 
@@ -128,6 +134,8 @@ Cross-reference a candidate against the relevant research-map rows. If the offic
 ### Step 8: Handle incomplete or failed searches
 
 If `curl` or `jq` is unavailable, a response is malformed, a request fails, rate limits apply, or `incomplete_results` is true, write one concise search warning for the affected operation and continue with the remaining repositories.
+
+Any non-zero helper exit means the operation failed: stdout is empty and must never be read as an empty `items` list. Exit status `3` means GitHub rate-limited the request (HTTP 429, or 403 with `X-RateLimit-Remaining: 0` or `Retry-After`); the stderr diagnostic names the reset time and whether the request was unauthenticated. Record it as a rate-limit search warning naming the repository and state. Other non-zero statuses are general failures (`1`) or usage errors (`2`).
 
 Do not treat a search failure as evidence that there are no issues. A run with any search warning must be Advisory, never Clear. Search failures are non-blocking unless a separate confirmed Blocking issue exists.
 
@@ -166,6 +174,7 @@ Wait for user direction before continuing.
 - Resolve `owner/repo` only from dependencies identified in the task; never broaden the search beyond those tools.
 - `smaqit.project-research/scripts/task-context.sh` is the only permitted task-file read path for triage. It requires Bash, awk, jq, and a SHA-256 utility.
 - `github-issues.sh` requires Bash, curl, and jq. It sends concise diagnostics to stderr and compact JSON to stdout.
+- The helper authenticates when a token is available, raising GitHub's search limit from 10 to 30 requests per minute. Precedence: `SMAQIT_GITHUB_TOKEN`, then — only when the API base is the default `https://api.github.com` — `GH_TOKEN`, `GITHUB_TOKEN`, and `gh auth token`. Ambient credentials are never sent to an overridden `SMAQIT_GITHUB_API_BASE`. The token is passed to curl through stdin, never on the command line, and is never printed. Without a token, requests are sent unauthenticated.
 - The triage skill writes only the task's `## Known Issues Triage` block. It does not change task status or `PLANNING.md`; `smaqit.task-start` owns status changes.
 - Cache results only within the current session; do not persist them across sessions.
 - Model routing, custom agents, and low-effort subagents are out of scope for this task.

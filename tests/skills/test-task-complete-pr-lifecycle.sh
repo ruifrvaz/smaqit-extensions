@@ -272,7 +272,16 @@ phase1="$(awk '/^## Phase 1/{f=1} /^## Phase 2/{f=0} f' "$TASK_COMPLETE")"
 printf '%s\n' "$phase1" | rg -q --fixed-strings 'rebase main' && fail "Phase 1 must not rebase the branch onto main"
 printf '%s\n' "$phase1" | rg -q --fixed-strings -- '--force-with-lease' && fail "Phase 1 must not force-push the branch"
 printf '%s\n' "$phase1" | rg -q --fixed-strings 'Pending Entry Mode' && fail "Phase 1 must not reference the retired pending-entry mechanism"
-assert_contains "$TASK_START" 'git branch "<branch>" origin/main' "task-start creates the owner branch from fetched origin/main, never local main"
+assert_contains "$TASK_START" 'git branch --no-track "<branch>" origin/main' "task-start creates the owner branch from fetched origin/main, never local main, without tracking it"
+
+# Branching from a remote-tracking ref sets it as upstream unless --no-track is
+# given; a task branch tracking origin/main would send a bare `git push` to main.
+git -C "$PRIMARY" fetch --quiet origin main
+git -C "$PRIMARY" branch --no-track task/043-no-track origin/main
+if git -C "$PRIMARY" rev-parse --abbrev-ref --symbolic-full-name 'task/043-no-track@{upstream}' >/dev/null 2>&1; then
+  fail "a --no-track task branch must have no upstream"
+fi
+git -C "$PRIMARY" branch -q -D task/043-no-track
 
 # Phase 2 is reached by skipping the Step 4 mode check, so it must re-assert
 # its own gate or Assisted-mode tasks would self-complete after a merge.

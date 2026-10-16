@@ -2,7 +2,7 @@
 name: smaqit.task-complete
 description: Complete a task by opening a PR for owner-task code review (Phase 1), or by verifying that PR merged and cleaning up (Phase 2, re-entrant). Verifies acceptance criteria, records state in PLANNING.md, and refreshes the worktree workspace. A task's PR is also its release.
 metadata:
-  version: "0.13.0"
+  version: "0.14.0"
 ---
 
 # Task Complete
@@ -79,7 +79,7 @@ Every `smaqit-extensions` session works against a single machine-local clone —
      ```
      Skip silently if there's nothing to commit (e.g., re-running after a partial prior completion).
 
-10. **Compute this task's release version.** Invoke `smaqit.release-analysis` in **Task mode**, passing the resolver's `branch` as `<task-branch>` — it fetches `origin/main` fresh, computes severity/version from `<boundary-sha>..<task-branch>`, and skips any version another open release PR has already claimed. Then invoke `smaqit.release-approval` using its Pattern 4 (auto-confirm on the Task-mode suggestion — no interactive version prompt; the human approval point for a task's release is the PR review itself, not a separate version confirmation). Store the approved version as `vX.Y.Z`.
+10. **Compute this task's release version.** Invoke `smaqit.release-analysis` in **Task mode**, passing the resolver's `branch` as `<task-branch>` — it fetches `origin/main` fresh, computes severity/version from everything the merged PR will release (the task branch plus any `origin/main` commits since the boundary that the branch doesn't have yet, reported as `main_since_boundary`), and skips any version another open release PR has already claimed. Then invoke `smaqit.release-approval` using its Pattern 4 (auto-confirm on the Task-mode suggestion — no interactive version prompt; the human approval point for a task's release is the PR review itself, not a separate version confirmation). Store the approved version as `vX.Y.Z`.
 
 11. **Push the branch and create the PR.** The PR title is this task's version claim — `release-analysis` reads open release-PR titles to keep concurrent tasks from choosing the same version — so the PR must exist before the branch receives its changelog commit.
     ```bash

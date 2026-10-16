@@ -209,9 +209,21 @@ class Handler(http.server.BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         query = parse_qs(parsed.query)
         with open(query_log, "a", encoding="utf-8") as log:
-            log.write(json.dumps({"path": parsed.path, "query": query}) + "\n")
+            log.write(json.dumps({"path": parsed.path, "query": query,
+                                  "authorization": self.headers.get("Authorization")}) + "\n")
 
         terms = " ".join(query.get("q", []))
+        if "ratelimited" in terms:
+            self._send(403, b'{"message":"API rate limit exceeded"}',
+                       headers={"X-RateLimit-Remaining": "0", "X-RateLimit-Reset": "1800000000"})
+            return
+        if "secondarylimit" in terms:
+            self._send(429, b'{"message":"secondary rate limit"}', headers={"Retry-After": "60"})
+            return
+        if "forbidden" in terms:
+            self._send(403, b'{"message":"Resource not accessible"}',
+                       headers={"X-RateLimit-Remaining": "25"})
+            return
         if "badjson" in terms:
             self._send(200, b"this is not json", "text/plain")
             return
@@ -260,9 +272,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def _json(self, body):
         self._send(200, json.dumps(body).encode("utf-8"))
 
-    def _send(self, status, body, content_type="application/json"):
+    def _send(self, status, body, content_type="application/json", headers=None):
         self.send_response(status)
         self.send_header("Content-Type", content_type)
+        for name, value in (headers or {}).items():
+            self.send_header(name, value)
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
@@ -347,5 +361,49 @@ if SMAQIT_GITHUB_API_BASE="http://127.0.0.1:1" bash "$HELPER" resolve Widget >"$
   fail "transport failure must fail"
 fi
 assert_contains "$(<"$FIXTURE_ROOT/err")" "request failed" "transport failure produces a concise diagnostic"
+
+# Rate limits are an explicit failure (exit 3), never an empty result.
+for term in ratelimited secondarylimit; do
+  status=0
+  run_helper search acme/widget open "$term" >"$FIXTURE_ROOT/out" 2>"$FIXTURE_ROOT/err" || status=$?
+  assert_eq "$status" "3" "rate-limited search ($term) exits with the rate-limit status"
+  [ ! -s "$FIXTURE_ROOT/out" ] || fail "rate-limited search ($term) must emit no stdout"
+  assert_contains "$(<"$FIXTURE_ROOT/err")" "rate limited" "rate-limited search ($term) names the rate limit"
+  assert_contains "$(<"$FIXTURE_ROOT/err")" "unauthenticated" "unauthenticated rate limit suggests a token"
+done
+assert_contains "$(<"$FIXTURE_ROOT/err")" "retry after 60s" "secondary rate limit reports Retry-After"
+run_helper search acme/widget open ratelimited >/dev/null 2>"$FIXTURE_ROOT/err" || true
+assert_contains "$(<"$FIXTURE_ROOT/err")" "X-RateLimit-Remaining: 0, resets at 2027-01-15T08:00:00Z" "primary rate limit reports remaining quota and reset time"
+
+status=0
+run_helper resolve ratelimited >/dev/null 2>"$FIXTURE_ROOT/err" || status=$?
+assert_eq "$status" "3" "rate-limited resolve exits with the rate-limit status"
+
+status=0
+run_helper search acme/widget open forbidden >/dev/null 2>"$FIXTURE_ROOT/err" || status=$?
+assert_eq "$status" "1" "a 403 with remaining quota is a plain failure, not a rate limit"
+assert_contains "$(<"$FIXTURE_ROOT/err")" "HTTP 403" "plain 403 reports its status"
+
+# Authentication: an explicit token is sent; ambient tokens never reach an overridden API base.
+: >"$QUERY_LOG"
+GH_TOKEN=ambient-gh GITHUB_TOKEN=ambient-github run_helper search acme/widget open ambient >/dev/null
+assert_eq "$(jq -s -r '.[-1].authorization' "$QUERY_LOG")" "null" "ambient GH_TOKEN/GITHUB_TOKEN are not sent to an overridden API base"
+SMAQIT_GITHUB_TOKEN=fixture-token run_helper search acme/widget open explicit >/dev/null
+assert_eq "$(jq -s -r '.[-1].authorization' "$QUERY_LOG")" "Bearer fixture-token" "SMAQIT_GITHUB_TOKEN is sent as a bearer token"
+status=0
+SMAQIT_GITHUB_TOKEN=fixture-token run_helper search acme/widget open ratelimited >/dev/null 2>"$FIXTURE_ROOT/err" || status=$?
+assert_eq "$status" "3" "authenticated rate limit still exits with the rate-limit status"
+case "$(<"$FIXTURE_ROOT/err")" in
+  *unauthenticated*) fail "authenticated rate limit must not claim the request was unauthenticated" ;;
+  *fixture-token*) fail "rate-limit diagnostic leaked the token" ;;
+esac
+
+# The documented output shape matches what the helper emits.
+assert_contains "$(<"$TRIAGE_SKILL")" '{"incomplete_results": <bool>, "items": [...]}' "triage skill names the search output's top-level keys"
+assert_contains "$(<"$TRIAGE_SKILL")" 'never `.issues`' "triage skill warns against reading a non-existent key"
+assert_contains "$(<"$TRIAGE_SKILL")" 'Exit status `3` means GitHub rate-limited' "triage skill documents the rate-limit exit status"
+usage_text="$(bash "$HELPER" 2>&1 || true)"
+assert_contains "$usage_text" '{"incomplete_results": bool, "items": [' "helper usage text documents the search output shape"
+assert_contains "$usage_text" '3 rate limited' "helper usage text documents the rate-limit exit status"
 
 echo "[PASS] triage compact GitHub client contract"

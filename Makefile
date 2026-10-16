@@ -1,4 +1,4 @@
-.PHONY: sync clean test smoke-test test-worktree-layout test-parent-task-lifecycle test-project-research-verify-urls test-triage-issues test-task-complete-pr-lifecycle test-release-analysis-claimed-versions test-release-analysis-boundary-detection test-recap-transcript-schema test-session-finish-bookkeeping-sync
+.PHONY: sync clean test smoke-test test-worktree-layout test-parent-task-lifecycle test-project-research-verify-urls test-triage-issues test-task-complete-pr-lifecycle test-release-analysis-claimed-versions test-release-analysis-boundary-detection test-release-analysis-task-range test-recap-transcript-schema test-session-finish-bookkeeping-sync
 
 # task-039-e2e-verify marker: confirms this branch, PR, and release round-tripped
 # through the v2.1.1 task-start/task-complete lifecycle cleanly. Harmless, kept
@@ -42,13 +42,16 @@ test-release-analysis-claimed-versions:
 test-release-analysis-boundary-detection:
 	@bash tests/skills/test-release-analysis-boundary-detection.sh
 
+test-release-analysis-task-range:
+	@bash tests/skills/test-release-analysis-task-range.sh
+
 test-recap-transcript-schema:
 	@bash tests/skills/test-recap-transcript-schema.sh
 
 test-session-finish-bookkeeping-sync:
 	@bash tests/skills/test-session-finish-bookkeeping-sync.sh
 
-test: test-worktree-layout test-parent-task-lifecycle test-project-research-verify-urls test-triage-issues test-task-complete-pr-lifecycle test-release-analysis-claimed-versions test-release-analysis-boundary-detection test-recap-transcript-schema test-session-finish-bookkeeping-sync
+test: test-worktree-layout test-parent-task-lifecycle test-project-research-verify-urls test-triage-issues test-task-complete-pr-lifecycle test-release-analysis-claimed-versions test-release-analysis-boundary-detection test-release-analysis-task-range test-recap-transcript-schema test-session-finish-bookkeeping-sync
 
 smoke-test: test
 	@$(MAKE) -C installer smoke-test

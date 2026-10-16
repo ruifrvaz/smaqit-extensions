@@ -1,8 +1,9 @@
 ---
-status: In Progress
+status: PR Open
 mode: Assisted
 created: "2026-10-16"
 started: "2026-10-16"
+pr: 142
 ---
 
 # Triage Helper and Release-Analysis Fixes From a Consumer Session
@@ -54,8 +55,12 @@ same-named remote branch).
 
 ## Design Decisions
 
-TBD — to be confirmed during assessment (token source and precedence; pacing vs. auth only;
-whether Task mode analyzes the merge result or adds a second range).
+- **Token precedence:** `SMAQIT_GITHUB_TOKEN`, then (default API base only) `GH_TOKEN`,
+  `GITHUB_TOKEN`, `gh auth token`; ambient credentials never go to an overridden API base.
+- **Auth only, no pacing:** 30 searches/min covers a full five-repository run; a rate limit is an
+  explicit exit status `3` warning instead.
+- **Task mode analyzes the merge result:** `^<boundary-sha> <task-branch> origin/main`, plus a
+  separate `main_since_boundary` list for the completeness check.
 
 ## Implementation Steps
 
@@ -94,27 +99,34 @@ whether Task mode analyzes the merge result or adds a second range).
 
 ## Acceptance Criteria
 
-- [ ] `smaqit.utils.triage-issues` documents the helper's exact output shape, and a consumer reading `items` gets the results
-- [ ] The helper authenticates when a token is available, and a rate-limited request is reported as a search warning, never as an empty result; covered by a test
-- [ ] `smaqit.release-analysis` Task mode includes `origin/main` merges since the boundary that are not on the task branch, and its completeness check names them
-- [ ] `smaqit.task-start` creates the task branch without tracking `origin/main`
-- [ ] Installer copies regenerated and released
+- [x] `smaqit.utils.triage-issues` documents the helper's exact output shape, and a consumer reading `items` gets the results
+- [x] The helper authenticates when a token is available, and a rate-limited request is reported as a search warning, never as an empty result; covered by a test
+- [x] `smaqit.release-analysis` Task mode includes `origin/main` merges since the boundary that are not on the task branch, and its completeness check names them
+- [x] `smaqit.task-start` creates the task branch without tracking `origin/main`
+- [x] Installer copies regenerated and released
 
 ## Findings
 
-[Populated by smaqit.task-complete. Do not fill in manually before task is complete.]
-
 **Implementation approach:**
-- TBD
+- Triage helper resolves a token once per invocation and passes it to curl through a stdin `--config`, so it never appears in the process list or diagnostics
+- Rate limits are detected from captured response headers (429, or 403 with `X-RateLimit-Remaining: 0` or `Retry-After`) and exit with status `3`; fetch output is captured before projection so the status survives the `jq` stage
+- Output shape documented in Step 6, Step 4 (`resolve`) and the helper's usage text; Step 8 states that any non-zero exit is a failure, never an empty `items` list
+- Task-mode range rewritten as the revision list `^<boundary-sha> <task-branch> origin/main`, with a separate `main_since_boundary` listing; the file-diff step no longer uses `..HEAD` in Task mode
+- New hermetic suite `test-release-analysis-task-range.sh` (interim merge, branch older than the latest tag, merged-but-untagged release); triage suite extended with rate-limit, auth and documented-shape checks; lifecycle suite checks a `--no-track` branch has no upstream
 
 **Decisions made:**
-- TBD
+- Ambient tokens (`GH_TOKEN`, `GITHUB_TOKEN`, `gh auth token`) are sent only to `api.github.com`; an overridden API base gets a token only from explicit `SMAQIT_GITHUB_TOKEN`, which keeps the fixture tests hermetic and avoids leaking credentials to arbitrary hosts
+- No call pacing: authenticated limits cover a full run, and an unauthenticated rate limit is now a visible warning that suggests a token
+- The Task-mode range excludes the boundary explicitly, so a branch created before the latest tag never re-counts already-released changes
+- A merged release PR without its tag yet (detected from the merge commit body) stops release-analysis instead of folding another release's changes in
+- The plain 403 case (remaining quota above zero) stays a general failure, not a rate limit
 
 **Blockers encountered:**
-- TBD
+- None
 
 **Follow-up identified:**
-- TBD
+- Task 042 also edits `task-start`/`task-complete` and adds a changelog section; start it from `origin/main` after this PR merges to avoid conflicts
+- Open `cli/cli` bugs #14370 and #14322 mean `gh auth token` can return a different account's or stale keyring token; harmless for public read-only searches
 
 ## Files to Create / Modify
 

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-10-16
+
 ### Changed
 - **`smaqit.utils.triage-issues`' GitHub helper authenticates when a token is available** (skill
   v1.7.0). Precedence is `SMAQIT_GITHUB_TOKEN`, then (only for the default `api.github.com` base)

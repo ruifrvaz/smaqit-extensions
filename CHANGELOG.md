@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-10-16
+
+### Changed
+- **`smaqit.utils.triage-issues`' GitHub helper authenticates when a token is available** (skill
+  v1.7.0). Precedence is `SMAQIT_GITHUB_TOKEN`, then (only for the default `api.github.com` base)
+  `GH_TOKEN`, `GITHUB_TOKEN`, `gh auth token`. This raises the search limit from 10 to 30 requests per
+  minute, so a full five-repository run no longer exhausts it. Ambient credentials are never sent to an
+  overridden `SMAQIT_GITHUB_API_BASE`, and the token reaches curl through stdin, never the argument list.
+- **`smaqit.release-analysis` Task mode analyzes everything the task's PR will release** (v0.11.0):
+  `^<boundary-sha> <task-branch> origin/main`, not just `<boundary-sha>..<task-branch>`. PRs merged into
+  `main` after the task branch was created (e.g. interim PRs carrying part of the task's work) are now in
+  the `changes` list and named in a new `main_since_boundary` output. A merged release PR whose tag is not
+  yet present stops the analysis instead of being folded in. `smaqit.task-complete` (v0.14.0) describes
+  the range to match.
+
+### Fixed
+- **Rate-limited triage searches are no longer mistaken for empty results.** The helper exits with
+  status `3` and a `rate limited` diagnostic (HTTP 429, or 403 with `X-RateLimit-Remaining: 0` or
+  `Retry-After`) naming the reset time and whether the request was unauthenticated; the skill's Step 8
+  records it as a search warning and states that a non-zero exit never means an empty `items` list.
+- **The triage helper's output shape is documented.** Step 6 and the helper's usage text name the exact
+  keys (`incomplete_results`, `items[]` with `number`, `title`, `labels`, `html_url`, `state`,
+  `created_at`, `closed_at`); a consumer reading a non-existent `.issues` key had recorded real results as
+  empty.
+- **`smaqit.task-start` creates the task branch with `--no-track`** (v0.15.0). Branching from
+  `origin/main` had set it as the branch's upstream, so a bare `git push` from the task worktree targeted
+  `main`. The first push in `task-complete` still sets the same-named remote branch as upstream.
+
 ## [2.2.0] - 2026-10-11
 
 ### Changed

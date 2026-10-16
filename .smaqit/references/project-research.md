@@ -173,3 +173,23 @@ version: "1.0.0"
 
 | Tool | Section | URL |
 |------|---------|-----|
+
+## Task 043 — Triage Helper and Release-Analysis Fixes From a Consumer Session
+
+**Context fingerprint:** sha256:7b75ece3a92868cfa456f9f5f65fa0df9a92416568f87b5da9839c8dc3b86ada
+**Refreshed:** 2026-10-16
+
+| Tool | Section | URL |
+|------|---------|-----|
+| GitHub REST API | Search (issues) | https://docs.github.com/en/rest/search/search |
+| GitHub REST API | Rate limits | https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api |
+| GitHub REST API | Authenticating | https://docs.github.com/en/rest/authentication/authenticating-to-the-rest-api |
+| GitHub REST API | Troubleshooting (rate-limit errors) | https://docs.github.com/en/rest/using-the-rest-api/troubleshooting-the-rest-api |
+| GitHub CLI (gh) | gh auth token | https://cli.github.com/manual/gh_auth_token |
+| GitHub CLI (gh) | Environment (GH_TOKEN/GITHUB_TOKEN) | https://cli.github.com/manual/gh_help_environment |
+| Git | git-branch (--no-track) | https://git-scm.com/docs/git-branch |
+| Git | git-log (revision ranges) | https://git-scm.com/docs/git-log |
+| Git | gitrevisions | https://git-scm.com/docs/gitrevisions |
+| Git | git-worktree | https://git-scm.com/docs/git-worktree |
+| jq | Manual | https://jqlang.org/manual/ |
+| curl | Manual | https://curl.se/docs/manpage.html |

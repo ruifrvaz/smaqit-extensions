@@ -123,7 +123,7 @@ assert_contains "$RELEASE_PREPARE" 'leave `## [Unreleased]` as an empty header' 
 assert_contains "$RELEASE_APPROVAL" 'Pattern 4' "release-approval documents Task-mode auto-confirm"
 assert_contains "$RELEASE_APPROVAL" 'Claimed-version re-check' "release-approval documents the defense-in-depth collision re-check"
 
-assert_contains "$RELEASE_GIT_PR" 'skip Steps 1-3 entirely' "release-git-pr documents skipping staging, commit, and push for task-complete invocations"
+assert_contains "$RELEASE_GIT_PR" 'skip Steps 0-3 entirely' "release-git-pr documents skipping the preflight, staging, commit, and push for task-complete's title-verification invocation"
 assert_contains "$RELEASE_GIT_PR" 'PR-title verification only' "release-git-pr's task-complete role is narrowed to title enforcement"
 
 # The retired pending-entry design — an annotated bullet born on main and

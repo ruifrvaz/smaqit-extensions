@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-10-19
+
+### Added
+- **Release workflow preflight before a release PR or tag push.** `smaqit.release-git-pr` (v0.6.0) has a
+  new Step 0 that runs `git cat-file -e origin/main:.github/workflows/post-merge-release.yml`. If the
+  workflow is missing, it warns that merging will publish no tag and no GitHub Release, and names
+  `smaqit-extensions init`/`update` as the fix. Previously, a repository without the workflow merged a
+  correctly titled `Prepare release vX.Y.Z` PR and silently got nothing. It checks the committed object
+  on `main`, not the working tree, so a copy that exists only on disk or in a local commit doesn't pass.
+  - `smaqit.task-complete` (v0.15.0) runs it as Step 10a, before the first push. Assisted mode asks
+    whether to stop or continue; Autonomous mode stops instead of self-merging a release-less PR.
+  - The `smaqit.release.pr` agent (v0.6.0) can't prompt, so it continues but puts the warning at the top
+    of the PR description.
+  - `smaqit.release-git-local` (v0.4.0) checks `HEAD:` (the commit being tagged) as Step 3a, before the
+    tag is created.
+
+### Changed
+- **Subagents must run in the task worktree, not an isolated one.** `smaqit.task-start` (v0.15.1) Step 11
+  says so: an isolated worktree is checked out from the branch's last commit and can't see the
+  uncommitted Assisted-mode implementation. `smaqit.task-complete` Step 9 notes that work done in an
+  isolated worktree isn't committed from there.
+
 ## [2.3.0] - 2026-10-16
 
 ### Changed

@@ -181,7 +181,7 @@ On Codex, skills are discovered from the global `~/.agents/skills/` directory; i
 
 The installer writes skills and agents to global user-level paths (`~/.agents/skills/`, `~/.copilot/agents/`, `~/.claude/`, `~/.codex/agents/`). Running `smaqit-extensions init` scaffolds `.smaqit/` project tracking and `.github/workflows/post-merge-release.yml` in a repository.
 
-`smaqit.release.pr` and `smaqit.release.local` depend on `.github/workflows/post-merge-release.yml` for the tag-and-release step after a release commit or PR merge; `init`/`update` deploy it automatically (create-if-absent), so it is present in any project that has run `smaqit-extensions init`.
+`smaqit.release.pr` and `smaqit.release.local` depend on `.github/workflows/post-merge-release.yml` for the tag-and-release step after a release commit or PR merge; `init`/`update` deploy it automatically (create-if-absent), so it is present in any project that has run `smaqit-extensions init`. A repository that never did would merge release PRs with no tag or Release, so `smaqit.task-complete`, `smaqit.release-git-pr` and `smaqit.release-git-local` check for the committed file before opening a release PR or pushing a tag, and warn if it is missing.
 
 ## Development
 

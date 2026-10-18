@@ -1,6 +1,8 @@
 ---
-status: Not Started
+status: In Progress
+mode: Assisted
 created: "2026-10-19"
+started: "2026-10-19"
 ---
 
 # smaqit.project-init: Description Overlaps With smaqit.project-new

@@ -6,7 +6,7 @@ Central task tracking and planning for smaqit-extensions.
 
 | ID | Title | Status | Created |
 |----|-------|--------|---------|
-| 044 | smaqit.project-init: Description Overlaps With smaqit.project-new | Not Started | 2026-10-19 |
+| 044 | smaqit.project-init: Description Overlaps With smaqit.project-new | In Progress | 2026-10-19 |
 | 028 | Benchmark Glossary Skill Invocation | Not Started | 2026-08-14 |
 
 ## Completed Tasks

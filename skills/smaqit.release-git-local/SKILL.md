@@ -2,7 +2,7 @@
 name: smaqit.release-git-local
 description: Execute git operations (commit, tag, push) for local releases
 metadata:
-  version: "0.3.1"
+  version: "0.4.0"
 ---
 
 # Release Git Local
@@ -145,6 +145,20 @@ git commit -m "Release vX.Y.Z"
 ```bash
 git --no-pager log -1 --oneline
 ```
+
+### Step 3a: Release Workflow Preflight
+
+The tag push in Step 6 only produces a GitHub Release if `.github/workflows/post-merge-release.yml` handles it. GitHub runs a tag push's workflows from the tagged commit, so check the release commit you're about to tag, as a git object rather than a file on disk:
+
+```bash
+git cat-file -e HEAD:.github/workflows/post-merge-release.yml
+```
+
+If this exits non-zero, warn before tagging. Pushing a tag can't be cleanly undone, while the release commit is still local:
+
+> `.github/workflows/post-merge-release.yml` is not in the commit being tagged. Pushing tag `vX.Y.Z` will publish no GitHub Release. Run `smaqit-extensions init` (or `update`) to install the workflow and commit it, then continue.
+
+Ask whether to stop or continue. Continuing is reasonable when the project publishes releases some other way. In auto-confirm mode, stop and report instead. This is the same check `smaqit.release-git-pr` runs as its Step 0, against `origin/main` because a PR release fires from the merge into `main`.
 
 ### Step 4: Create Annotated Tag
 
@@ -296,7 +310,7 @@ git tag -d vX.Y.Z  # Delete local tag
 - **Commits should be grouped logically, not dumped together** - each commit tells a story
 - Release preparation (CHANGELOG + version) should be its own separate commit
 - Both commit and tag must be pushed for release to be complete
-- Tag push triggers `.github/workflows/post-merge-release.yml` (installed by `smaqit-extensions install --scope project` / `update`, create-if-absent), which publishes the GitHub Release; a project may have added its own build/artifact steps to that workflow
+- Tag push triggers `.github/workflows/post-merge-release.yml`, which publishes the GitHub Release, but only if the tagged commit contains it (Step 3a checks). `smaqit-extensions init`/`update` install it create-if-absent; a project may have added its own build/artifact steps to that workflow
 - Never force push (`-f`) release commits or tags
 - If any step fails, stop immediately and report the error - do not continue beyond the single scoped desktop Linux SSH retry described above
 - Good commit hygiene makes git history useful for understanding project evolution

@@ -2,7 +2,7 @@
 name: smaqit.task-complete
 description: Complete a task by opening a PR for owner-task code review (Phase 1), or by verifying that PR merged and cleaning up (Phase 2, re-entrant). Verifies acceptance criteria, records state in PLANNING.md, and refreshes the worktree workspace. A task's PR is also its release.
 metadata:
-  version: "0.14.0"
+  version: "0.15.0"
 ---
 
 # Task Complete
@@ -78,8 +78,13 @@ Every `smaqit-extensions` session works against a single machine-local clone —
      git -C "<worktree>" commit -m "feat: implement task NNN — <summary>"
      ```
      Skip silently if there's nothing to commit (e.g., re-running after a partial prior completion).
+   - Only the registered task worktree counts. Work a subagent did in an isolated worktree of its own (one checked out from the branch's last commit rather than the task worktree itself) is not here and is not committed by this step. Bring it into the task worktree before continuing. `task-start`'s Step 11 covers delegating to subagents in the first place.
 
 10. **Compute this task's release version.** Invoke `smaqit.release-analysis` in **Task mode**, passing the resolver's `branch` as `<task-branch>` — it fetches `origin/main` fresh, computes severity/version from everything the merged PR will release (the task branch plus any `origin/main` commits since the boundary that the branch doesn't have yet, reported as `main_since_boundary`), and skips any version another open release PR has already claimed. Then invoke `smaqit.release-approval` using its Pattern 4 (auto-confirm on the Task-mode suggestion — no interactive version prompt; the human approval point for a task's release is the PR review itself, not a separate version confirmation). Store the approved version as `vX.Y.Z`.
+
+10a. **Release workflow preflight.** Run `smaqit.release-git-pr`'s Step 0 before anything is pushed. It checks `git cat-file -e origin/main:.github/workflows/post-merge-release.yml` (Step 10 already fetched `origin/main`), the git object rather than the worktree, because the workflow has to be on the branch the PR merges into. If the file is missing, a merged `Prepare release vX.Y.Z` PR publishes no tag and no GitHub Release. Show Step 0's warning, which names `smaqit-extensions init`/`update` as the fix, then:
+   - **Assisted mode:** ask whether to stop or continue. On stop, the task stays `In Progress` with nothing pushed.
+   - **Autonomous mode:** stop and report. Step 14 would otherwise self-merge with no reviewer to see the warning, which is exactly the silent release-less merge this check exists to prevent.
 
 11. **Push the branch and create the PR.** The PR title is this task's version claim — `release-analysis` reads open release-PR titles to keep concurrent tasks from choosing the same version — so the PR must exist before the branch receives its changelog commit.
     ```bash
@@ -90,7 +95,7 @@ Every `smaqit-extensions` session works against a single machine-local clone —
     ```
     - The `Prepare release vX.Y.Z` title is **mandatory** — `post-merge-release.yml` matches on it and silently skips every job if it does not match.
     - Capture the PR number from `gh pr create`'s output URL (or `gh pr view --json number -q .number`) as `<PR#>`.
-    - Then invoke `smaqit.release-git-pr` for its title-verification step only (its Step 4). It no longer stages or commits `CHANGELOG.md` — see that skill's "Invocation from `smaqit.task-complete`" section — so its Steps 1-2 are skipped; only the title enforcement and PR-description documentation apply.
+    - Then invoke `smaqit.release-git-pr` for its title-verification step only (its Step 4). It no longer stages or commits `CHANGELOG.md` — see that skill's "Invocation from `smaqit.task-complete`" section — so its Steps 0-3 are skipped (Step 0 already ran as Step 10a); only the title enforcement and PR-description documentation apply.
 
 12. **Write this task's versioned `CHANGELOG.md` section on the branch**, in the registered task worktree — never on the primary checkout, never on `main`. Apply `smaqit.release-prepare-files`' Task-Release Mode operation with the approved `vX.Y.Z` and `release-analysis`'s `changes` list: it folds whatever bullets the implementer already left under `[Unreleased]` together with that list into a new `## [X.Y.Z] - YYYY-MM-DD` section directly below `## [Unreleased]`, and leaves `[Unreleased]` as an empty header. An implementer's own `[Unreleased]` bullets are input here, not a conflict — there is no second writer to collide with.
 

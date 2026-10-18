@@ -62,6 +62,7 @@ Outputs:
 ### 4. Use `smaqit.release-git-pr` skill
 
 Executes PR operations:
+- Runs its release workflow preflight (Step 0) first: checks that `.github/workflows/post-merge-release.yml` is on `origin/main`. This agent can't prompt, so if the file is missing it continues but puts the warning at the top of the PR description and reports `post_merge_automation: false`
 - Stages changes (CHANGELOG.md and any version files)
 - Creates commit: `"Prepare release vX.Y.Z"`
 - Pushes via {{PR_PUSH_METHOD}}
@@ -96,20 +97,21 @@ gh pr edit --title "Prepare release vX.Y.Z"
 
 ### Automated Post-Merge Workflow
 
-`smaqit-extensions install --scope project`/`update` deploy `.github/workflows/post-merge-release.yml` automatically (create-if-absent, never overwriting a project-customized copy). When a PR with title matching "Prepare release vX.Y.Z" or "Release vX.Y.Z" is merged to `main`, it automatically:
+`smaqit-extensions init`/`update` deploy `.github/workflows/post-merge-release.yml` (create-if-absent, never overwriting a project-customized copy), but a repository that never ran either won't have it. `smaqit.release-git-pr`'s Step 0 checks for it on `origin/main` rather than assuming it. When the workflow is present and a PR with title matching "Prepare release vX.Y.Z" or "Release vX.Y.Z" is merged to `main`, it automatically:
 
 1. Creates and pushes git tag `vX.Y.Z`
 2. Creates a GitHub Release with the matching CHANGELOG.md section as its notes
 
 The installed workflow ships with no build step. If the project builds and publishes artifacts (binaries, packages, etc.) as part of its release, that project has added those steps to its own copy of the workflow — check `.github/workflows/post-merge-release.yml` directly rather than assuming what it does.
 
-**No manual intervention required for the tag/release steps.**
+**No manual intervention required for the tag/release steps** once the workflow is on `main`.
 
 ## Completion Criteria
 
 Before declaring success, verify:
 
 - [ ] All 4 skills executed successfully
+- [ ] Release workflow preflight ran; if `post-merge-release.yml` is missing from `origin/main`, the warning heads the PR description
 - [ ] CHANGELOG.md updated with approved version
 - [ ] Version files synced (if applicable)
 - [ ] Commit created with "Prepare release vX.Y.Z" message

@@ -1,8 +1,8 @@
 ---
 name: smaqit.project-init
-description: Bootstrap or refresh a smaqit project by inferentially synchronizing Codex, Claude Code, and GitHub Copilot project instructions around a canonical root AGENTS.md, then creating the base project directories (docs/, assets/, assets/raw/). Use when the user asks to start, initialize, reinitialize, or refresh a smaqit project.
+description: Bootstrap or refresh a smaqit project's instruction files by synchronizing Codex, Claude Code, and GitHub Copilot instructions around a canonical root AGENTS.md, then create the base directories (docs/, assets/, assets/raw/). Use when the user asks to initialize, reinitialize, or refresh a project's instructions. Not for building and shipping a new project.
 metadata:
-  version: "0.7.0"
+  version: "0.7.1"
 ---
 
 # Project Init

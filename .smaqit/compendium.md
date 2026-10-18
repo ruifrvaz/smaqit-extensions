@@ -324,3 +324,13 @@ New tasks declare a compact `## Issue Triage Context` with the triage mode, tech
 GitHub access is likewise projected before model inspection: `github-issues.sh` limits each open or closed search to ten issues, excludes pull requests, retains only decision-relevant metadata, and caps at most three corroborating detail excerpts to 1,500 characters each. The workflow retains the Blocking, Advisory, Historical, and Clear decisions, with warnings preventing a false Clear result. Legacy task prose remains a warned migration fallback until the task is re-planned.
 
 ---
+
+## Skill Authoring
+
+**How should a skill's `description` be written in `SKILL.md` frontmatter?**
+
+As a single unquoted YAML scalar, the convention most skills in `skills/` follow. An unquoted value cannot contain a colon followed by a space (`: `). YAML reads that as a new mapping key and the frontmatter fails to parse with "mapping values are not allowed here", which can stop a platform from loading the skill at all. When wording would need `: `, rephrase it (e.g. "instruction files by synchronizing …" rather than "instruction files: synchronize …") instead of quoting the value. Apostrophes are fine unquoted. `scripts/generate-targets.py` copies `SKILL.md` files as-is without parsing their frontmatter, so the build does not catch a broken description; check it with `python3 -c "import yaml; yaml.safe_load(open('<path>').read().split('---')[1])"` before committing. Keep descriptions within 400 characters.
+
+Descriptions do not name other skills. When two skills could match the same request, each description narrows its own scope in generic terms (e.g. `smaqit.project-init` ends "Not for building and shipping a new project") rather than cross-referencing the other skill by name, so descriptions stay independent of each other.
+
+---

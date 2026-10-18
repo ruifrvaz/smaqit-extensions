@@ -212,3 +212,15 @@ version: "1.0.0"
 | Git | git-sparse-checkout | https://git-scm.com/docs/git-sparse-checkout |
 | Claude Code | Subagents | https://code.claude.com/docs/en/sub-agents |
 | Claude Code | Common workflows (git worktrees) | https://code.claude.com/docs/en/common-workflows |
+
+## Task 044 — smaqit.project-init: Description Overlaps With smaqit.project-new
+
+**Context fingerprint:** sha256:359039e8a5d98a334d3f750fdebe8e104f398c19cd9c0d27e1b3ad2e9ec8a9b4
+**Refreshed:** 2026-10-19
+
+| Tool | Section | URL |
+|------|---------|-----|
+| Claude Code | Skills (description, listing) | https://code.claude.com/docs/en/skills |
+| Agent Skills | Specification (description field) | https://agentskills.io/specification |
+| GitHub Copilot | Agent skills | https://docs.github.com/en/copilot/concepts/agents/about-agent-skills |
+| Codex | Skills | https://learn.chatgpt.com/docs/build-skills |

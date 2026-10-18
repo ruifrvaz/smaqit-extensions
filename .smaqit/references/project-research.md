@@ -4,7 +4,7 @@ version: "1.0.0"
 
 # Project Research Map
 **Project:** smaqit-extensions
-**Refreshed:** 2026-10-11
+**Refreshed:** 2026-10-18
 **Active task:** None
 
 | Tool | Section | URL |
@@ -193,3 +193,22 @@ version: "1.0.0"
 | Git | git-worktree | https://git-scm.com/docs/git-worktree |
 | jq | Manual | https://jqlang.org/manual/ |
 | curl | Manual | https://curl.se/docs/manpage.html |
+
+## Task 042 — Release Chain: Preflight post-merge-release.yml and Warn on Isolated Subagent Worktrees
+
+**Context fingerprint:** sha256:776936fc083cc7afe1ad1ec31cd82c1a946238ac893aed1e1b04aad38db33264
+**Refreshed:** 2026-10-18
+
+| Tool | Section | URL |
+|------|---------|-----|
+| GitHub Actions | Workflow triggers (pull_request closed / push tags) | https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows |
+| GitHub Actions | Workflow syntax | https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax |
+| GitHub Actions | Triggering a workflow from a workflow (GITHUB_TOKEN) | https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow |
+| GitHub CLI (gh) | gh pr create | https://cli.github.com/manual/gh_pr_create |
+| GitHub CLI (gh) | gh pr view | https://cli.github.com/manual/gh_pr_view |
+| Git | git-cat-file (-e) | https://git-scm.com/docs/git-cat-file |
+| Git | gitrevisions (`<rev>:<path>`) | https://git-scm.com/docs/gitrevisions |
+| Git | git-worktree | https://git-scm.com/docs/git-worktree |
+| Git | git-sparse-checkout | https://git-scm.com/docs/git-sparse-checkout |
+| Claude Code | Subagents | https://code.claude.com/docs/en/sub-agents |
+| Claude Code | Common workflows (git worktrees) | https://code.claude.com/docs/en/common-workflows |

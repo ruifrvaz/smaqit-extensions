@@ -1,6 +1,8 @@
 ---
-status: Not Started
+status: In Progress
+mode: Assisted
 created: "2026-10-11"
+started: "2026-10-18"
 ---
 
 # Release Chain: Preflight post-merge-release.yml and Warn on Isolated Subagent Worktrees
@@ -77,8 +79,22 @@ smaqit-side half, guidance in the `smaqit-deployment` agent, stays in smaqit tas
 6. `CHANGELOG.md` entry and a `Prepare release vX.Y.Z` PR.
 
 ## Known Issues Triage
+**Triaged:** 2026-10-18
+**Tools searched:** GitHub Actions (`actions/starter-workflows`), GitHub CLI (`cli/cli`), Git (`git/git`)
+**Result:** Advisory
 
-[Populated by smaqit.task-start via smaqit.utils.triage-issues. Do not edit manually.]
+### Advisory Issues
+- [#8362 `gh pr merge` "delete local branch" deletes the wrong branch](https://github.com/cli/cli/issues/8362) — `cli/cli` — opened 2023-11-21 — bug, priority-2, gh-pr
+- [#12144 Make `gh pr create` output capable of being piped to other commands](https://github.com/cli/cli/issues/12144) — `cli/cli` — opened 2025-11-13 — enhancement, gh-pr, stale
+
+### Historical (Closed)
+- [#14242 gh pr create fails with "Repository was archived so is read-only (createPullRequest)" for a non-archived repository](https://github.com/cli/cli/issues/14242) — `cli/cli` — closed 2026-08-27
+- [#7590 gh pr view and gh pr status still not detecting ongoing PR branch](https://github.com/cli/cli/issues/7590) — `cli/cli` — closed 2026-07-09
+
+### Search Warnings
+- `git/git` open and closed searches — repository has GitHub issues disabled (mailing-list project); zero results are not evidence of no known issues
+- `actions/starter-workflows` was the helper's resolution for GitHub Actions; it holds workflow templates, not the Actions runtime, so its empty results say little about trigger behavior
+- Research map task block carries documentation URLs only, no GitHub repository URLs; all three repositories were resolved through the helper fallback
 
 ## Acceptance Criteria
 

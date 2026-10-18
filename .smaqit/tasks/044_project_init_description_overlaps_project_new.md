@@ -1,6 +1,7 @@
 ---
-status: In Progress
+status: PR Open
 mode: Assisted
+pr: 144
 created: "2026-10-19"
 started: "2026-10-19"
 ---
@@ -70,27 +71,29 @@ Current description (325 characters):
 
 ## Acceptance Criteria
 
-- [ ] `smaqit.project-init`'s description no longer lists "start" as a trigger. It names instruction
+- [x] `smaqit.project-init`'s description no longer lists "start" as a trigger. It names instruction
       files as its scope and points to `smaqit.project-new` for the full pipeline.
-- [ ] The description is at most 400 characters; the skill's behavior is unchanged
-- [ ] No other trigger wording in the skill overlaps with `smaqit.project-new`
-- [ ] CHANGELOG updated; released
+      (Amended by the owner: it excludes building and shipping a new project without naming
+      `smaqit.project-new`.)
+- [x] The description is at most 400 characters; the skill's behavior is unchanged
+- [x] No other trigger wording in the skill overlaps with `smaqit.project-new`
+- [x] CHANGELOG updated; released
 
 ## Findings
 
-[Populated by smaqit.task-complete. Do not fill in manually before task is complete.]
-
 **Implementation approach:**
-- TBD
+- Rewrote only the `description` frontmatter of `smaqit.project-init` (v0.7.0 → v0.7.1), dropping "start" from its triggers and scoping it to instruction files; the skill body is untouched.
+- Grepped the skill body, references, README and every other source file for "start"/"new project" wording or a copy of the old description; none existed outside the frontmatter line.
 
 **Decisions made:**
-- TBD
+- Kept the description an unquoted YAML scalar: the proposed `instruction files: synchronize` wording put `: ` inside the value, which fails to parse unquoted, so it was reworded to `instruction files by synchronizing` instead of quoting it.
+- The owner removed the proposed "(smaqit.project-new)" name from the closing clause to avoid cross-references between skill descriptions; it now reads "Not for building and shipping a new project" (359 characters). The changelog bullet was aligned to match.
 
 **Blockers encountered:**
-- TBD
+- None
 
 **Follow-up identified:**
-- TBD
+- None
 
 ## Files to Create / Modify
 

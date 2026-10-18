@@ -1,9 +1,9 @@
 ---
-status: PR Open
+status: Completed
 mode: Assisted
-pr: 144
 created: "2026-10-19"
 started: "2026-10-19"
+completed: "2026-10-19"
 ---
 
 # smaqit.project-init: Description Overlaps With smaqit.project-new

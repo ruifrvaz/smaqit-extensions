@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.1] - 2026-10-19
+
 ### Changed
 - **`smaqit.project-init` no longer competes with `smaqit.project-new` for "start a project" requests.**
   smaqit v3.18.0 renamed its full-pipeline skill to `smaqit.project-new`, which put it in the same

@@ -6,7 +6,7 @@ Central task tracking and planning for smaqit-extensions.
 
 | ID | Title | Status | Created |
 |----|-------|--------|---------|
-| 042 | Release Chain: Preflight post-merge-release.yml and Warn on Isolated Subagent Worktrees | In Progress | 2026-10-11 |
+| 042 | Release Chain: Preflight post-merge-release.yml and Warn on Isolated Subagent Worktrees | PR Open | 2026-10-11 |
 | 028 | Benchmark Glossary Skill Invocation | Not Started | 2026-08-14 |
 
 ## Completed Tasks

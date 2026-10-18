@@ -1,8 +1,9 @@
 ---
-status: In Progress
+status: PR Open
 mode: Assisted
 created: "2026-10-11"
 started: "2026-10-18"
+pr: 143
 ---
 
 # Release Chain: Preflight post-merge-release.yml and Warn on Isolated Subagent Worktrees
@@ -55,8 +56,10 @@ smaqit-side half, guidance in the `smaqit-deployment` agent, stays in smaqit tas
 - **One shared check:** the same existence check serves `task-complete` and `release-git-pr`
   (and the release-pr agent that calls it), so the wording and the path stay in one place.
 - **Check the git object, not the filesystem:** the workflow must exist on the base branch the
-  release PR merges into, and a task worktree's sparse checkout can hide `.github/workflows`
-  (task 019), so a filesystem check could give a false warning.
+  release PR merges into (or, for a local release, in the commit being tagged). A file present
+  on disk but uncommitted, or committed only locally, would pass a filesystem check and still
+  never run. (Corrected 2026-10-18: the original rationale said a task worktree's sparse
+  checkout can hide `.github/workflows`; `5_create_worktrees.sh` explicitly keeps it.)
 - **The worktree caveat is guidance, not mechanism:** `task-start`/`task-complete` state that a
   subagent delegated during Assisted-mode implementation must run in the task worktree, not an
   isolated one. No change to the uncommitted-until-complete rule.
@@ -98,30 +101,37 @@ smaqit-side half, guidance in the `smaqit-deployment` agent, stays in smaqit tas
 
 ## Acceptance Criteria
 
-- [ ] `task-complete` and `release-git-pr` detect a missing `.github/workflows/post-merge-release.yml`
+- [x] `task-complete` and `release-git-pr` detect a missing `.github/workflows/post-merge-release.yml`
       and warn before a `Prepare release` PR is opened, naming `smaqit-extensions init`/`update`
       as the fix.
-- [ ] No release skill or agent states the workflow's presence as a given without the check.
-- [ ] `task-start` and `task-complete` state that subagents delegated during Assisted-mode
+- [x] No release skill or agent states the workflow's presence as a given without the check.
+- [x] `task-start` and `task-complete` state that subagents delegated during Assisted-mode
       implementation must run in the task worktree, because an isolated worktree sees only
       committed state.
-- [ ] `make sync` and the repository's tests pass; `CHANGELOG.md` is updated.
+- [x] `make sync` and the repository's tests pass; `CHANGELOG.md` is updated.
 
 ## Findings
 
-[Populated by smaqit.task-complete. Do not fill in manually before task is complete.]
-
 **Implementation approach:**
-- TBD
+- The shared check is `release-git-pr`'s new Step 0, `git cat-file -e origin/main:.github/workflows/post-merge-release.yml`. `task-complete` runs it as Step 10a, between version computation and the first push, because it only calls `release-git-pr` after the PR exists.
+- `release-git-local` got its own Step 3a against `HEAD:`, since a tag push runs the workflow from the tagged commit. It sits before tagging because a pushed tag can't be cleanly undone.
+- New steps use `10a`/`0`/`3a` numbering so existing cross-references to later step numbers stay valid.
+- The isolated-subagent caveat is guidance in `task-start` Step 11, plus a note in `task-complete` Step 9 that work in an isolated worktree isn't committed from there.
+- New hermetic suite `tests/skills/test-release-workflow-preflight.sh` (wired into `make test`): fixture repos prove the object check fails for an uncommitted or local-only file and passes from a sparse task worktree with no `.github/` on disk, plus contract and step-order assertions.
 
 **Decisions made:**
-- TBD
+- Assisted runs ask whether to stop or continue; Autonomous `task-complete` stops, because its self-merge would leave nobody to see the warning.
+- The release-pr agent can't prompt, so it continues but puts the warning at the top of the PR description and reports `post_merge_automation: false`.
+- A failed `git fetch` is reported as unknown, never as a missing workflow.
+- The task's original rationale (sparse checkout hiding `.github/workflows`) was outdated, since `5_create_worktrees.sh` keeps that path. Checking the git object is still right because the file must be on the merge base, not just on disk.
+- The README's install section now states that the release skills check for the file.
 
 **Blockers encountered:**
-- TBD
+- None. One existing assertion (`skip Steps 1-3 entirely` in `test-release-analysis-claimed-versions.sh`) needed updating to the new `Steps 0-3` wording.
 
 **Follow-up identified:**
-- TBD
+- This task's own completion ran on the globally installed v2.3.0 skills, so Step 10a first runs for real on the next task after `smaqit-extensions update`.
+- The smaqit-side half (guidance in the `smaqit-deployment` agent) stays in smaqit task 114.
 
 ## Files to Create / Modify
 

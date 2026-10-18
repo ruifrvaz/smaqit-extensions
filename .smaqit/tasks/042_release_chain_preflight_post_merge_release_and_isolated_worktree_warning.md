@@ -1,9 +1,9 @@
 ---
-status: PR Open
+status: Completed
 mode: Assisted
 created: "2026-10-11"
 started: "2026-10-18"
-pr: 143
+completed: "2026-10-19"
 ---
 
 # Release Chain: Preflight post-merge-release.yml and Warn on Isolated Subagent Worktrees
